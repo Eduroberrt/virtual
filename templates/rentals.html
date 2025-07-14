@@ -1,0 +1,374 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Rentals - WDN{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">Long-term rentals</h1>
+                    <p class="text-muted mb-0">Time is in <span id="timezone">UTC</span> time zone.</p>
+                </div>
+            </div>
+
+            <!-- Phone Filter -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <form class="d-flex">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="text" class="form-control" name="phone" placeholder="Phone filter" value="">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rentals Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Service</th>
+                                    <th>Phone</th>
+                                    <th>Price/day</th>
+                                    <th>Created at</th>
+                                    <th>Paid until</th>
+                                    <th>Auto renew</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if rentals %}
+                                    {% for rental in rentals %}
+                                    <tr>
+                                        <td>{{ rental.id }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ rental.service.icon_url }}" alt="{{ rental.service.name }}" class="me-2" style="width: 24px; height: 24px;">
+                                                <span class="fw-medium">{{ rental.service.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ rental.phone }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium">${{ rental.daily_price|floatformat:2 }}</span>
+                                        </td>
+                                        <td>
+                                            <span data-timestamp="{{ rental.created_at|date:'U' }}">
+                                                {{ rental.created_at|date:"M j, Y H:i" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span data-timestamp="{{ rental.paid_until|date:'U' }}" 
+                                                  class="{% if rental.is_expired %}text-danger{% else %}text-success{% endif %}">
+                                                {{ rental.paid_until|date:"M j, Y H:i" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input auto_renew" 
+                                                       type="checkbox" 
+                                                       data-id="{{ rental.id }}"
+                                                       {% if rental.auto_renew %}checked{% endif %}>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if rental.is_expired %}
+                                                    <button class="btn btn-sm btn-outline-primary recover" 
+                                                            data-id="{{ rental.id }}"
+                                                            data-daily-price="{{ rental.daily_price }}"
+                                                            data-paid-until="{{ rental.paid_until|date:'U' }}">
+                                                        <i class="fas fa-undo me-1"></i>Recover
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-outline-danger cancel" 
+                                                            data-id="{{ rental.id }}">
+                                                        <i class="fas fa-times me-1"></i>Cancel
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="fas fa-mobile-alt fa-3x mb-3 text-muted"></i>
+                                                <h5 class="mb-2">No rentals yet</h5>
+                                                <p class="text-muted mb-3">You haven't rented any numbers for long-term use.</p>
+                                                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                                    <i class="fas fa-plus me-2"></i>Get Number
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if rentals.has_other_pages %}
+            <nav aria-label="Rentals pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if rentals.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ rentals.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in rentals.paginator.page_range %}
+                        {% if rentals.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if rentals.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ rentals.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+    
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-exclamation-circle text-danger me-2"></i>
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set timezone
+    document.getElementById('timezone').innerText = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Format timestamps
+    document.querySelectorAll('[data-timestamp]').forEach((el) => {
+        const date = new Date(Number(el.dataset.timestamp) * 1000);
+        el.innerHTML = date.toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            timeZoneName: 'short'
+        });
+    });        // Auto renew toggle
+        document.querySelectorAll('.auto_renew').forEach(box => {
+            box.addEventListener('change', async () => {
+                try {
+                    const response = await fetch('/api/auto-renew/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            id: box.dataset.id,
+                            checked: box.checked,
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('success', 'Auto-renewal setting saved successfully');
+                    } else {
+                        throw new Error(data.error || 'Failed to save setting');
+                    }
+                } catch (error) {
+                    showToast('error', error.message || 'Failed to save auto-renewal setting');
+                    // Revert checkbox state
+                    box.checked = !box.checked;
+                }
+            });
+        });        // Cancel rental
+        document.querySelectorAll('.cancel').forEach(link => {
+            link.addEventListener('click', () => {
+                showConfirmModal(
+                    'Cancel Rental',
+                    'Do you want to cancel this rental and return the daily price to your balance?',
+                    async () => {
+                        try {
+                            const response = await fetch('/api/cancel/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({
+                                    id: link.dataset.id
+                                })
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                // Remove the row from table
+                                const row = link.closest('tr');
+                                row.remove();
+                                
+                                showToast('success', `Rental cancelled successfully. Refunded $${data.refund_amount}`);
+                            } else {
+                                throw new Error(data.error || 'Failed to cancel rental');
+                            }
+                        } catch (error) {
+                            showToast('error', error.message || 'Failed to cancel rental');
+                        }
+                    }
+                );
+            });
+        });
+
+    // Recover rental
+    document.querySelectorAll('.recover').forEach(link => {
+        link.addEventListener('click', () => {
+            const {id, dailyPrice, paidUntil} = link.dataset;
+            const days = Math.ceil((Date.now() / 1000 - paidUntil) / 86400);
+            const price = (dailyPrice * days / 100).toFixed(2);
+            
+            showConfirmModal(
+                'Recover Rental',
+                `Do you want to recover this rental?<br>You will need to pay $${price} for ${days} unpaid day(s).`,
+                async () => {
+                    try {
+                        const { data } = await axios.post('/dashboard/recover_ltr', { id });
+                        if (data.error) {
+                            showToast('error', data.error);
+                            return;
+                        }
+                        
+                        showToast('success', 'Rental recovered successfully');
+                        // Refresh the page to show updated data
+                        setTimeout(() => window.location.reload(), 1000);
+                    } catch (error) {
+                        showToast('error', 'Failed to recover rental');
+                    }
+                }
+            );
+        });
+    });
+
+    // Update active nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.textContent.trim() === 'Rentals') {
+            link.classList.add('active');
+        }
+    });
+});
+
+// Toast notification function
+function showToast(type, message) {
+    const toastEl = document.getElementById(type + 'Toast');
+    const toastBody = toastEl.querySelector('.toast-body');
+    toastBody.textContent = message;
+    
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+}
+
+// Confirmation modal function
+function showConfirmModal(title, message, callback) {
+    const modal = document.getElementById('confirmModal');
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalBody = modal.querySelector('.modal-body');
+    const confirmButton = modal.querySelector('#confirmButton');
+    
+    modalTitle.textContent = title;
+    modalBody.innerHTML = message;
+    
+    // Remove previous event listeners
+    const newConfirmButton = confirmButton.cloneNode(true);
+    confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+    
+    // Add new event listener
+    newConfirmButton.addEventListener('click', () => {
+        callback();
+        bootstrap.Modal.getInstance(modal).hide();
+    });
+    
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+}
+</script>
+{% endblock %}

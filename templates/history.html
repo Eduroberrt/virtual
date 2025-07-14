@@ -1,0 +1,467 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}Rental History - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">Rental history</h1>
+                    <p class="text-muted mb-0">The table below displays your previous successful rentals.</p>
+                    <small class="text-muted">Time is in America/Los_Angeles time zone. The last 365 days are shown.</small>
+                </div>
+                <div>
+                    <a href="/dashboard/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="serviceFilter" class="form-label">Service</label>
+                            <select class="form-select" id="serviceFilter">
+                                <option value="">All Services</option>
+                                {% for service in services %}
+                                <option value="{{ service.name }}">{{ service.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="RECEIVED">Completed</option>
+                                <option value="CANCELLED">Cancelled</option>
+                                <option value="EXPIRED">Expired</option>
+                                <option value="WAITING">Waiting</option>
+                                <option value="DONE">Done</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="dateFrom">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="dateTo">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                <i class="fas fa-search me-2"></i>Apply Filters
+                            </button>
+                            <button class="btn btn-outline-secondary ms-2" onclick="clearFilters()">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Service</th>
+                                    <th>Phone</th>
+                                    <th>Price</th>
+                                    <th>Code</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border text-primary me-3" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <span class="text-muted">Loading rental history...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="History pagination" class="mt-4">
+                <ul class="pagination justify-content-center" id="paginationControls">
+                    <!-- Pagination will be populated by JavaScript -->
+                </ul>
+            </nav>
+
+            <!-- Statistics -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Total Rentals</h5>
+                            <h3 class="card-text" id="totalRentals">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">Successful</h5>
+                            <h3 class="card-text" id="successfulRentals">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">Cancelled</h5>
+                            <h3 class="card-text" id="cancelledRentals">-</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">Total Spent</h5>
+                            <h3 class="card-text" id="totalSpent">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let allRentals = [];
+let filteredRentals = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date range (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+    document.getElementById('dateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    // Load rental history
+    loadRentalHistory();
+});
+
+async function loadRentalHistory() {
+    try {
+        // Build query parameters
+        const params = new URLSearchParams({
+            page: currentPage,
+            limit: 20
+        });
+        
+        // Add filters if they exist
+        const serviceFilter = document.getElementById('serviceFilter').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        
+        if (serviceFilter) params.append('service', serviceFilter);
+        if (statusFilter) params.append('status', statusFilter);
+        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateTo) params.append('date_to', dateTo);
+        
+        const response = await fetch(`/api/rental-history/?${params}`);
+        const data = await response.json();
+        
+        if (data.success && data.rentals) {
+            allRentals = data.rentals;
+            filteredRentals = data.rentals;
+            totalPages = data.total_pages;
+            
+            renderHistoryTable();
+            renderPagination();
+            updateStatisticsFromAPI(data.statistics);
+        } else {
+            showEmptyState();
+        }
+    } catch (error) {
+        console.error('Error loading rental history:', error);
+        showErrorState();
+    }
+}
+
+function applyFilters() {
+    currentPage = 1;
+    loadRentalHistory(); // Reload with filters
+}
+
+function clearFilters() {
+    document.getElementById('serviceFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    
+    // Reset to last 30 days
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+    document.getElementById('dateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+    
+    applyFilters();
+}
+
+function renderHistoryTable() {
+    const tbody = document.getElementById('historyTableBody');
+    
+    if (filteredRentals.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-history fa-3x mb-3"></i>
+                        <h5>No rental history found</h5>
+                        <p>Try adjusting your filters or check back later.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = filteredRentals.map(rental => {
+        const date = new Date(rental.created_at);
+        const formattedDate = formatDateToLA(date);
+        const priceNaira = parseFloat(rental.price_naira.replace(/,/g, ''));
+        
+        // Determine status display
+        let status = rental.status;
+        let statusClass = 'secondary';
+        
+        switch(rental.status) {
+            case 'RECEIVED':
+                status = 'Completed';
+                statusClass = 'success';
+                break;
+            case 'CANCELLED':
+                status = 'Cancelled';
+                statusClass = 'warning';
+                break;
+            case 'EXPIRED':
+                status = 'Expired';
+                statusClass = 'danger';
+                break;
+            case 'WAITING':
+                status = 'Waiting';
+                statusClass = 'info';
+                break;
+            case 'DONE':
+                status = 'Done';
+                statusClass = 'success';
+                break;
+        }
+        
+        return `
+            <tr>
+                <td>
+                    <span class="font-monospace">${rental.rental_id.slice(-6)}</span>
+                </td>
+                <td>
+                    <span class="fw-medium">${rental.service_name}</span>
+                </td>
+                <td>
+                    <span class="font-monospace">${rental.phone_number}</span>
+                    <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.phone_number}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </td>
+                <td>
+                    <span class="fw-medium">₦${formatCurrency(priceNaira)}</span>
+                </td>
+                <td>
+                    ${rental.code ? `
+                        <span class="fw-medium">${rental.code}</span>
+                        <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.code}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    ` : '<span class="text-muted">N/A</span>'}
+                </td>
+                <td>
+                    <span class="fw-medium">${formattedDate}</span>
+                </td>
+                <td>
+                    <span class="badge bg-${statusClass}">${status}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderPagination() {
+    const pagination = document.getElementById('paginationControls');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+        </li>
+    `;
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    loadRentalHistory(); // Reload data for the new page
+}
+
+function updateStatisticsFromAPI(stats) {
+    document.getElementById('totalRentals').textContent = stats.total_rentals;
+    document.getElementById('successfulRentals').textContent = stats.successful_rentals;
+    document.getElementById('cancelledRentals').textContent = stats.cancelled_rentals;
+    document.getElementById('totalSpent').textContent = `₦${formatCurrency(parseFloat(stats.total_spent_naira.replace(/,/g, '')))}`;
+}
+
+function updateStatistics() {
+    // This function is now replaced by updateStatisticsFromAPI
+    // Keeping for backward compatibility
+}
+
+function formatDateToLA(date) {
+    // Convert to Los Angeles timezone
+    const options = {
+        timeZone: 'America/Los_Angeles',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+
+function showEmptyState() {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-history fa-3x mb-3"></i>
+                    <h5>No rental history</h5>
+                    <p>You haven't made any rentals yet. <a href="/dashboard/">Start renting</a> to see your history here.</p>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function showErrorState() {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center py-5">
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Error loading history</h5>
+                    <p>Unable to load rental history. Please try again later.</p>
+                    <button class="btn btn-outline-primary" onclick="loadRentalHistory()">
+                        <i class="fas fa-refresh me-2"></i>Retry
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Create temporary notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bs-success);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        notification.textContent = 'Copied to clipboard!';
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+function formatCurrency(amount) {
+    try {
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    } catch (e) {
+        return '0.00';
+    }
+}
+</script>
+{% endblock %}

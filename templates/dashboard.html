@@ -1,0 +1,750 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}Dashboard - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+<div class="row g-0">
+    <!-- SMS Verifications Section -->
+    <div class="col-12 col-lg-5 border-end">
+        <div class="p-2 p-md-3 p-lg-4">
+            <h2 class="h5 fw-bold mb-2">SMS Verifications</h2>
+
+            <div class="text-muted mb-3" style="font-size: 0.875rem;">
+                <p class="mb-1">Rent a phone for 7 minutes.</p>
+                <p class="mb-0">Credits are only used if you receive the SMS code.</p>
+            </div>
+
+            <!-- Service Search and Settings -->
+            <div class="d-flex gap-2 mb-3">
+                <div class="input-group flex-grow-1">
+                    <span class="input-group-text" style="font-size: 0.875rem;">Service</span>
+                    <input type="text" class="form-control" id="serviceFilter" placeholder="Search services..." style="font-size: 0.875rem;">
+                    <button class="btn btn-primary btn-sm" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-sm" type="button" id="settingsToggle">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="settings-panel" id="settingsPanel" style="display: none;">
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Area codes</span>
+                                <input type="text" class="form-control" id="areaCodes" placeholder="503, 202, 404" style="font-size: 0.8rem;">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Preferred area codes. Increases price by 20%.</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Carriers</span>
+                                <input type="text" class="form-control" id="carriers" placeholder="tmo, vz, att" style="font-size: 0.8rem;">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Preferred carrier. Increases price by 20%. <a href="#carrierInfoModal" data-bs-toggle="modal" class="text-decoration-none">More info</a></small>
+                        </div>
+
+                        <div class="mb-0">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Phone</span>
+                                <input type="text" class="form-control" id="phone" placeholder="1112223333" style="font-size: 0.8rem;">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Preferred phone. Increases price by 20%.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Table -->
+            <div class="border rounded" style="height: 250px; overflow-y: auto;">
+                <table class="table table-hover mb-0 table-sm">
+                    <thead class="table-light sticky-top">
+                        <tr style="font-size: 0.8rem;">
+                            <th>Service</th>
+                            <th>Price</th>
+                            <th class="text-center" style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}">
+                            <td class="service-name">
+                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.name }}</div>
+                            </td>
+                            <td class="price">
+                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
+                            </td>
+                            <td class="text-center favorite-btn" data-favorite="false">
+                                <span class="text-muted">♡</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4">
+                                <div class="text-muted">
+                                    <p class="mb-2" style="font-size: 0.9rem;">No services available.</p>
+                                    <small>Please contact admin to add services.</small>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Options -->
+            <div class="row mt-3 g-2">
+                <div class="col-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="ltrRental">
+                        <label class="form-check-label" for="ltrRental" style="font-size: 0.85rem;">
+                            Long-term rental
+                        </label>
+                    </div>
+                </div>
+                <div class="col-6" id="autoRenewContainer" style="display: none;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="autoRenew">
+                        <label class="form-check-label" for="autoRenew" style="font-size: 0.85rem;">
+                            Auto-renew
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rented Numbers Section -->
+    <div class="col-12 col-lg-7">
+        <div class="p-2 p-md-3 p-lg-4">
+            <h2 class="h5 fw-bold mb-2">Rented numbers</h2>
+
+            <div class="text-muted mb-3" style="font-size: 0.875rem;">
+                <p class="mb-1">No need to refresh the page to get the code.</p>
+                <p class="mb-0">You can get more SMS to the same number for free when 🔁 is displayed.</p>
+            </div>
+
+            <!-- Active Rentals Counter -->
+            <div class="d-flex justify-content-end mb-3">
+                <div class="border border-2 rounded px-3 py-1">
+                    <span class="fw-medium" id="rentalCounter">0 / 10</span>
+                </div>
+            </div>
+
+            <!-- Rentals Table -->
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead class="table-light">
+                        <tr style="font-size: 0.8rem;">
+                            <th>ID</th>
+                            <th>Service</th>
+                            <th>Phone</th>
+                            <th>Code</th>
+                            <th>Cost</th>
+                            <th>TTL</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="text-muted">
+                                    <p class="mb-2" style="font-size: 0.9rem;">Loading rentals...</p>
+                                    <small>If this persists, check the browser console for errors.</small>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- History Link -->
+            <div class="text-center mt-4">
+                <a href="/history/" class="text-decoration-none">View number history</a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Carrier Info Modal -->
+<div class="modal fade" id="carrierInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Why choose carrier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>There are 3 carriers in the USA: T-Mobile (tmo), Verizon (vz), and AT&T (att).</p>
+                <p>If you're experiencing issues on services like Tinder, where it says an account already exists, we recommend you try Verizon, or AT&T.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Message Modal -->
+<div class="modal fade" id="fullMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Full Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="font-monospace">Your WhatsApp verification code is: 123456</p>
+                <p class="font-monospace">Don't share this code with anyone.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Settings panel toggle
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    
+    settingsToggle.addEventListener('click', function() {
+        if (settingsPanel.style.display === 'none') {
+            settingsPanel.style.display = 'block';
+        } else {
+            settingsPanel.style.display = 'none';
+        }
+    });
+
+    // Service search functionality
+    const serviceFilter = document.getElementById('serviceFilter');
+    const serviceRows = document.querySelectorAll('.service-row');
+    
+    serviceFilter.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        serviceRows.forEach(row => {
+            const serviceName = row.getAttribute('data-service').toLowerCase();
+            if (serviceName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Favorite toggle functionality
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    favoriteButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const isFavorite = this.getAttribute('data-favorite') === 'true';
+            const heartIcon = this.querySelector('span');
+            
+            if (isFavorite) {
+                this.setAttribute('data-favorite', 'false');
+                heartIcon.textContent = '♡';
+                heartIcon.className = 'text-muted';
+            } else {
+                this.setAttribute('data-favorite', 'true');
+                heartIcon.textContent = '♥';
+                heartIcon.className = 'text-danger';
+            }
+        });
+    });
+
+    // Long-term rental checkbox toggle
+    const ltrRental = document.getElementById('ltrRental');
+    const autoRenewContainer = document.getElementById('autoRenewContainer');
+    
+    ltrRental.addEventListener('change', function() {
+        if (this.checked) {
+            autoRenewContainer.style.display = 'block';
+        } else {
+            autoRenewContainer.style.display = 'none';
+            document.getElementById('autoRenew').checked = false;
+        }
+    });
+
+    // Service row click functionality
+    serviceRows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't trigger if clicking on favorite button
+            if (e.target.closest('.favorite-btn')) return;
+            
+            const serviceName = this.getAttribute('data-service');
+            const serviceCode = this.getAttribute('data-code');
+            const price = this.querySelector('.price .fw-medium').textContent;
+            
+            // Get settings values
+            const ltrRental = document.getElementById('ltrRental').checked;
+            const autoRenew = document.getElementById('autoRenew').checked;
+            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
+            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
+            const phone = document.getElementById('phone').value.trim();
+            
+            // Confirm rental
+            if (confirm(`Rent ${serviceName} for ${price}?`)) {
+                rentNumber(serviceCode, ltrRental, autoRenew, areaCodes, carriers, phone);
+            }
+        });
+    });
+
+    // Load active rentals on page load
+    console.log('Loading active rentals on page load...'); // Debug log
+    loadActiveRentals();
+    
+    // Set up polling for SMS updates
+    setInterval(checkAllSMS, 5000); // Check every 5 seconds
+
+    // Countdown timer simulation
+    const countdownTimers = document.querySelectorAll('.countdown-timer');
+    
+    countdownTimers.forEach(timer => {
+        let timeLeft = 4 * 60 + 23; // 4:23 in seconds
+        
+        const updateTimer = () => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+            }
+        };
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+});
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Create temporary notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bs-success);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        notification.textContent = 'Code copied to clipboard!';
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+// Rental management functions
+async function rentNumber(serviceCode, ltr = false, autoRenew = false, areaCodes = [], carriers = [], phone = null) {
+    try {
+        const response = await fetch('/api/rent/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                service_code: serviceCode,
+                ltr: ltr,
+                auto_renew: autoRenew,
+                area_codes: areaCodes,
+                carriers: carriers,
+                number: phone
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Number rented successfully!', 'success');
+            loadActiveRentals(); // Refresh rentals table
+            updateUserBalance(); // Update balance display
+        } else {
+            showNotification(data.error || 'Failed to rent number', 'error');
+        }
+    } catch (error) {
+        console.error('Error renting number:', error);
+        showNotification('Network error occurred', 'error');
+    }
+}
+
+async function loadActiveRentals() {
+    try {
+        const response = await fetch('/api/rentals/');
+        const data = await response.json();
+        
+        console.log('Rentals API response:', data); // Debug log
+        
+        if (data.success && data.rentals) {
+            updateRentalsTable(data.rentals);
+        } else if (data.rentals) {
+            // Handle case where success field might not be present
+            updateRentalsTable(data.rentals);
+        } else {
+            console.error('No rentals data in response:', data);
+        }
+    } catch (error) {
+        console.error('Error loading rentals:', error);
+    }
+}
+
+function updateRentalsTable(rentals) {
+    const tbody = document.querySelector('.table-responsive tbody');
+    const rentalCounter = document.getElementById('rentalCounter');
+    
+    console.log('Updating rentals table with:', rentals); // Debug log
+    
+    // Update counter
+    if (rentalCounter) {
+        rentalCounter.textContent = `${rentals.length} / 10`;
+    }
+    
+    if (rentals.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <div class="text-muted">
+                        <p class="mb-2" style="font-size: 0.9rem;">No active rentals.</p>
+                        <small>Click on a service to rent a number.</small>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = rentals.map(rental => {
+        // Handle price formatting safely
+        let priceDisplay = '₦0.00';
+        try {
+            if (rental.price_naira) {
+                const numericPrice = typeof rental.price_naira === 'string' 
+                    ? parseFloat(rental.price_naira.replace(/,/g, ''))
+                    : parseFloat(rental.price_naira);
+                priceDisplay = `₦${formatCurrency(numericPrice)}`;
+            }
+        } catch (e) {
+            console.error('Error formatting price:', e);
+        }
+        
+        // Check if rental is expired (more than 7 minutes old) or cancelled
+        const createdAt = new Date(rental.created_at);
+        const now = new Date();
+        const isExpired = (now - createdAt) > (7 * 60 * 1000);
+        const isCancelled = rental.status === 'CANCELLED';
+        
+        return `
+        <tr data-rental-id="${rental.rental_id}">
+            <td><span class="${isExpired || isCancelled ? 'text-muted' : ''}">${rental.rental_id.slice(-6)}</span></td>
+            <td>${rental.service_name}</td>
+            <td>
+                <span class="fw-medium">${rental.phone_number}</span>
+                <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.phone_number}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+            <td class="sms-code" data-rental-id="${rental.rental_id}">
+                ${rental.code ? `
+                    <span>${rental.code}</span>
+                    <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.code}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                ` : (isCancelled ? '<span class="text-warning">Cancelled</span>' : 
+                     (isExpired ? '<span class="text-danger">Expired</span>' : '<span class="text-muted">Waiting...</span>'))}
+            </td>
+            <td>${priceDisplay}</td>
+            <td class="countdown-timer${isExpired ? ' text-danger' : (isCancelled ? ' text-warning' : '')}" data-created="${rental.created_at}">${isCancelled ? 'Cancelled' : (isExpired ? 'Expired' : '7:00')}</td>
+            <td>
+                ${rental.status === 'WAITING' && !isExpired && !isCancelled ? `
+                    <button class="btn btn-sm btn-outline-danger" onclick="cancelRental('${rental.rental_id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                ` : ''}
+                ${rental.supports_multiple && rental.code && !isCancelled ? `
+                    <button class="btn btn-sm btn-outline-primary" onclick="checkSMS('${rental.rental_id}')">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>
+        `;
+    }).join('');
+    
+    // Start countdown timers
+    startCountdownTimers();
+}
+
+async function cancelRental(rentalId) {
+    if (!confirm('Are you sure you want to cancel this rental? You will get a refund.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/cancel/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                id: rentalId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`Rental cancelled. Refund: ₦${formatCurrency(parseFloat(data.refund_amount) * 1650)}`, 'success');
+            
+            // Update the specific rental row immediately
+            const rentalRow = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
+            if (rentalRow) {
+                const codeCell = rentalRow.querySelector('.sms-code');
+                const timerCell = rentalRow.querySelector('.countdown-timer');
+                const actionsCell = rentalRow.querySelector('td:last-child');
+                
+                // Update code column to show "Cancelled"
+                if (codeCell) {
+                    codeCell.innerHTML = '<span class="text-warning">Cancelled</span>';
+                }
+                
+                // Stop the timer and show "Cancelled"
+                if (timerCell) {
+                    // Clear the interval if it exists
+                    const intervalId = timerCell.getAttribute('data-interval-id');
+                    if (intervalId) {
+                        clearInterval(parseInt(intervalId));
+                    }
+                    
+                    timerCell.textContent = 'Cancelled';
+                    timerCell.classList.remove('text-danger');
+                    timerCell.classList.add('text-warning');
+                }
+                
+                // Remove action buttons
+                if (actionsCell) {
+                    actionsCell.innerHTML = '';
+                }
+            }
+            
+            loadActiveRentals(); // This will update both table and counter
+            updateUserBalance();
+        } else {
+            showNotification(data.error || 'Failed to cancel rental', 'error');
+        }
+    } catch (error) {
+        console.error('Error cancelling rental:', error);
+        showNotification('Network error occurred', 'error');
+    }
+}
+
+async function checkSMS(rentalId) {
+    try {
+        const response = await fetch(`/api/sms/${rentalId}/`);
+        const data = await response.json();
+        
+        if (data.messages && data.messages.length > 0) {
+            const latestMessage = data.messages[0];
+            updateSMSCode(rentalId, latestMessage.code);
+        }
+    } catch (error) {
+        console.error('Error checking SMS:', error);
+    }
+}
+
+async function checkAllSMS() {
+    const rentalRows = document.querySelectorAll('[data-rental-id]');
+    
+    for (const row of rentalRows) {
+        const rentalId = row.getAttribute('data-rental-id');
+        const codeCell = row.querySelector('.sms-code');
+        const timer = row.querySelector('.countdown-timer');
+        
+        // Only check if waiting for code and not expired or cancelled
+        if (codeCell && codeCell.textContent.includes('Waiting')) {
+            // Check if rental is expired or cancelled
+            if (timer && !timer.textContent.includes('Expired') && !timer.textContent.includes('Cancelled')) {
+                await checkSMS(rentalId);
+            }
+        }
+    }
+}
+
+function updateSMSCode(rentalId, code) {
+    const codeCell = document.querySelector(`.sms-code[data-rental-id="${rentalId}"]`);
+    if (codeCell && code) {
+        // Check if the rental is expired or cancelled
+        const row = codeCell.closest('tr');
+        const timer = row.querySelector('.countdown-timer');
+        const isExpired = timer && timer.textContent.includes('Expired');
+        const isCancelled = timer && timer.textContent.includes('Cancelled');
+        
+        if (isExpired) {
+            // Don't show code with styling for expired rentals
+            codeCell.innerHTML = '<span class="text-danger">Expired</span>';
+        } else if (isCancelled) {
+            // Don't update cancelled rentals
+            return;
+        } else {
+            // Show code with normal styling for active rentals
+            codeCell.innerHTML = `
+                <span>${code}</span>
+                <button class="btn btn-sm ms-1" onclick="copyToClipboard('${code}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            `;
+            showNotification('SMS code received!', 'success');
+        }
+    }
+}
+
+function startCountdownTimers() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    
+    timers.forEach(timer => {
+        // Skip timers that are already showing "Cancelled" or "Expired"
+        if (timer.textContent.includes('Cancelled') || timer.textContent.includes('Expired')) {
+            return;
+        }
+        
+        const createdAt = new Date(timer.getAttribute('data-created'));
+        const endTime = new Date(createdAt.getTime() + 7 * 60 * 1000); // 7 minutes
+        
+        const updateTimer = () => {
+            // Check if timer has been cancelled during countdown
+            if (timer.textContent.includes('Cancelled')) {
+                return;
+            }
+            
+            const now = new Date();
+            const timeLeft = Math.max(0, endTime - now);
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            if (timeLeft <= 0) {
+                timer.textContent = 'Expired';
+                timer.classList.add('text-danger');
+                
+                // Update the SMS code cell and ID badge when expired
+                const row = timer.closest('tr');
+                if (row) {
+                    const rentalId = row.getAttribute('data-rental-id');
+                    const codeCell = row.querySelector('.sms-code');
+                    const idSpan = row.querySelector('td:first-child span');
+                    
+                    // Update code cell to show "Expired" instead of "Waiting..."
+                    if (codeCell && codeCell.textContent.includes('Waiting')) {
+                        codeCell.innerHTML = '<span class="text-danger">Expired</span>';
+                    }
+                    
+                    // Update ID span styling for expired items
+                    if (idSpan) {
+                        idSpan.className = 'text-muted';
+                    }
+                }
+            } else {
+                timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        };
+        
+        updateTimer();
+        const intervalId = setInterval(updateTimer, 1000);
+        
+        // Store interval ID on timer element so we can clear it if needed
+        timer.setAttribute('data-interval-id', intervalId);
+    });
+}
+
+async function updateUserBalance() {
+    try {
+        const response = await fetch('/api/balance/');
+        const data = await response.json();
+        
+        if (data.success) {
+            const balanceElement = document.querySelector('.balance-amount');
+            if (balanceElement) {
+                // Remove commas from the API response before parsing
+                const numericBalance = parseFloat(data.balance_naira.replace(/,/g, ''));
+                balanceElement.textContent = `₦${formatCurrency(numericBalance)}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error updating balance:', error);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 300px;
+    `;
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function formatCurrency(amount) {
+    /**
+     * Format number with commas and 2 decimal places
+     */
+    try {
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    } catch (e) {
+        return '0.00';
+    }
+}
+</script>
+{% endblock %}

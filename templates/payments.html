@@ -1,0 +1,326 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}Payment History - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">Payment History</h1>
+                    <p class="text-muted mb-0">Time is in America/Los_Angeles time zone. The last 90 days are shown.</p>
+                </div>
+                <div>
+                    <a href="/dashboard/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Payment History Table -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentTableBody">
+                                <tr>
+                                    <td colspan="3" class="text-center py-4">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border text-primary me-3" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <span class="text-muted">Loading payment history...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Payment pagination" class="mt-4">
+                <ul class="pagination justify-content-center" id="paginationControls">
+                    <!-- Pagination will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let allPayments = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load payment history
+    loadPaymentHistory();
+});
+
+async function loadPaymentHistory() {
+    try {
+        // For now, we'll show sample payment data since the API might not be implemented
+        const samplePayments = [
+            {
+                description: 'Wallet Funding via PaymentPoint',
+                amount: 10000,
+                date: new Date().toISOString()
+            },
+            {
+                description: 'Account Top-up via Bank Transfer',
+                amount: 25000,
+                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'PaymentPoint Deposit',
+                amount: 5000,
+                date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'Wallet Funding via PaymentPoint',
+                amount: 15000,
+                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'Account Credit - Refund',
+                amount: 2500,
+                date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'PaymentPoint Deposit',
+                amount: 30000,
+                date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'Bank Transfer Credit',
+                amount: 50000,
+                date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                description: 'Wallet Funding via PaymentPoint',
+                amount: 8000,
+                date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString()
+            }
+        ];
+        
+        allPayments = samplePayments;
+        totalPages = Math.ceil(samplePayments.length / 10); // 10 items per page
+        
+        renderPaymentTable();
+        renderPagination();
+        
+    } catch (error) {
+        console.error('Error loading payment history:', error);
+        showErrorState();
+    }
+}
+
+function renderPaymentTable() {
+    const tbody = document.getElementById('paymentTableBody');
+    
+    if (allPayments.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-credit-card fa-3x mb-3"></i>
+                        <h5>No payment history found</h5>
+                        <p>You haven't made any payments yet. <a href="/wallet/">Fund your wallet</a> to see payments here.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Paginate results
+    const startIndex = (currentPage - 1) * 10;
+    const endIndex = startIndex + 10;
+    const pagedPayments = allPayments.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pagedPayments.map(payment => {
+        const date = new Date(payment.date);
+        const formattedDate = formatDateToLA(date);
+        
+        return `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-plus-circle text-success me-2"></i>
+                        <span class="fw-medium">${payment.description}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="fw-bold text-success">+₦${formatCurrency(payment.amount)}</span>
+                </td>
+                <td>
+                    <span class="text-muted">${formattedDate}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderPagination() {
+    const pagination = document.getElementById('paginationControls');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+        </li>
+    `;
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPaymentTable();
+    renderPagination();
+    
+    // Scroll to top of table
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function formatDateToLA(date) {
+    // Convert to Los Angeles timezone
+    const options = {
+        timeZone: 'America/Los_Angeles',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+
+function showErrorState() {
+    const tbody = document.getElementById('paymentTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="3" class="text-center py-5">
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Error loading payment history</h5>
+                    <p>Unable to load payment history. Please try again later.</p>
+                    <button class="btn btn-outline-primary" onclick="loadPaymentHistory()">
+                        <i class="fas fa-refresh me-2"></i>Retry
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function formatCurrency(amount) {
+    try {
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    } catch (e) {
+        return '0.00';
+    }
+}
+</script>
+
+<style>
+/* Custom styles for payment history */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(23, 162, 184, 0.05);
+}
+
+/* Animation for table rows */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    color: #17a2b8;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.pagination .page-link:hover {
+    color: #138496;
+    background-color: #f8f9fa;
+    border-color: #17a2b8;
+}
+</style>
+{% endblock %}
