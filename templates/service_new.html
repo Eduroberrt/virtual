@@ -1,0 +1,152 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}SMS Verification Services - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">SMS Verification Services</h1>
+                    <p class="text-muted mb-0">Choose from our wide selection of services for SMS verification. Prices include profit margin and are displayed in Naira (₦).</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="fas fa-sync me-2"></i>Refresh Services
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="serviceSearch" placeholder="Search services..." onkeyup="filterServices()">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select" id="priceFilter" onchange="filterServices()">
+                        <option value="">All Prices</option>
+                        <option value="0-500">₦0 - ₦500</option>
+                        <option value="500-1000">₦500 - ₦1,000</option>
+                        <option value="1000-2000">₦1,000 - ₦2,000</option>
+                        <option value="2000+">₦2,000+</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Services Table -->
+            <div id="servicesTable">
+                <div class="table-responsive">
+                    <table id="services" class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Price</th>
+                                <th>LTR Price/day</th>
+                                <th>
+                                    <span class="hidden sm:flex">Multiple<br>SMS</span>
+                                    <span class="sm:hidden">🔁</span>
+                                </th>
+                                <th>
+                                    <span class="hidden sm:flex">Rents for,<br>minutes</span>
+                                    <span class="sm:hidden">🕑</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr class="even:bg-stone-100 service-row" data-service-name="{{ service.name|lower }}" data-service-price="{{ service.get_naira_price|format_currency }}">
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.code }}</td>
+                                <td>{{ service.get_naira_price|format_naira }}</td>
+                                <td>{{ service.get_naira_daily_price|format_naira }}</td>
+                                <td>
+                                    {% comment %} Hardcoded Multiple SMS - services that typically support multiple SMS {% endcomment %}
+                                    {% with multiple_sms_codes='2redbeans,auw,aarp,acima,af247,afterpay,alibabacloud,alipay,ally,am,pm,wx,archer,ashleymadison,aspiration,anl,axos,qv,boa,baselane,bcbs,beehiiv,bestbuy,betfanatics,ie,bz,bluesky,bmoalto,bmoharris,bphr,bridgemoney,bright,mo,burner,butcherbox,apr,it,chargepoint,chase,chime,circlek,citi,citizens,cleo,abb,cod,cmb,re,cpulse,courtyard,sx,cryptocom,current,currently,cvs,dave,dingdingding,discover,docusign,ac,doublelist,dovetail,draftkings,dh,espnbet,etoro,everbank,experian,fb,fanaticslive,fanduel,feastables,fedex,fidelity,netbenefits,fivesurveys,cn,flip,foundcom,frostbank,gameflip,gcx,gemini,getholdings,go2bank,gofundme,golden1,go,gf,greendot,greenlight,grifin,happn,vz,hitch,hopper,hostinger,hsbc,huntington,inkind,innago,instacart,ig,intuit,agk,jointrue,kt,keybank,klarna,klover,koho,kraken,lego,lightningai' %}
+                                        {% if service.code in multiple_sms_codes %}🔁{% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>7</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="fas fa-info-circle me-2"></i>No services available. Please check back later.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Services Summary -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Total Services:</strong> {{ services|length }}
+                        <br>
+                        <small class="text-muted">All prices are displayed in Nigerian Naira (₦) and include applicable profit margins. Exchange rate: $1 = ₦1,650</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search and filter functionality
+function filterServices() {
+    const searchTerm = document.getElementById('serviceSearch').value.toLowerCase();
+    const priceFilter = document.getElementById('priceFilter').value;
+    const rows = document.querySelectorAll('.service-row');
+    
+    rows.forEach(row => {
+        const serviceName = row.dataset.serviceName;
+        const servicePrice = parseFloat(row.dataset.servicePrice);
+        let showRow = true;
+        
+        // Search filter
+        if (searchTerm && !serviceName.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        // Price filter
+        if (priceFilter && showRow) {
+            switch (priceFilter) {
+                case '0-500':
+                    showRow = servicePrice >= 0 && servicePrice <= 500;
+                    break;
+                case '500-1000':
+                    showRow = servicePrice > 500 && servicePrice <= 1000;
+                    break;
+                case '1000-2000':
+                    showRow = servicePrice > 1000 && servicePrice <= 2000;
+                    break;
+                case '2000+':
+                    showRow = servicePrice > 2000;
+                    break;
+            }
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+// Clear search
+function clearSearch() {
+    document.getElementById('serviceSearch').value = '';
+    document.getElementById('priceFilter').value = '';
+    filterServices();
+}
+</script>
+{% endblock %}

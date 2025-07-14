@@ -1,0 +1,385 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}Spending Statistics - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">Spending Statistics</h1>
+                    <p class="text-muted mb-0">Aggregates are in America/Los_Angeles time zone. The last 30 days are shown.</p>
+                </div>
+                <div>
+                    <a href="/dashboard/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Total Services</h5>
+                            <h3 class="card-text" id="totalServices">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">Total Spent</h5>
+                            <h3 class="card-text" id="totalSpent">₦0.00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">Average/Day</h5>
+                            <h3 class="card-text" id="averagePerDay">₦0.00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">Most Used</h5>
+                            <h3 class="card-text" id="mostUsedService">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Table -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Service</th>
+                                    <th>Count</th>                            <th>Total, ₦</th>
+                            <th>Average, ₦</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border text-primary me-3" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <span class="text-muted">Loading spending statistics...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Statistics pagination" class="mt-4">
+                <ul class="pagination justify-content-center" id="paginationControls">
+                    <!-- Pagination will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let allStats = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load spending statistics
+    loadSpendingStatistics();
+});
+
+async function loadSpendingStatistics() {
+    try {
+        // Use real data passed from Django backend
+        const statsData = JSON.parse('{{ stats_data_json|escapejs }}');
+        const hasData = {{ has_data|lower }};
+        
+        if (!hasData || !statsData || statsData.length === 0) {
+            showEmptyState();
+            return;
+        }
+        
+        // Convert Python data to JavaScript format
+        allStats = statsData.map(stat => ({
+            date: stat.date,
+            service: stat.service,
+            count: stat.count,
+            total: stat.total_naira,
+            average: stat.average_naira
+        }));
+        
+        totalPages = Math.ceil(allStats.length / 15); // 15 items per page
+        
+        renderStatsTable();
+        renderPagination();
+        updateSummaryCards();
+        
+    } catch (error) {
+        console.error('Error loading spending statistics:', error);
+        showErrorState();
+    }
+}
+
+function renderStatsTable() {
+    const tbody = document.getElementById('statsTableBody');
+    
+    if (allStats.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                        <h5>No spending statistics found</h5>
+                        <p>Start renting services to see your spending statistics here.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Paginate results
+    const startIndex = (currentPage - 1) * 15;
+    const endIndex = startIndex + 15;
+    const pagedStats = allStats.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pagedStats.map(stat => {
+        const date = new Date(stat.date);
+        const formattedDate = formatDateToLA(date);
+        
+        return `
+            <tr>
+                <td>
+                    <span class="fw-medium">${formattedDate}</span>
+                </td>
+                <td>
+                    <span class="fw-medium">${stat.service}</span>
+                </td>
+                <td>
+                    <span class="text-dark">${stat.count}</span>
+                </td>
+                <td>
+                    <span class="fw-bold text-success">₦${stat.total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </td>
+                <td>
+                    <span class="text-muted">₦${stat.average.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderPagination() {
+    const pagination = document.getElementById('paginationControls');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+        </li>
+    `;
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderStatsTable();
+    renderPagination();
+    
+    // Scroll to top of table
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function updateSummaryCards() {
+    if (allStats.length === 0) return;
+    
+    // Calculate totals (using actual Naira amounts)
+    const totalServices = allStats.reduce((sum, stat) => sum + stat.count, 0);
+    const totalSpent = allStats.reduce((sum, stat) => sum + stat.total, 0); // Already in Naira
+    const uniqueDays = new Set(allStats.map(stat => stat.date)).size;
+    const averagePerDay = uniqueDays > 0 ? totalSpent / uniqueDays : 0;
+    
+    // Find most used service
+    const serviceCounts = {};
+    allStats.forEach(stat => {
+        serviceCounts[stat.service] = (serviceCounts[stat.service] || 0) + stat.count;
+    });
+    
+    const mostUsedService = Object.keys(serviceCounts).reduce((a, b) => 
+        serviceCounts[a] > serviceCounts[b] ? a : b, '');
+    
+    // Update cards
+    document.getElementById('totalServices').textContent = totalServices;
+    document.getElementById('totalSpent').textContent = `₦${totalSpent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    document.getElementById('averagePerDay').textContent = `₦${averagePerDay.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    document.getElementById('mostUsedService').textContent = mostUsedService || '-';
+}
+
+function showEmptyState() {
+    const tbody = document.getElementById('statsTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                    <h5>No spending statistics found</h5>
+                    <p>Start renting services to see your spending statistics here.</p>
+                </div>
+            </td>
+        </tr>
+    `;
+    
+    // Update summary cards to show zeros
+    document.getElementById('totalServices').textContent = '0';
+    document.getElementById('totalSpent').textContent = '₦0.00';
+    document.getElementById('averagePerDay').textContent = '₦0.00';
+    document.getElementById('mostUsedService').textContent = '-';
+    
+    // Hide pagination
+    document.getElementById('paginationControls').innerHTML = '';
+}
+
+function formatDateToLA(date) {
+    // Convert to Los Angeles timezone and format as "14 July 2025"
+    const options = {
+        timeZone: 'America/Los_Angeles',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    };
+    
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+
+function showErrorState() {
+    const tbody = document.getElementById('statsTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center py-5">
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Error loading statistics</h5>
+                    <p>Unable to load spending statistics. Please try again later.</p>
+                    <button class="btn btn-outline-primary" onclick="loadSpendingStatistics()">
+                        <i class="fas fa-refresh me-2"></i>Retry
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+</script>
+
+<style>
+/* Custom styles for statistics */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.table td {
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(23, 162, 184, 0.05);
+}
+
+/* Animation for table rows */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table tbody tr {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Summary cards animation */
+.card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    color: #17a2b8;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.pagination .page-link:hover {
+    color: #138496;
+    background-color: #f8f9fa;
+    border-color: #17a2b8;
+}
+
+/* Service icon colors */
+.table .fa-mobile-alt {
+    color: #17a2b8;
+}
+</style>
+{% endblock %}

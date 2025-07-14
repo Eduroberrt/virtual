@@ -1,0 +1,166 @@
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Cleared existing services
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Synced 309 services from DaisySMS
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Error syncing services: no such column: app_service.profit_margin
+Error getting services: no such column: app_service.profit_margin
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Error syncing services: no such column: app_service.profit_margin
+Error getting services: no such column: app_service.profit_margin
+DaisySMS API call successful: getBalance - ACCESS_BALANCE:0.00
+DaisySMS balance: $0.00
+Error syncing services: no such column: app_service.profit_margin
+Error getting services: no such column: app_service.profit_margin
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292690210:19382562936
+Error setting auto-renew: No Rental matches the given query.
+Error setting auto-renew: No Rental matches the given query.
+Error setting auto-renew: No Rental matches the given query.
+Error cancelling rental: No Rental matches the given query.
+Error cancelling rental: No Rental matches the given query.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292695742:16592636935
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292700293:15409226126
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292700299:16082172593
+Error setting auto-renew: No Rental matches the given query.
+Error cancelling rental: No Rental matches the given query.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292700709:14239253379
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292700832:14239253379
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292706964:18594143681
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_OK:607-618
+DaisySMS API call successful: getStatus - STATUS_OK:607-618
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292718326:15403258078
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - 400 Client Error: Bad Request for url: https://daisysms.com/stubs/handler_api.php?service=wa&areas=212&api_key=Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W&action=getNumber
+DaisySMS API request failed: getNumber - 400 Client Error: Bad Request for url: https://daisysms.com/stubs/handler_api.php?service=wa&areas=212%2C345&api_key=Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W&action=getNumber
+DaisySMS API request failed: getNumber - 400 Client Error: Bad Request for url: https://daisysms.com/stubs/handler_api.php?service=wa&api_key=Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W&action=getNumber
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292724036:17155546112
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292724876:18327883666
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Error cancelling rental: No Rental matches the given query.
+Error setting auto-renew: No Rental matches the given query.
+Error setting auto-renew: No Rental matches the given query.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292823113:18143508464
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:292825681:15174024820
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL

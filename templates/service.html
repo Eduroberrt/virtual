@@ -1,0 +1,2853 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Services - WDN{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">SMS Verification Services</h1>
+                    <p class="text-muted mb-0">Choose from our wide selection of services for SMS verification</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="refreshServices()">
+                        <i class="fas fa-info-circle me-2"></i>Static Services
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="serviceSearch" placeholder="Search services..." onkeyup="filterServices()">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select" id="priceFilter" onchange="filterServices()">
+                        <option value="">All Prices</option>
+                        <option value="0-500">₦0 - ₦500</option>
+                        <option value="500-1000">₦500 - ₦1,000</option>
+                        <option value="1000-2000">₦1,000 - ₦2,000</option>
+                        <option value="2000+">₦2,000+</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">
+                        Showing static services table
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Services Table -->
+            <div id="servicesTable">
+                <div class="table-responsive">
+                    <table id="services" class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Price</th>
+                                <th>LTR Price/day</th>
+                                <th>
+                                    <span class="hidden sm:flex">Multiple<br>SMS</span>
+                                    <span class="sm:hidden">🔁</span>
+                                </th>
+                                <th>
+                                    <span class="hidden sm:flex">Rents for,<br>minutes</span>
+                                    <span class="sm:hidden">🕑</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="even:bg-stone-100">
+                                <td>2RedBeans</td>
+                                <td>2redbeans</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>3Fun</td>
+                                <td>auw</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>AARP Rewards</td>
+                                <td>aarp</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Acima</td>
+                                <td>acima</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>AEG Presents</td>
+                                <td>aegpresents </td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>af247.com</td>
+                                <td>af247</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Afterpay</td>
+                                <td>afterpay</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Alibaba Cloud</td>
+                                <td>alibabacloud</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Alipay</td>
+                                <td>alipay</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ally</td>
+                                <td>ally</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Amazon / AWS</td>
+                                <td>am</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>AOL</td>
+                                <td>pm</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Apple</td>
+                                <td>wx</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Archer app</td>
+                                <td>archer</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ashley Madison</td>
+                                <td>ashleymadison</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Aspiration / GreenFi</td>
+                                <td>aspiration</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Astrafi.com</td>
+                                <td>astrafi</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Attapoll</td>
+                                <td>anl</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Axos Bank</td>
+                                <td>axos</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Badoo</td>
+                                <td>qv</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bank of America</td>
+                                <td>boa</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Baselane</td>
+                                <td>baselane</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BCBS</td>
+                                <td>bcbs</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Beehiiv</td>
+                                <td>beehiiv</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Benjamin</td>
+                                <td>bdx</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Best Buy</td>
+                                <td>bestbuy</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bet Fanatics</td>
+                                <td>betfanatics</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bet365</td>
+                                <td>ie</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Blastbucks</td>
+                                <td>blastbucks</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Blizzard / Battle.net</td>
+                                <td>bz</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BLK</td>
+                                <td>blk</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bluesky</td>
+                                <td>bluesky</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BMO Alto</td>
+                                <td>bmoalto</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BMO Harris</td>
+                                <td>bmoharris</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BPHR</td>
+                                <td>bphr</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>BridgeMoney.co</td>
+                                <td>bridgemoney</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bright Capital</td>
+                                <td>bright</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Bumble</td>
+                                <td>mo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Burner</td>
+                                <td>burner</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ButcherBox</td>
+                                <td>butcherbox</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Capital One</td>
+                                <td>apr</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Cash App</td>
+                                <td>it</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>CenturyLink</td>
+                                <td>centurylink</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ChargePoint</td>
+                                <td>chargepoint</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chase</td>
+                                <td>chase</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chevron / TexaCo</td>
+                                <td>afk</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chick-fil-A</td>
+                                <td>chickfila</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chime</td>
+                                <td>chime</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chipotle</td>
+                                <td>chipotle</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Chispa</td>
+                                <td>ir</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Circle K</td>
+                                <td>circlek</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Citi</td>
+                                <td>citi</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Citizens</td>
+                                <td>citizens</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Claude AI</td>
+                                <td>acz</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Cleo</td>
+                                <td>cleo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Coca-Cola</td>
+                                <td>abb</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>CoD</td>
+                                <td>cod</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Coffee Meets Bagel</td>
+                                <td>cmb</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Coinbase</td>
+                                <td>re</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>College Pulse</td>
+                                <td>cpulse</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Courtyard.io</td>
+                                <td>courtyard</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Craigslist</td>
+                                <td>wc</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Credit Karma</td>
+                                <td>karma</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>CrowdTap</td>
+                                <td>sx</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Crypto.com</td>
+                                <td>cryptocom</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Current.com</td>
+                                <td>current</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Currently.com / AT&T Email</td>
+                                <td>currently</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>CVS</td>
+                                <td>cvs</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Dave.com</td>
+                                <td>dave</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Deliveroo</td>
+                                <td>zk</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>DingDingDing</td>
+                                <td>dingdingding</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Discord</td>
+                                <td>ds</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Discover Bank</td>
+                                <td>discover</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Docusign</td>
+                                <td>docusign</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>DoorDash</td>
+                                <td>ac</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>3</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>DoubleList</td>
+                                <td>doublelist</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Dovetail</td>
+                                <td>dovetail</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>DraftKings</td>
+                                <td>draftkings</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Dunkin Donuts</td>
+                                <td>dunkin</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Dutch Bros</td>
+                                <td>dutchbros</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>eBay</td>
+                                <td>dh</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Eneba</td>
+                                <td>uf</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ESPN BET</td>
+                                <td>espnbet</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>eToro</td>
+                                <td>etoro</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Etsy</td>
+                                <td>alq</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>EverBank</td>
+                                <td>everbank</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Experian</td>
+                                <td>experian</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>8</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Facebook</td>
+                                <td>fb</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Fanatics Live</td>
+                                <td>fanaticslive</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>fanduel</td>
+                                <td>fanduel</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Feastables</td>
+                                <td>feastables</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>FedEx</td>
+                                <td>fedex</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Feeld</td>
+                                <td>ws</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Fetch Rewards</td>
+                                <td>fetchrewards</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>FetLife</td>
+                                <td>fet</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Fidelity</td>
+                                <td>fidelity</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Fidelity NetBenefits</td>
+                                <td>netbenefits</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Five Surveys</td>
+                                <td>fivesurveys</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Fiverr</td>
+                                <td>cn</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Flip</td>
+                                <td>flip</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Foot Locker</td>
+                                <td>footlocker</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Found.com</td>
+                                <td>foundcom</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Frisbee Rewards</td>
+                                <td>frisbee</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Frost Bank</td>
+                                <td>frostbank</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Gaintplay</td>
+                                <td>gaint</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Gameflip</td>
+                                <td>gameflip</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>GCX</td>
+                                <td>gcx</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Gemini</td>
+                                <td>gemini</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>GetHoldings</td>
+                                <td>getholdings</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>GMX.com</td>
+                                <td>abk</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Go2Bank</td>
+                                <td>go2bank</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>GoFundMe</td>
+                                <td>gofundme</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Golden1</td>
+                                <td>golden1</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Google / Gmail / Youtube</td>
+                                <td>go</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Google Chat</td>
+                                <td>googlechat</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Google Messenger</td>
+                                <td>googlemessenger</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Google Voice</td>
+                                <td>gf</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Gopuff</td>
+                                <td>ajn</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Green Dot</td>
+                                <td>greendot</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Greenlight.com</td>
+                                <td>greenlight</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Grifin.com</td>
+                                <td>grifin</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Grindr</td>
+                                <td>yw</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>happn</td>
+                                <td>happn</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Hily</td>
+                                <td>rt</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Hinge</td>
+                                <td>vz</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Hitch</td>
+                                <td>hitch</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Hopper</td>
+                                <td>hopper</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Hostinger</td>
+                                <td>hostinger</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>HSBC</td>
+                                <td>hsbc</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Huntington</td>
+                                <td>huntington</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ibotta</td>
+                                <td>ibotta</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>inKind</td>
+                                <td>inkind</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Innago</td>
+                                <td>innago</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Instacart</td>
+                                <td>instacart</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Instagram</td>
+                                <td>ig</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Intuit</td>
+                                <td>intuit</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ipsos iSay</td>
+                                <td>agk</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>JD.com</td>
+                                <td>za</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Jointrue.com</td>
+                                <td>jointrue</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Juno</td>
+                                <td>juno</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>KakaoTalk</td>
+                                <td>kt</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Keybank</td>
+                                <td>keybank</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Klarna</td>
+                                <td>klarna</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Klover</td>
+                                <td>klover</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Koho.ca</td>
+                                <td>koho</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Kraken</td>
+                                <td>kraken</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Kudos</td>
+                                <td>kudos</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>LAA</td>
+                                <td>laa</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>League of Legends</td>
+                                <td>riot</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Lego Offer Hub</td>
+                                <td>lego</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Lightning AI</td>
+                                <td>lightningai</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>LINE messenger</td>
+                                <td>me</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>LinkedIn</td>
+                                <td>tn</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Linode</td>
+                                <td>ex</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Luvs</td>
+                                <td>luvs</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Lyft</td>
+                                <td>tu</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Lysted</td>
+                                <td>lysted</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Manus.im</td>
+                                <td>manus</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>4</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Marylous Coffee</td>
+                                <td>marylous</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Match.com</td>
+                                <td>abf</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Mercari</td>
+                                <td>dg</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Microsoft / Outlook / Hotmail</td>
+                                <td>mm</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>MoneyLion</td>
+                                <td>qo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>MoonPay</td>
+                                <td>bgj</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>MyGiftCardRedemption</td>
+                                <td>mygiftcardredemption</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Naver</td>
+                                <td>naver</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Navy Federal</td>
+                                <td>navy</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Neocrypto</td>
+                                <td>aft</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Netspend</td>
+                                <td>netspend</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Nexon</td>
+                                <td>nexon</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>NFCU</td>
+                                <td>nfcu</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Nice Surveys</td>
+                                <td>nicesurveys</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Nike</td>
+                                <td>ew</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Noonlight</td>
+                                <td>noonlight</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>North One</td>
+                                <td>northone</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OfferUp</td>
+                                <td>zm</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OkCupid</td>
+                                <td>vm</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>One.app / Onepay</td>
+                                <td>oneapp</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OneForma</td>
+                                <td>oneforma</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OnlineCheckWriter</td>
+                                <td>onlinecheckwriter</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OpenAI / ChatGPT</td>
+                                <td>dr</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OpenPhone</td>
+                                <td>openphone</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>107</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OpenTable</td>
+                                <td>opentable</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OurTime</td>
+                                <td>ourtime</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Outlier AI</td>
+                                <td>outlier</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>OZK</td>
+                                <td>ozk</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Payoneer</td>
+                                <td>payoneer</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>PayPal</td>
+                                <td>ts</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Pelago</td>
+                                <td>pelago</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Perpay</td>
+                                <td>perpay</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Phoner</td>
+                                <td>phoner</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Phound</td>
+                                <td>fp</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Pinata.ai</td>
+                                <td>pinata</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Pinger</td>
+                                <td>pinger</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>PingMe</td>
+                                <td>pingme</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Pixels.xyz</td>
+                                <td>pixels</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Plaid</td>
+                                <td>plaid</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Playful Rewards</td>
+                                <td>playful</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Plenty of Fish</td>
+                                <td>pf</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>PNC</td>
+                                <td>pnc</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Pogo</td>
+                                <td>pogo</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Poshmark</td>
+                                <td>oz</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Prolific</td>
+                                <td>prolific</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Public.com</td>
+                                <td>public</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>PVC</td>
+                                <td>pvc</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Qantas</td>
+                                <td>qantas</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Rate4Rewards</td>
+                                <td>r4r</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Raya The App</td>
+                                <td>raya</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Rebtel</td>
+                                <td>ajj</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Reddit</td>
+                                <td>reddit</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>RedNote / Xiaohongshu</td>
+                                <td>rednote</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Regions</td>
+                                <td>regions</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Relayfi.com</td>
+                                <td>relayfi</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Resy.com</td>
+                                <td>resy</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Revel</td>
+                                <td>revel</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>RevTrax</td>
+                                <td>revtrax</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ring4</td>
+                                <td>ring4</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Roblox</td>
+                                <td>roblox</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Rumble</td>
+                                <td>rumble</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Santander</td>
+                                <td>lj</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Schwab</td>
+                                <td>schwab</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ScreenConnect</td>
+                                <td>screenconnect</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Seated</td>
+                                <td>are</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>SeatGeek</td>
+                                <td>seatgeek</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Service not listed</td>
+                                <td>unlisted</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>SHEIN</td>
+                                <td>aez</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ShiftKey</td>
+                                <td>shiftkey</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>ShippingEasy</td>
+                                <td>shippingeasy</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Shop.app</td>
+                                <td>shop</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Sideline / Index by Pinger</td>
+                                <td>sideline</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Signal</td>
+                                <td>bw</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Skout</td>
+                                <td>skout</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Skrill</td>
+                                <td>aqt</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Snakzy</td>
+                                <td>snakzy</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Snap Finance</td>
+                                <td>snapfinance</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Snapchat</td>
+                                <td>fu</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Snaplii</td>
+                                <td>snaplii</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>SoFi Bank</td>
+                                <td>sofi</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Sprucemoney.com</td>
+                                <td>spruce</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Square</td>
+                                <td>bbg</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Stash.com</td>
+                                <td>stash</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Steam</td>
+                                <td>mt</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Stir</td>
+                                <td>stir</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Strike</td>
+                                <td>strike</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Stripe</td>
+                                <td>stripe</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Super.com</td>
+                                <td>super</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Swagbucks / InboxDollars / MyPoints / ySense / Noones / Adgate Survey</td>
+                                <td>swag</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Taimi</td>
+                                <td>taimi</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>TD.com</td>
+                                <td>tdcom</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Telegram</td>
+                                <td>tg</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Temu</td>
+                                <td>ep</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Tencent QQ</td>
+                                <td>tencent</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>TextFree</td>
+                                <td>asf</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Textla</td>
+                                <td>textla</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Textr</td>
+                                <td>textr</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Threads</td>
+                                <td>threads</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Ticketmaster</td>
+                                <td>gp</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>TikTok</td>
+                                <td>lf</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>3</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Timewall</td>
+                                <td>timewall</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Tinder</td>
+                                <td>oi</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>12</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Top Surveys / Earnstar</td>
+                                <td>topsurveys</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Tradify</td>
+                                <td>tradify</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>TrapCall</td>
+                                <td>trapcall</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Truist</td>
+                                <td>truist</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Truth Social</td>
+                                <td>ada</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>TurboTenant</td>
+                                <td>turbotenant</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Twilio</td>
+                                <td>twilio</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Twitch</td>
+                                <td>hb</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Twitter</td>
+                                <td>tw</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>U.S. Bank</td>
+                                <td>usbank</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Uber</td>
+                                <td>ub</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>UFBdirect.com</td>
+                                <td>ufb</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>United Airlines</td>
+                                <td>unitedairlines</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>UPAYNET</td>
+                                <td>upaynet</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Uphold</td>
+                                <td>uphold</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Uprova</td>
+                                <td>uprova</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Upward</td>
+                                <td>upward</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Upwork</td>
+                                <td>upwork</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>USAA</td>
+                                <td>usaa</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>USALLIANCE</td>
+                                <td>usalliance</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Varo</td>
+                                <td>varo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Venmo</td>
+                                <td>yy</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Verasight</td>
+                                <td>verasight</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Vercel</td>
+                                <td>vercel</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Viber</td>
+                                <td>vi</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Vinted</td>
+                                <td>vinted</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Vision Engage</td>
+                                <td>vision_engage</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Vitacost</td>
+                                <td>vitacost</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>VKontakte</td>
+                                <td>vk</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>WalletHub</td>
+                                <td>wallethub</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Walmart</td>
+                                <td>wr</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wayfair</td>
+                                <td>wayfair</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Webull</td>
+                                <td>alf</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>WeChat</td>
+                                <td>wb</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Weebly</td>
+                                <td>weebly</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wells Fargo</td>
+                                <td>wfargo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wert</td>
+                                <td>wert</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Western Union</td>
+                                <td>wu</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Whatnot</td>
+                                <td>whatnot</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>WhatsApp</td>
+                                <td>wa</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wheely</td>
+                                <td>wheely</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>5</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wingstop</td>
+                                <td>wingstop</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wise</td>
+                                <td>bo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Wolt</td>
+                                <td>rr</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Yahoo</td>
+                                <td>mb</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>10</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Yendo</td>
+                                <td>yendo</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>15</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Zalo</td>
+                                <td>mj</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Zillow</td>
+                                <td>zillow</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                            <tr class="even:bg-stone-100">
+                                <td>Zyrtec</td>
+                                <td>zyrtec</td>
+                                <td></td>
+                                <td></td>
+                                <td>🔁</td>
+                                <td>7</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Rent Service Modal -->
+<div class="modal fade" id="rentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rent Phone Number</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="selectedServiceInfo" class="mb-4">
+                    <!-- Service info will be populated here -->
+                </div>
+                
+                <form id="rentForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="maxPrice" class="form-label">Max Price (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="maxPrice" step="0.01" placeholder="10.00">
+                            </div>
+                            <div class="form-text">Maximum price you're willing to pay</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rental Type</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="rentalType" id="shortTerm" value="short" checked>
+                                <label class="form-check-label" for="shortTerm">
+                                    Short-term (One-time use)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="rentalType" id="longTerm" value="long">
+                                <label class="form-check-label" for="longTerm">
+                                    Long-term rental (Daily fee)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="ltrOptions" style="display: none;">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="autoRenew">
+                            <label class="form-check-label" for="autoRenew">
+                                Enable auto-renewal
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion mb-3" id="advancedOptions">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#advancedCollapse">
+                                    Advanced Options
+                                </button>
+                            </h2>
+                            <div id="advancedCollapse" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="areaCodes" class="form-label">Area Codes (Optional)</label>
+                                            <input type="text" class="form-control" id="areaCodes" placeholder="212,718,347">
+                                            <div class="form-text">Comma-separated area codes (+20% price)</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="carriers" class="form-label">Carriers (Optional)</label>
+                                            <select class="form-select" id="carriers" multiple>
+                                                <option value="tmo">T-Mobile</option>
+                                                <option value="vz">Verizon</option>
+                                                <option value="att">AT&T</option>
+                                            </select>
+                                            <div class="form-text">Select preferred carriers (+20% price)</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="specificNumber" class="form-label">Specific Number (Optional)</label>
+                                        <input type="text" class="form-control" id="specificNumber" placeholder="11112223344">
+                                        <div class="form-text">Request a specific phone number (+20% price)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="rentNumber()">
+                    <i class="fas fa-mobile-alt me-2"></i>Rent Number
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+    
+    <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-exclamation-circle text-danger me-2"></i>
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update active nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.textContent.trim() === 'Services') {
+            link.classList.add('active');
+        }
+    });
+    
+    // Toggle LTR options in the rental modal
+    document.querySelectorAll('input[name="rentalType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const ltrOptions = document.getElementById('ltrOptions');
+            if (ltrOptions) {
+                ltrOptions.style.display = this.value === 'long' ? 'block' : 'none';
+            }
+        });
+    });
+});
+
+function filterServices() {
+    const searchTerm = document.getElementById('serviceSearch').value.toLowerCase();
+    const table = document.getElementById('services');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    // Simple search filter for the static table
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const serviceName = row.cells[0].textContent.toLowerCase();
+        const serviceCode = row.cells[1].textContent.toLowerCase();
+        
+        if (serviceName.includes(searchTerm) || serviceCode.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+function refreshServices() {
+    // For static table, just show a success message
+    showToast('info', 'Services table is now static - no refresh needed');
+}
+
+function openRentModal(serviceCode) {
+    // Find service data from the table row
+    const table = document.getElementById('services');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    let serviceRow = null;
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const code = row.cells[1].textContent.trim();
+        if (code === serviceCode) {
+            serviceRow = row;
+            break;
+        }
+    }
+    
+    if (!serviceRow) return;
+    
+    const serviceName = serviceRow.cells[0].textContent.trim();
+    const price = serviceRow.cells[2].textContent.trim() || 'TBD';
+    const ltrPrice = serviceRow.cells[3].textContent.trim() || 'TBD';
+    
+    // Populate service info
+    document.getElementById('selectedServiceInfo').innerHTML = `
+        <div class="d-flex align-items-center p-3 bg-light rounded">
+            <div class="service-icon me-3 bg-primary text-white rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div>
+                <h6 class="mb-1">${serviceName}</h6>
+                <div class="text-muted">
+                    <span class="me-3">One-time: ${price}</span>
+                    <span>Daily: ${ltrPrice}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Reset form
+    const rentForm = document.getElementById('rentForm');
+    if (rentForm) rentForm.reset();
+    const shortTerm = document.getElementById('shortTerm');
+    if (shortTerm) shortTerm.checked = true;
+    const ltrOptions = document.getElementById('ltrOptions');
+    if (ltrOptions) ltrOptions.style.display = 'none';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('rentModal'));
+    modal.show();
+}
+
+async function rentNumber() {
+    // For now, show that this functionality needs to be implemented
+    showToast('info', 'Rental functionality will be implemented with Naira pricing');
+}
+
+// Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Toast notification function
+function showToast(type, message) {
+    const toastEl = document.getElementById(type + 'Toast');
+    if (toastEl) {
+        const toastBody = toastEl.querySelector('.toast-body');
+        toastBody.textContent = message;
+        
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    } else {
+        // Fallback alert if toast elements don't exist
+        alert(message);
+    }
+}
+</script>
+</script>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table td:first-child {
+    text-align: left;
+}
+
+.table-responsive {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+code {
+    color: #e83e8c;
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+</style>
+{% endblock %}

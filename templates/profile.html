@@ -1,0 +1,212 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Profile - WDN{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">Profile Settings</h1>
+                    <p class="text-muted mb-0">Manage your account settings and API configuration</p>
+                </div>
+            </div>
+
+            <!-- Display Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <!-- Profile Information -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Account Information</h5>
+                            
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label fw-medium">Username:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control-plaintext" readonly value="{{ user.username }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label fw-medium">Email:</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control-plaintext" readonly value="{{ user.email }}">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label fw-medium">Current Balance:</label>
+                                <div class="col-sm-9">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-success fs-6">${{ profile.balance }}</span>
+                                        <button class="btn btn-sm btn-outline-primary ms-3" onclick="syncBalance()">
+                                            <i class="fas fa-sync me-1"></i>Sync Balance
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <label class="col-sm-3 col-form-label fw-medium">Member Since:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control-plaintext" readonly value="{{ user.date_joined|date:'F j, Y' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Configuration -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-key me-2"></i>API Configuration
+                            </h5>
+                            
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="api_key" class="form-label">DaisySMS API Key</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="api_key" name="api_key" 
+                                               value="{{ profile.api_key|default:'' }}" 
+                                               placeholder="Enter your DaisySMS API key">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="toggleApiKey()">
+                                            <i class="fas fa-eye" id="apiKeyIcon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">
+                                        Get your API key from <a href="https://daisysms.com/stubs/api.php" target="_blank">DaisySMS</a>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save API Key
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-chart-line me-2"></i>Quick Stats
+                            </h5>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Total Rentals:</span>
+                                <span class="fw-medium">{{ user.rental_set.count }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Active Rentals:</span>
+                                <span class="fw-medium">{{ user.rental_set.filter.count }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">API Status:</span>
+                                <span class="badge bg-{% if profile.api_key %}success{% else %}warning{% endif %}">
+                                    {% if profile.api_key %}Configured{% else %}Not Set{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleApiKey() {
+    const apiKeyInput = document.getElementById('api_key');
+    const apiKeyIcon = document.getElementById('apiKeyIcon');
+    
+    if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        apiKeyIcon.classList.remove('fa-eye');
+        apiKeyIcon.classList.add('fa-eye-slash');
+    } else {
+        apiKeyInput.type = 'password';
+        apiKeyIcon.classList.remove('fa-eye-slash');
+        apiKeyIcon.classList.add('fa-eye');
+    }
+}
+
+async function syncBalance() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Syncing...';
+    
+    try {
+        const response = await fetch('/api/balance/');
+        const data = await response.json();
+        
+        if (response.ok && data.balance) {
+            // Update the balance display
+            document.querySelector('.badge.bg-success').textContent = '$' + data.balance;
+            
+            // Show success message
+            showToast('success', 'Balance synced successfully');
+        } else {
+            throw new Error(data.error || 'Failed to sync balance');
+        }
+    } catch (error) {
+        showToast('error', error.message || 'Failed to sync balance');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+}
+
+function showToast(type, message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+
+// Update active nav link
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.textContent.trim() === 'Profile') {
+            link.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}

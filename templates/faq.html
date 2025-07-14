@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FAQ - Young PG Virtual{% endblock %}
+
+{% block content %}
+    <!-- FAQ Content -->
+    <div class="privacy-page">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-md-12">
+                    <!-- Page Header -->
+                    <div class="privacy-header text-center mb-5">
+                        <div class="privacy-icon mb-3">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h1 class="privacy-title">Frequently Asked Questions</h1>
+                        <p class="privacy-subtitle">Find answers to common questions about our service</p>
+                    </div>
+
+                    <!-- FAQ Accordion -->
+                    <div class="faq-accordion">
+                        <div class="accordion" id="faqAccordion">
+                            
+                            <!-- FAQ Item 1 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <i class="fas fa-cogs me-3"></i>
+                                        How does it work?
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>The basic use of this site is as follows:</p>
+                                        <ol class="faq-list">
+                                            <li><strong>Add money to your account</strong> - Start by funding your account with your preferred payment method</li>
+                                            <li><strong>Choose a service</strong> - Select the service you want to verify from our services list (e.g. Microsoft)</li>
+                                            <li><strong>Get your number</strong> - You're given a phone number, copy and paste it to the desired site</li>
+                                            <li><strong>Receive your code</strong> - As soon as we see a message sent to it, the OTP code is displayed on the dashboard page</li>
+                                            <li><strong>Complete verification</strong> - Copy and paste the code to the form that asks for it on the site you're verifying</li>
+                                        </ol>
+                                        <div class="faq-note">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <span>If you don't receive any message, money returns to your site balance. You can choose to get a short term (5-15 minutes) or a long-term rental (keep the number for as long as you want).</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 2 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        <i class="fas fa-calendar-alt me-3"></i>
+                                        How do long-term rentals work?
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>If you click <strong>"Long-term rental"</strong> when you get the number, as soon as you receive the first message, you pay both for the text and for the first day of renting the number. While your rental is paid for, you can open the Rentals page in your dashboard, choose a number, activate it and receive a new message for free.</p>
+                                        
+                                        <p>You can keep the number for as long as you want. There is an <strong>"auto-renew"</strong> checkbox both in the number order form and on the rentals page. If auto-renew is active, when the number is about to expire, the site will attempt to take the daily fee from your account to extend the number for one day more.</p>
+
+                                        <div class="example-box">
+                                            <h5><i class="fas fa-lightbulb me-2"></i>Example:</h5>
+                                            <p>You want to buy a Yahoo number for 1 month. Choose "Long-term rental" and "Auto-renew". As of writing this, the price of a Yahoo code is $0.12 and the price of a daily rental is $0.25 per day. The site takes $0.12 + $0.25 = $0.37 from your account and you receive the first message (if you don't - you get money back).</p>
+                                            
+                                            <p>Now the number will appear on the Rentals page. A week passes, each day the site takes $0.25, you need a new number. You go to the Rentals page, click "Wakeup" and now you can receive one more message, without paying for it.</p>
+                                            
+                                            <p>A week passes and you understand you don't need the number any more. You uncheck auto-renew on the Rentals page, and the number expires.</p>
+                                        </div>
+
+                                        <div class="faq-note">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <span>In the first 10 minutes after creating a long-term rental you have an option to cancel it and return the daily price to your balance.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 3 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        <i class="fas fa-envelope-open-text me-3"></i>
+                                        Can I receive more than one message?
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>Please check this page. Find the service you want to verify. If you see 🔁 next to it, you can receive an unlimited number of messages during the initial rental at no extra cost. That page also lists the duration of the rental. For example, Tinder rents for 7 minutes and has 🔁. This means that as soon as you get the number, a countdown of 7 minutes starts. You can send as many messages as you want during this time, they will all be displayed on the website. API will provide the last one. You don't need to do anything before sending extra messages. Please press the "Done" button that appears after you receive one message as soon as you don't need the number any more.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 4 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingFour">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                        <i class="fas fa-list me-3"></i>
+                                        How do I rent a "Service not listed" for a long time?
+                                    </button>
+                                </h2>
+                                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>This is not supported. To make it happen, please add a new service here.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 5 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingFive">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                        <i class="fas fa-dollar-sign me-3"></i>
+                                        The "Service not listed" option is too expensive.
+                                    </button>
+                                </h2>
+                                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>Please click here to add a new service with a lower price.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 6 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingSix">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                        <i class="fas fa-redo me-3"></i>
+                                        How do I reuse a number I've used before?
+                                    </button>
+                                </h2>
+                                <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>Use the Wakeup button on the Rentals History page. If there is no wakeup button present, we don't have the number anymore (and can't recover it). Try getting a long-term rental next time.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 7 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingSeven">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                        <i class="fas fa-exclamation-circle me-3"></i>
+                                        Number XXX XXX XXXX doesn't have the Renew button any more and I want to receive one more message
+                                    </button>
+                                </h2>
+                                <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>If the button is missing, there is no way for us to recover the number. You should have gotten a long-term rental.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 8 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingEight">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                        <i class="fas fa-clock me-3"></i>
+                                        How long after the first rental am I able to receive additional codes?
+                                    </button>
+                                </h2>
+                                <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>If you bought a short term rental, we provide an option to receive additional messages at half the cost of the first message. The timeframe in which this is possible is completely random and ranges from 5 minutes to a month or more. If you want to have guaranteed access to the number at all times, buy a long-term rental.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 9 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingNine">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                                        <i class="fas fa-globe-americas me-3"></i>
+                                        Which countries do you have? How do I get number from country X?
+                                    </button>
+                                </h2>
+                                <div id="collapseNine" class="accordion-collapse collapse" aria-labelledby="headingNine" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>We only have USA numbers.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 10 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTen">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
+                                        <i class="fas fa-phone-alt me-3"></i>
+                                        Can I send outgoing messages? Can I do voice verifications?
+                                    </button>
+                                </h2>
+                                <div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingTen" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>No.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 11 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingEleven">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                                        <i class="fas fa-key me-3"></i>
+                                        I forgot my password
+                                    </button>
+                                </h2>
+                                <div id="collapseEleven" class="accordion-collapse collapse" aria-labelledby="headingEleven" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>Click the "Forgot password?" button on the login page.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 12 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwelve">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
+                                        <i class="fas fa-envelope me-3"></i>
+                                        How do I change my email?
+                                    </button>
+                                </h2>
+                                <div id="collapseTwelve" class="accordion-collapse collapse" aria-labelledby="headingTwelve" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>This is not supported. Make a new account.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ Item 13 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThirteen">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                        <i class="fas fa-credit-card me-3"></i>
+                                        How do I pay with a debit/credit card? Paypal?
+                                    </button>
+                                </h2>
+                                <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingThirteen" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>If you don't have a card option on your wallet page, you can't pay with a card. We don't take PayPal.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Contact Section -->
+                    <div class="faq-contact mt-5">
+                        <div class="contact-card">
+                            <div class="text-center mb-3">
+                                <h4><i class="fas fa-headset me-2"></i>Still have questions?</h4>
+                                <p class="mb-3">Can't find the answer you're looking for? Our support team is here to help!</p>
+                            </div>
+                            <div class="contact-info justify-content-center">
+                                <div class="contact-item">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    <span>support@youngpgvirtual.com</span>
+                                </div>
+                                <div class="contact-item">
+                                    <i class="fas fa-phone me-2"></i>
+                                    <span>+1 (555) 123-4567</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
