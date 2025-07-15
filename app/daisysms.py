@@ -69,7 +69,21 @@ class DaisySMSClient:
             elif response_text.startswith('MAX_PRICE_EXCEEDED'):
                 raise DaisySMSException("Maximum price exceeded")
             elif response_text.startswith('NO_NUMBERS'):
-                raise DaisySMSException("No numbers available")
+                # Check if this is due to specific filters
+                areas = params.get('areas', '')
+                carriers = params.get('carriers', '')
+                phone = params.get('number', '')
+                
+                if phone:
+                    raise DaisySMSException(f"The specific phone number ({phone}) is not available. It may be already rented or not exist in our pool.")
+                elif areas and carriers:
+                    raise DaisySMSException(f"No numbers available for area codes ({areas}) and carriers ({carriers}). Try different combinations or remove filters.")
+                elif areas:
+                    raise DaisySMSException(f"No numbers available for area codes ({areas}). Try different area codes or remove the filter.")
+                elif carriers:
+                    raise DaisySMSException(f"No numbers available for carriers ({carriers}). Try different carriers or remove the filter.")
+                else:
+                    raise DaisySMSException("No numbers available for this service")
             elif response_text.startswith('TOO_MANY_ACTIVE_RENTALS'):
                 raise DaisySMSException("Too many active rentals (max 20)")
             elif response_text.startswith('NO_MONEY'):
@@ -78,6 +92,18 @@ class DaisySMSClient:
                 raise DaisySMSException("Rental not found")
             elif response_text.startswith('BAD_ID'):
                 raise DaisySMSException("Invalid rental ID")
+            elif response_text.startswith('BAD_NUMBER'):
+                phone = params.get('number', '')
+                if phone:
+                    raise DaisySMSException(f"Phone number ({phone}) format is not accepted by the service. Try a different number or remove the phone filter.")
+                else:
+                    raise DaisySMSException("Invalid phone number format")
+            elif response_text.startswith('NUMBER_NOT_AVAILABLE'):
+                phone = params.get('number', '')
+                if phone:
+                    raise DaisySMSException(f"Phone number ({phone}) is currently unavailable or already rented.")
+                else:
+                    raise DaisySMSException("Requested number is not available")
             
             logger.info(f"DaisySMS API call successful: {action} - {response_text[:100]}")
             return response_text, headers
@@ -85,6 +111,29 @@ class DaisySMSClient:
         except requests.RequestException as e:
             execution_time = time.time() - start_time
             error_msg = str(e)
+            
+            # Handle specific HTTP errors that might indicate area code/carrier/phone issues
+            if hasattr(e, 'response') and e.response is not None:
+                if e.response.status_code == 400:
+                    # Bad Request - likely due to invalid parameters
+                    areas = params.get('areas', '')
+                    carriers = params.get('carriers', '')
+                    phone = params.get('number', '')
+                    
+                    if phone:
+                        error_msg = f"Invalid phone number format ({phone}). Please enter a 10-digit US phone number (e.g., 5551234567)."
+                    elif areas and carriers:
+                        error_msg = f"Invalid area codes ({areas}) or carriers ({carriers}). Please check your settings and try again."
+                    elif areas:
+                        error_msg = f"Invalid area codes ({areas}). Please enter valid US area codes (e.g., 503, 202, 404)."
+                    elif carriers:
+                        error_msg = f"Invalid carriers ({carriers}). Please use: tmo (T-Mobile), vz (Verizon), or att (AT&T)."
+                    else:
+                        error_msg = "Invalid request parameters. Please check your settings."
+                elif e.response.status_code == 404:
+                    error_msg = "Service temporarily unavailable. Please try again later."
+                elif e.response.status_code >= 500:
+                    error_msg = "SMS service is experiencing issues. Please try again in a few minutes."
             
             if log_entry:
                 log_entry.error_message = error_msg
@@ -100,7 +149,7 @@ class DaisySMSClient:
                 )
             
             logger.error(f"DaisySMS API request failed: {action} - {error_msg}")
-            raise DaisySMSException(f"API request failed: {error_msg}")
+            raise DaisySMSException(error_msg)
         
         except DaisySMSException as e:
             if log_entry:
@@ -131,6 +180,12 @@ class DaisySMSClient:
         Rent a phone number for SMS verification
         Returns: (rental_id, phone_number, actual_price)
         """
+        # Note: Using WhatsApp ('wa') as fallback for unlisted services since it's widely supported
+        # When user requests unlisted service, we use WhatsApp numbers which work for most services
+        if service_code == 'service_not_listed':
+            service_code = 'wa'  # WhatsApp is reliable and widely supported
+            logger.info(f"Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API")
+        
         params = {'service': service_code}
         
         if max_price:
@@ -171,6 +226,7 @@ class DaisySMSClient:
         Get SMS status for a rental
         Returns: (status, code, full_text)
         """
+        # Regular DaisySMS API call for all services (including 'other')
         params = {'id': rental_id}
         if get_full_text:
             params['text'] = '1'
@@ -201,6 +257,7 @@ class DaisySMSClient:
         """
         Cancel rental and get refund (status 8)
         """
+        # Regular DaisySMS API call for all services (including 'other')
         params = {'id': rental_id, 'status': '8'}
         response_text, _ = self._make_request('setStatus', params, user=user)
         
@@ -285,12 +342,19 @@ class DaisySMSClient:
                     )
                     
                     if not created:
-                        # Update existing service
-                        service.price = Decimal(str(service_data.get('cost', 0)))
-                        service.daily_price = Decimal(str(service_data.get('ltr', 0)))
-                        service.available_numbers = min(int(service_data.get('count', 0)), 100)
-                        service.supports_multiple_sms = service_data.get('multi', False)
-                        service.save()
+                        # Don't overwrite pricing for special services like "Service Not Listed"
+                        if service_code != 'service_not_listed':
+                            # Update existing service with API prices
+                            service.price = Decimal(str(service_data.get('cost', 0)))
+                            service.daily_price = Decimal(str(service_data.get('ltr', 0)))
+                            service.available_numbers = min(int(service_data.get('count', 0)), 100)
+                            service.supports_multiple_sms = service_data.get('multi', False)
+                            service.save()
+                        else:
+                            # For "Service Not Listed", only update availability and multi-SMS support
+                            service.available_numbers = min(int(service_data.get('count', 0)), 100)
+                            service.supports_multiple_sms = service_data.get('multi', False)
+                            service.save()
                     
                     updated_count += 1
             

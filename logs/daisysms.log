@@ -164,3 +164,396 @@ DaisySMS API call successful: setStatus - ACCESS_CANCEL
 DaisySMS API call successful: getNumber - ACCESS_NUMBER:292825681:15174024820
 DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
 DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293291717:13372638534
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293291726:15706607914
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293296486:13163690746
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293298733:12703450238
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293300319:12108846434
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293312211:14192458315
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293342612:19132089450
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293365647:13372638933
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - 400 Client Error: Bad Request for url: https://daisysms.com/stubs/handler_api.php?service=wa&areas=403&carriers=tmo&api_key=Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W&action=getNumber
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293396632:14058667117
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - 400 Client Error: Bad Request for url: https://daisysms.com/stubs/handler_api.php?service=wa&areas=403&carriers=tmo&api_key=Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W&action=getNumber
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293415745:16178625083
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293416309:14056482610
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API request failed: getNumber - Invalid request parameters. Please check your settings.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293416689:14238148556
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - Invalid request parameters. Please check your settings.
+DaisySMS API request failed: getNumber - Invalid area codes (405). Please enter valid US area codes (e.g., 503, 202, 404).
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293417375:14059010319
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293422639:19035747411
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293422839:19035719053
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293422947:19035191092
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - Invalid phone number format (9035747411). Please enter a 10-digit US phone number without formatting (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid phone number format (9035747411). Please enter a 10-digit US phone number without formatting (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid phone number format (9035747411). Please enter a 10-digit US phone number without formatting (e.g., 5551234567).
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293426684:19035150710
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293426913:19035744802
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293426914:19037522553
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API request failed: getNumber - Invalid phone number format (9035744802). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293433641:17196661696
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293433850:17197508839
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API request failed: getNumber - Invalid phone number format (7197508839). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - HTTPSConnectionPool(host='daisysms.com', port=443): Read timed out. (read timeout=30)
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - HTTPSConnectionPool(host='daisysms.com', port=443): Read timed out. (read timeout=30)
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid phone number format (9037522553). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API request failed: getNumber - Invalid request parameters. Please check your settings.
+DaisySMS API request failed: getNumber - Invalid request parameters. Please check your settings.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293439530:19102653516
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Created mock rental for 'service not listed': SNL1752579232467 - 5553013408
+Cancelled 'service not listed' rental: SNL1752579232467
+Created mock rental for 'service not listed': SNL1752579306910 - 5553582409
+Created mock rental for 'service not listed': SNL1752579636741 - 5556101348 - $2.00
+Cancelled 'service not listed' rental: SNL1752579636741
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293451109:14843007508
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Created mock rental for 'service not listed': SNL1752579941674 - 5552651797 - $1.00
+Cancelled 'service not listed' rental: SNL1752579941674
+DaisySMS API request failed: getNumber - Invalid phone number format (5743900064). Please enter a 10-digit US phone number (e.g., 5551234567).
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293455812:15743929777
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293464021:13372630368
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+Error renting number: No Service matches the given query.
+Error renting number: No Service matches the given query.
+Error renting number: No Service matches the given query.
+Error renting number: No Service matches the given query.
+Error renting number: No Service matches the given query.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293471758:15593059566
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293472783:14802420017
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293473494:13272129050
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293480761:13076895974
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293480842:16072628139
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293492604:14237660010
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293497058:18625990988
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293497173:14029538048
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293499163:12249386689
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293507099:17208136501
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API request failed: getNumber - Invalid request parameters. Please check your settings.
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293508184:19367074609
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293508578:12563386490
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293512493:12249386700
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293513144:13343552802
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293513673:12514288409
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293523920:15642414550
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293524484:19188806209
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293533086:19494828688
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293533373:19294236505
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API request failed: getNumber - SMS service is experiencing issues. Please try again in a few minutes.
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293533650:17158079754
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getStatus - STATUS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293546747:13372638534
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":0,"cost":"0.50","repeatable":true}},"auw":
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293642565:13372636208
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Converting 'service_not_listed' to 'wa' (WhatsApp) for DaisySMS API
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:293642687:18602346181
+DaisySMS API call successful: getStatus - STATUS_WAIT_CODE
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw

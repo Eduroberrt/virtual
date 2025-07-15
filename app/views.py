@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import UserProfile, Service, Rental
+from .email_utils import send_welcome_email
 
 # Create your views here.
 
@@ -62,9 +63,16 @@ def signup(request):
             # Create user profile
             UserProfile.objects.create(user=user)
             
+            # Send welcome email
+            try:
+                send_welcome_email(user)
+            except Exception as e:
+                # Don't fail registration if email fails
+                messages.warning(request, 'Account created successfully, but welcome email could not be sent.')
+            
             # Log the user in
             login(request, user)
-            messages.success(request, 'Account created successfully!')
+            messages.success(request, 'Account created successfully! Welcome to Young PG Virtual!')
             return redirect('dashboard')
             
         except Exception as e:

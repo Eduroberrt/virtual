@@ -132,7 +132,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # DaisySMS Configuration
-DAISYSMS_API_KEY = 'Z6jC2siPiC5Q8JpmxB0pzGkIUSMl0W'
+DAISYSMS_API_KEY = 
+
+# Email Configuration (Mailgun)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'postmaster@your-domain.mailgun.org'  # Replace with your Mailgun domain
+EMAIL_HOST_PASSWORD = 'your-mailgun-smtp-password'  # Replace with your Mailgun SMTP password
+DEFAULT_FROM_EMAIL = 'Young PG Virtual <noreply@your-domain.com>'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Password Reset Settings
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
 
 # Authentication Configuration
 LOGIN_URL = '/login/'
