@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Young PG Virtual{% endblock %}</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        /* Email Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .email-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="80" r="2.5" fill="rgba(255,255,255,0.1)"/></svg>');
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Content */
+        .email-content {
+            padding: 2.5rem 2rem;
+        }
+        
+        .content-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e6f7fa 0%, #b3e5fc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: #17a2b8;
+        }
+        
+        .email-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .email-subtitle {
+            font-size: 1rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .email-body {
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+        
+        .email-body p {
+            margin-bottom: 1.2rem;
+        }
+        
+        .email-body ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .email-body li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Buttons */
+        .email-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white !important;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            margin: 1rem auto;
+            display: block;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .email-button:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+        
+        .info-box-icon {
+            color: #17a2b8;
+            margin-right: 0.5rem;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #555;
+        }
+        
+        /* Code Block */
+        .code-block {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            letter-spacing: 2px;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .footer-content {
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #17a2b8;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .footer-links a:hover {
+            color: #20c997;
+            text-decoration: underline;
+        }
+        
+        .footer-social {
+            margin-bottom: 1rem;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .social-link {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            background: #17a2b8;
+            transform: translateY(-2px);
+        }
+        
+        .footer-text {
+            color: #bbb;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        .footer-text a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+        
+        .footer-text a:hover {
+            color: #20c997;
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .email-content {
+                padding: 2rem 1.5rem;
+            }
+            
+            .email-header {
+                padding: 1.5rem;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .email-title {
+                font-size: 1.5rem;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .social-links {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">Young PG Virtual</div>
+            <div class="tagline">SMS Verification Made Simple</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="email-content">
+            {% block content %}
+            {% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://your-domain.com/dashboard/">Dashboard</a>
+                    <a href="https://your-domain.com/faq/">FAQ</a>
+                    <a href="https://your-domain.com/privacy/">Privacy</a>
+                    <a href="https://your-domain.com/terms/">Terms</a>
+                </div>
+                
+                <div class="footer-social">
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-text">
+                    <p>© 2025 Young PG Virtual. All rights reserved.</p>
+                    <p>You're receiving this email because you have an account with us.</p>
+                    <p>If you have any questions, feel free to <a href="mailto:support@your-domain.com">contact us</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

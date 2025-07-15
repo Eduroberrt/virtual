@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from decimal import Decimal
 import uuid
+import secrets
+from datetime import timedelta
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -144,3 +146,40 @@ class APILog(models.Model):
 
     def __str__(self):
         return f"{self.endpoint} - {self.status_code} - {self.created_at}"
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Password reset token for {self.user.username}"
+    
+    def is_valid(self):
+        """Check if token is still valid (not expired and not used)"""
+        if self.used:
+            return False
+        
+        # Token expires after 1 hour
+        expiry_time = self.created_at + timedelta(hours=1)
+        return timezone.now() < expiry_time
+    
+    def mark_as_used(self):
+        """Mark token as used"""
+        self.used = True
+        self.save()
+    
+    @classmethod
+    def create_token(cls, user):
+        """Create a new password reset token for user"""
+        # Delete any existing unused tokens for this user
+        cls.objects.filter(user=user, used=False).delete()
+        
+        # Generate a secure random token
+        token = secrets.token_urlsafe(48)
+        
+        return cls.objects.create(user=user, token=token)

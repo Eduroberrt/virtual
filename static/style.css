@@ -1022,18 +1022,97 @@ body {
     text-decoration: underline;
 }
 
-/* Form Validation */
+/* Validation tooltip styling */
+.validation-tooltip {
+    position: absolute;
+    background: #dc3545;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 1000;
+    max-width: 200px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    line-height: 1.3;
+}
+
+.validation-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #dc3545;
+}
+
+/* Enhanced input validation states */
 .form-control.is-invalid {
     border-color: #dc3545;
-    background: #fff5f5;
+    background-color: #fff5f5;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1);
+    animation: shake 0.3s ease-in-out;
+}
+
+.form-control.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
 .form-control.is-valid {
     border-color: #28a745;
-    background: #f8fff8;
+    background-color: #f8fff8;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.1);
 }
 
-/* Mobile Responsive for Auth Pages */
+.form-control.is-valid:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Shake animation for invalid inputs */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Settings panel input group enhancements */
+.settings-panel .input-group {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+/* Clear button styling */
+.btn-link {
+    color: #17a2b8;
+    text-decoration: none;
+    font-size: 0.7rem;
+}
+
+.btn-link:hover {
+    color: #138496;
+    text-decoration: underline;
+}
+
+/* Enhanced notification positioning */
+@media (max-width: 576px) {
+    .alert {
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        right: 10px !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+}
+
+/* Mobile responsive for Auth Pages */
 @media (max-width: 768px) {
     .auth-page {
         padding: 4rem 0 2rem 0;
@@ -1073,18 +1152,53 @@ body {
     }
     
     .form-control {
-        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        padding: 0.75rem 1rem 0.75rem 3.2rem;
         font-size: 0.95rem;
     }
     
     .input-icon {
-        left: 0.85rem;
+        left: 0.9rem;
         font-size: 0.9rem;
     }
     
     .password-toggle {
-        right: 0.85rem;
+        right: 0.9rem;
         font-size: 0.9rem;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .form-control {
+        padding: 0.75rem 0.9rem 0.75rem 3.4rem;
+        font-size: 0.9rem;
+    }
+    
+    .input-icon {
+        left: 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .password-toggle {
+        right: 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .form-control::placeholder {
+        font-size: 0.85rem;
+    }
+}
+
+/* Password fields with both icon and toggle button need extra right padding on mobile */
+@media (max-width: 576px) {
+    input[type="password"].form-control {
+        padding-right: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    input[type="password"].form-control {
+        padding-right: 3.2rem;
     }
 }
 
@@ -1542,13 +1656,16 @@ body {
     height: 100vh;
     background: white;
     z-index: 1040;
-    transition: left 0.3s ease;
+    transition: transform 0.3s ease;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(0);
+    -webkit-overflow-scrolling: touch;
 }
 
 .mobile-sidebar.open {
-    left: 0;
+    transform: translateX(280px);
 }
 
 .mobile-sidebar-overlay {
@@ -1571,6 +1688,8 @@ body {
 
 .sidebar-open {
     overflow: hidden;
+    position: fixed;
+    width: 100%;
 }
 
 /* Mobile Sidebar Header */
@@ -1581,6 +1700,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 80px;
+    flex-shrink: 0;
 }
 
 .sidebar-brand {
@@ -1610,6 +1734,31 @@ body {
 /* Mobile Sidebar Content */
 .mobile-sidebar-content {
     padding: 1.5rem 1rem;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #17a2b8 #f8f9fa;
+}
+
+/* Custom scrollbar for mobile sidebar */
+.mobile-sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mobile-sidebar-content::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+}
+
+.mobile-sidebar-content::-webkit-scrollbar-thumb {
+    background: #17a2b8;
+    border-radius: 3px;
+}
+
+.mobile-sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: #138496;
 }
 
 .mobile-user-info {
@@ -1647,6 +1796,7 @@ body {
 /* Mobile Navigation */
 .mobile-nav {
     margin-top: 1rem;
+    padding-bottom: 2rem; /* Extra padding at bottom for easier scrolling */
 }
 
 .mobile-nav .nav-link {
@@ -1656,352 +1806,261 @@ body {
     font-size: 0.95rem;
 }
 
-/* Main Content Area */
-.dashboard-main {
-    flex: 1;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
+/* Prevent sidebar bounce on iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+    .mobile-sidebar {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+    
+    .mobile-sidebar-content {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
 }
 
-.dashboard-content {
-    flex: 1;
-    width: 100%;
-    max-width: none;
-}
-
-/* Dashboard Footer */
-.dashboard-footer {
-    background: white;
-    border-top: 1px solid #dee2e6;
-    padding: 1rem 2rem;
-    margin-top: auto;
-}
-
-.footer-content {
-    text-align: center;
-}
-
-.footer-content p {
-    margin: 0;
-    color: #666;
-    font-size: 0.85rem;
-}
-
-/* Mobile responsive adjustments for footer */
+/* Mobile sidebar performance optimizations */
 @media (max-width: 767.98px) {
-    .dashboard-main {
-        padding: 1rem 0.5rem;
+    .mobile-sidebar {
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
     
-    .dashboard-footer {
-        padding: 0.75rem 1rem;
+    .mobile-sidebar-overlay {
+        will-change: opacity;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 }
 
-/* Global Mobile Responsive Styles - Reduce all text sizes on mobile */
+/* Global Mobile Table Responsive Styles - Enhanced Padding */
 @media (max-width: 767.98px) {
-    /* Base text size reduction */
-    body {
-        font-size: 14px;
-    }
-    
-    /* Headings - smaller on mobile */
-    h1 {
-        font-size: 1.8rem !important;
-    }
-    
-    h2 {
-        font-size: 1.5rem !important;
-    }
-    
-    h3 {
-        font-size: 1.3rem !important;
-    }
-    
-    h4 {
-        font-size: 1.1rem !important;
-    }
-    
-    h5 {
-        font-size: 1rem !important;
-    }
-    
-    h6 {
-        font-size: 0.9rem !important;
-    }
-    
-    /* Navbar elements */
-    .navbar-brand {
-        font-size: 1.2rem !important;
-    }
-    
-    .navbar-nav .nav-link {
-        font-size: 0.9rem !important;
-        margin: 0 0.5rem !important;
-    }
-    
-    /* Button sizes */
-    .btn, .btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info, .btn-light, .btn-dark, .btn-outline-primary, .btn-outline-secondary {
-        padding: 0.4rem 1rem !important;
+    /* Base table padding increase for all tables on mobile */
+    table, .table {
         font-size: 0.85rem !important;
     }
     
-    .btn-sm {
-        padding: 0.25rem 0.6rem !important;
-        font-size: 0.75rem !important;
-    }
-    
-    .btn-lg {
-        padding: 0.6rem 1.2rem !important;
-        font-size: 1rem !important;
-    }
-    
-    /* Table elements */
-    table, .table {
-        font-size: 0.8rem !important;
-    }
-    
-    .table th, .table td {
-        padding: 0.5rem 0.3rem !important;
-        font-size: 0.75rem !important;
+    .table th, .table td,
+    table th, table td {
+        padding: 1rem 0.75rem !important;
+        font-size: 0.85rem !important;
+        line-height: 1.4;
+        vertical-align: middle;
     }
     
     .table-sm th, .table-sm td {
-        padding: 0.3rem 0.2rem !important;
-        font-size: 0.7rem !important;
-    }
-    
-    /* Form elements */
-    .form-control, .form-select, input, textarea, select {
-        font-size: 0.85rem !important;
-        padding: 0.4rem 0.6rem !important;
-    }
-    
-    .form-label, label {
-        font-size: 0.85rem !important;
-    }
-    
-    .form-text, .text-muted {
-        font-size: 0.75rem !important;
-    }
-    
-    /* Cards */
-    .card {
-        font-size: 0.85rem !important;
-    }
-    
-    .card-title {
-        font-size: 1.1rem !important;
-    }
-    
-    .card-text {
-        font-size: 0.85rem !important;
-    }
-    
-    .card-header, .card-footer {
-        font-size: 0.8rem !important;
-        padding: 0.6rem 1rem !important;
-    }
-    
-    /* Alerts */
-    .alert {
-        font-size: 0.85rem !important;
-        padding: 0.6rem 1rem !important;
-    }
-    
-    /* Badges */
-    .badge {
-        font-size: 0.7rem !important;
-    }
-    
-    /* List groups */
-    .list-group-item {
-        font-size: 0.85rem !important;
-        padding: 0.6rem 1rem !important;
-    }
-    
-    /* Breadcrumbs */
-    .breadcrumb {
+        padding: 0.9rem 0.6rem !important;
         font-size: 0.8rem !important;
     }
     
-    /* Pagination */
-    .pagination {
-        font-size: 0.8rem !important;
-    }
-    
-    .page-link {
-        padding: 0.4rem 0.6rem !important;
-        font-size: 0.8rem !important;
-    }
-    
-    /* Dropdowns */
-    .dropdown-menu {
-        font-size: 0.85rem !important;
-    }
-    
-    .dropdown-item {
-        padding: 0.4rem 1rem !important;
-        font-size: 0.85rem !important;
-    }
-    
-    /* Navigation pills/tabs */
-    .nav-pills .nav-link, .nav-tabs .nav-link {
-        font-size: 0.85rem !important;
-        padding: 0.4rem 0.8rem !important;
-    }
-    
-    /* Modal */
-    .modal-title {
-        font-size: 1.2rem !important;
-    }
-    
-    .modal-body {
-        font-size: 0.85rem !important;
-    }
-    
-    /* Tooltips and popovers */
-    .tooltip-inner {
-        font-size: 0.75rem !important;
-    }
-    
-    .popover-body {
-        font-size: 0.8rem !important;
-    }
-    
-    /* Progress bars */
-    .progress {
-        font-size: 0.75rem !important;
-    }
-    
-    /* Utility text classes */
-    .text-sm, .small {
-        font-size: 0.75rem !important;
-    }
-    
-    .text-lg {
-        font-size: 1rem !important;
-    }
-    
-    /* Custom dashboard elements */
-    .dashboard-card .card-body {
+    /* Special enhanced padding for service rows (already defined but ensuring consistency) */
+    .service-row td {
         padding: 1rem 0.75rem !important;
+        font-size: 0.85rem !important;
     }
     
-    .stats-card .card-title {
-        font-size: 1rem !important;
+    /* Enhanced padding for history/stats tables */
+    .history-table td,
+    .stats-table td,
+    .rental-table td {
+        padding: 1.2rem 0.8rem !important;
     }
     
-    .stats-card .stats-value {
-        font-size: 1.5rem !important;
+    /* Buttons within tables - better touch targets */
+    .table .btn, table .btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        min-height: 36px;
+        min-width: 36px;
     }
     
-    /* Action buttons in tables */
-    .table .btn {
-        padding: 0.2rem 0.5rem !important;
-        font-size: 0.7rem !important;
-    }
-    
-    /* Copy icons and small buttons */
-    .copy-btn, .btn-copy {
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.7rem !important;
-    }
-    
-    /* TTL timers */
-    .ttl-timer {
+    .table .btn-sm, table .btn-sm {
+        padding: 0.4rem 0.6rem !important;
         font-size: 0.75rem !important;
+        min-height: 32px;
+        min-width: 32px;
+    }
+    
+    /* Copy buttons and action buttons in tables */
+    .copy-btn, .btn-copy, .table .fa-copy {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.8rem !important;
+        min-height: 36px;
+        min-width: 36px;
+    }
+    
+    /* Table headers - better spacing */
+    .table thead th,
+    table thead th {
+        padding: 1rem 0.75rem !important;
+        font-weight: 600;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Responsive table containers */
+    .table-responsive {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
     /* Status badges in tables */
-    .table .badge {
-        font-size: 0.65rem !important;
-        padding: 0.25rem 0.4rem !important;
-    }
-    
-    /* Filter forms */
-    .filter-form .form-control {
-        font-size: 0.8rem !important;
-    }
-    
-    .filter-form .btn {
-        font-size: 0.8rem !important;
-        padding: 0.35rem 0.8rem !important;
-    }
-    
-    /* Footer */
-    .footer-content p {
+    .table .badge, table .badge {
         font-size: 0.75rem !important;
+        padding: 0.4rem 0.6rem !important;
+        border-radius: 6px;
     }
     
-    /* Container padding adjustments */
-    .container, .container-fluid {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
+    /* TTL timers and countdown elements */
+    .ttl-timer, .countdown-timer {
+        font-size: 0.8rem !important;
+        padding: 0.2rem 0.4rem;
+        background: rgba(23, 162, 184, 0.1);
+        border-radius: 4px;
     }
     
-    /* Row gutters */
-    .row {
-        margin-left: -0.5rem !important;
-        margin-right: -0.5rem !important;
+    /* Icon buttons in tables */
+    .table .fas, .table .far, table .fas, table .far {
+        font-size: 0.9rem !important;
+        padding: 0.2rem;
     }
     
-    .row > * {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
+    /* Hover effects for table rows */
+    .table-hover tbody tr:hover,
+    table.table-hover tbody tr:hover {
+        background-color: rgba(23, 162, 184, 0.08) !important;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
     }
 }
 
-/* Extra small devices (phones in portrait mode) */
+/* Extra small devices (phones in portrait mode) - Even more padding */
 @media (max-width: 575.98px) {
-    /* Even smaller text for very small screens */
-    body {
-        font-size: 13px;
+    .table th, .table td,
+    table th, table td {
+        padding: 0.7rem 0.8rem !important;
+        font-size: 0.85rem !important;
     }
     
-    h1 {
-        font-size: 1.6rem !important;
-    }
-    
-    h2 {
-        font-size: 1.3rem !important;
-    }
-    
-    h3 {
-        font-size: 1.1rem !important;
-    }
-    
-    .navbar-brand {
-        font-size: 1.1rem !important;
-    }
-    
-    .table th, .table td {
-        padding: 0.4rem 0.2rem !important;
-        font-size: 0.7rem !important;
-    }
-    
-    .btn {
+    .table-sm th, .table-sm td {
+        padding: 0.7rem 0.7rem !important;
         font-size: 0.8rem !important;
-        padding: 0.35rem 0.8rem !important;
     }
     
-    .btn-sm {
-        font-size: 0.7rem !important;
-        padding: 0.2rem 0.5rem !important;
+    /* Service rows get even more padding on very small screens */
+    .service-row td {
+        padding: 0.7rem 0.8rem !important;
     }
     
-    .card-header, .card-footer {
-        padding: 0.5rem 0.75rem !important;
+    /* Table headers on very small screens */
+    .table thead th,
+    table thead th {
+        padding: 1.2rem 0.8rem !important;
+        font-size: 0.75rem !important;
     }
     
-    .stats-card .stats-value {
-        font-size: 1.3rem !important;
+    /* Larger touch targets for very small screens */
+    .table .btn, table .btn {
+        padding: 0.6rem 0.8rem !important;
+        min-height: 40px;
+        min-width: 40px;
     }
     
-    /* Very compact table actions */
-    .table .btn {
-        padding: 0.15rem 0.3rem !important;
-        font-size: 0.65rem !important;
+    .copy-btn, .btn-copy {
+        padding: 0.5rem 0.7rem !important;
+        min-height: 40px;
+        min-width: 40px;
     }
+}
+
+/* Table loading states and animations */
+@media (max-width: 767.98px) {
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:active {
+        background-color: rgba(23, 162, 184, 0.15) !important;
+        transform: scale(0.98);
+    }
+    
+    /* Better spacing for nested elements in table cells */
+    .table td > div,
+    table td > div {
+        padding: 0.2rem 0;
+        line-height: 1.4;
+    }
+    
+    .table td > span,
+    table td > span {
+        display: inline-block;
+        padding: 0.1rem 0;
+    }
+}
+
+/* Improve mobile form UX */
+@media (max-width: 576px) {
+    .form-control {
+        min-height: 48px; /* Better touch target */
+        line-height: 1.4;
+    }
+    
+    .input-icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .password-toggle {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-control {
+        min-height: 44px;
+    }
+    
+    .password-toggle {
+        min-width: 40px;
+        min-height: 40px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+}
+
+/* Service Not Listed styles */
+#service-not-listed-row {
+    background: linear-gradient(90deg, rgba(23, 162, 184, 0.1) 0%, rgba(23, 162, 184, 0.05) 100%);
+    border-left: 3px solid #17a2b8;
+    transition: all 0.3s ease;
+}
+
+#service-not-listed-row:hover {
+    background: linear-gradient(90deg, rgba(23, 162, 184, 0.15) 0%, rgba(23, 162, 184, 0.1) 100%);
+    transform: translateX(2px);
+    cursor: pointer;
+}
+
+#service-not-listed-row .service-name i {
+    color: #17a2b8;
+}
+
+#service-not-listed-row .service-name small {
+    color: #6c757d;
+    font-style: italic;
 }

@@ -41,6 +41,7 @@ def get_user_balance(request):
                 logger.warning(f"Failed to sync balance for {request.user.username}: {str(e)}")
         
         return json_response({
+            'success': True,
             'balance': str(profile.balance),
             'balance_naira': f"{profile.get_naira_balance():,.2f}",
             'has_api_key': bool(profile.api_key)
@@ -341,15 +342,31 @@ def set_auto_renew(request):
 @login_required
 @require_http_methods(["GET"])
 def get_rentals(request):
-    """Get user's rentals with pagination"""
+    """Get user's active rentals for dashboard display"""
     try:
         from django.core.paginator import Paginator
+        from django.utils import timezone
+        from django.db.models import Q
         
-        rentals = Rental.objects.filter(user=request.user).select_related('service')
+        # Get rentals that should be shown in the dashboard:
+        # 1. Active waiting rentals (not expired, not cancelled)
+        # 2. Rentals that have received SMS (regardless of status)
+        expiry_threshold = timezone.now() - timezone.timedelta(minutes=7)
+        
+        rentals = Rental.objects.filter(
+            user=request.user
+        ).filter(
+            # Include rentals that:
+            Q(messages__isnull=False) |  # Have received SMS messages
+            Q(
+                status__in=['WAITING', 'RECEIVED'],  # Are active
+                created_at__gt=expiry_threshold  # And not expired
+            )
+        ).select_related('service').distinct()
         
         # Pagination
         page = request.GET.get('page', 1)
-        paginator = Paginator(rentals, 20)
+        paginator = Paginator(rentals, 20)  # Show 20 rentals per page
         page_obj = paginator.get_page(page)
         
         rentals_data = []
@@ -577,3 +594,162 @@ def get_rental_history(request):
     except Exception as e:
         logger.error(f"Error getting rental history: {str(e)}")
         return error_response("Failed to get rental history", 500)
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def expire_rental(request):
+    """Expire a rental and issue refund for rentals that didn't receive SMS"""
+    try:
+        data = json.loads(request.body)
+        rental_id = data.get('id')
+        
+        if not rental_id:
+            return error_response("Rental ID is required")
+        
+        rental = get_object_or_404(Rental, rental_id=rental_id, user=request.user)
+        
+        # Check if rental is in a state that can be expired
+        if rental.status in ['CANCELLED', 'DONE', 'RECEIVED']:
+            return error_response("Cannot expire this rental")
+        
+        # Check if rental has received any SMS messages
+        has_received_sms = rental.messages.exists()
+        
+        # Check if rental is actually expired (more than 7 minutes old)
+        from django.utils import timezone
+        expiry_time = rental.created_at + timezone.timedelta(minutes=7)
+        if timezone.now() < expiry_time:
+            return error_response("Rental has not expired yet")
+        
+        try:
+            with transaction.atomic():
+                # Update rental status
+                rental.status = 'EXPIRED'
+                rental.save()
+                
+                refund_amount = Decimal('0.00')
+                
+                # Only issue refund if no SMS was received
+                if not has_received_sms:
+                    # Create refund transaction
+                    Transaction.objects.create(
+                        user=request.user,
+                        amount=rental.price,
+                        transaction_type='REFUND',
+                        description=f"Refund for expired rental {rental.phone_number} (no SMS received)",
+                        rental=rental
+                    )
+                    
+                    # Update user balance
+                    profile = UserProfile.objects.get(user=request.user)
+                    profile.balance += rental.price
+                    profile.save()
+                    
+                    refund_amount = rental.price
+                
+                return json_response({
+                    'success': True,
+                    'refund_amount': str(refund_amount),
+                    'had_sms': has_received_sms
+                })
+        
+        except Exception as e:
+            logger.error(f"Error expiring rental {rental_id}: {str(e)}")
+            return error_response("Failed to process rental expiration")
+    
+    except Exception as e:
+        logger.error(f"Error expiring rental: {str(e)}")
+        return error_response("Failed to expire rental", 500)
+
+@login_required
+@require_http_methods(["GET"])
+def get_realtime_prices(request):
+    """Get real-time prices from DaisySMS API"""
+    try:
+        client = get_daisysms_client(request.user)
+        
+        # Get real-time prices from DaisySMS
+        prices_data = client.get_prices_verification(user=request.user)
+        
+        realtime_prices = {}
+        for service_code, countries in prices_data.items():
+            if '187' in countries:  # USA country code
+                service_data = countries['187']
+                realtime_prices[service_code] = {
+                    'cost': str(service_data.get('cost', 0)),
+                    'ltr': str(service_data.get('ltr', 0)),
+                    'count': int(service_data.get('count', 0)),
+                    'name': service_data.get('name', service_code)
+                }
+        
+        return json_response({
+            'success': True,
+            'realtime_prices': realtime_prices,
+            'timestamp': timezone.now().isoformat()
+        })
+        
+    except DaisySMSException as e:
+        return error_response(str(e))
+    except Exception as e:
+        logger.error(f"Error getting realtime prices: {str(e)}")
+        return error_response("Failed to get realtime prices", 500)
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_service_not_listed(request):
+    """Create the Service Not Listed service"""
+    try:
+        # Check if user is admin
+        if not request.user.is_staff:
+            return error_response("Admin access required", 403)
+        
+        from decimal import Decimal
+        
+        # Check if service already exists
+        try:
+            service = Service.objects.get(code='service_not_listed')
+            return json_response({
+                'success': True,
+                'message': 'Service Not Listed already exists',
+                'service': {
+                    'id': service.id,
+                    'name': service.name,
+                    'code': service.code,
+                    'price': str(service.price),
+                    'price_naira': f"{service.get_naira_price():,.2f}",
+                    'is_active': service.is_active
+                }
+            })
+        except Service.DoesNotExist:
+            pass
+        
+        # Create the service
+        service = Service.objects.create(
+            name='Service Not Listed',
+            code='service_not_listed',
+            price=Decimal('2.50'),
+            daily_price=Decimal('0.00'),
+            profit_margin=Decimal('30.00'),
+            available_numbers=999,
+            supports_multiple_sms=True,
+            is_active=True,
+        )
+        
+        return json_response({
+            'success': True,
+            'message': 'Service Not Listed created successfully',
+            'service': {
+                'id': service.id,
+                'name': service.name,
+                'code': service.code,
+                'price': str(service.price),
+                'price_naira': f"{service.get_naira_price():,.2f}",
+                'is_active': service.is_active
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating service not listed: {str(e)}")
+        return error_response("Failed to create service", 500)
