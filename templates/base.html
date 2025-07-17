@@ -19,6 +19,112 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}">
     
+    <!-- Mobile Input Zoom Prevention -->
+    <style>
+        /* Prevent zoom on input focus for iOS devices */
+        @media screen and (max-width: 991px) {
+            input[type="text"],
+            input[type="email"], 
+            input[type="password"],
+            input[type="number"],
+            input[type="search"],
+            input[type="tel"],
+            input[type="url"],
+            select,
+            textarea {
+                font-size: 16px !important;
+                transform: none !important;
+            }
+            
+            .form-control,
+            .form-select {
+                font-size: 16px !important;
+            }
+            
+            /* Specifically target Bootstrap input groups */
+            .input-group .form-control {
+                font-size: 16px !important;
+            }
+            
+            /* Override any inline styles on mobile */
+            input[style*="font-size"] {
+                font-size: 16px !important;
+            }
+            
+            .form-control[style*="font-size"] {
+                font-size: 16px !important;
+            }
+            
+            /* Target input groups with small classes */
+            .input-group-sm .form-control {
+                font-size: 16px !important;
+            }
+            
+            /* Target form check inputs */
+            .form-check-input {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* Enhanced alert styling for better visibility */
+        .alert {
+            border-radius: 8px !important;
+            border-width: 2px !important;
+            font-weight: 500 !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .alert-danger {
+            background-color: #fee !important;
+            border-color: #f87171 !important;
+            color: #dc2626 !important;
+        }
+        
+        .alert-success {
+            background-color: #f0fdf4 !important;
+            border-color: #4ade80 !important;
+            color: #16a34a !important;
+        }
+        
+        .alert-warning {
+            background-color: #fefce8 !important;
+            border-color: #facc15 !important;
+            color: #ca8a04 !important;
+        }
+        
+        .alert-info {
+            background-color: #eff6ff !important;
+            border-color: #60a5fa !important;
+            color: #2563eb !important;
+        }
+        
+        /* Make error messages more prominent */
+        .alert-danger {
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15) !important;
+        }
+        
+        .alert-success {
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15) !important;
+        }
+        
+        /* Mobile alert positioning */
+        @media screen and (max-width: 768px) {
+            .alert {
+                margin-top: 1rem !important;
+                margin-bottom: 1.5rem !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .auth-card .alert {
+                margin-top: 0 !important;
+                margin-bottom: 1rem !important;
+            }
+        }
+    </style>
+    
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>

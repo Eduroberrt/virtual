@@ -8,38 +8,15 @@
 </div>
 
 <h1 class="email-title">Welcome to Young PG Virtual!</h1>
-<p class="email-subtitle">Your account has been successfully created. Get ready to start verifying your services with ease.</p>
 
 <div class="email-body">
     <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
     
     <p>Welcome to Young PG Virtual! We're excited to have you on board. Your account has been successfully created and you're now ready to start using our SMS verification services.</p>
     
-    <div class="info-box">
-        <p><i class="fas fa-info-circle info-box-icon"></i><strong>Getting Started:</strong></p>
-        <ul>
-            <li>Add funds to your wallet to start renting numbers</li>
-            <li>Browse our wide selection of services and countries</li>
-            <li>Rent a number and receive SMS codes instantly</li>
-            <li>Manage all your rentals from your dashboard</li>
-        </ul>
-    </div>
-    
-    <a href="https://your-domain.com/dashboard/" class="email-button">
+    <a href="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.get_host }}/dashboard/" class="email-button">
         Go to Dashboard
     </a>
-    
-    <p>Here are some helpful resources to get you started:</p>
-    <ul>
-        <li><strong>Wallet:</strong> Add funds to start renting numbers</li>
-        <li><strong>Services:</strong> Browse available verification services</li>
-        <li><strong>History:</strong> Track all your past rentals and transactions</li>
-        <li><strong>FAQ:</strong> Find answers to common questions</li>
-    </ul>
-    
-    <div class="info-box">
-        <p><i class="fas fa-shield-alt info-box-icon"></i><strong>Account Security:</strong> Your account is protected with industry-standard security measures. Never share your login credentials with anyone.</p>
-    </div>
     
     <p>If you have any questions or need assistance, don't hesitate to reach out to our support team. We're here to help!</p>
     

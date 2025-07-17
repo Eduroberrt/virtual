@@ -793,6 +793,8 @@ body {
 
 .input-group {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .input-icon {
@@ -801,8 +803,14 @@ body {
     top: 50%;
     transform: translateY(-50%);
     color: #17a2b8;
-    z-index: 3;
+    z-index: 10;
     font-size: 1rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
 }
 
 .form-control {
@@ -812,12 +820,21 @@ body {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: #fafafa;
+    position: relative;
+    z-index: 1;
 }
 
 .form-control:focus {
     border-color: #17a2b8;
     box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.1);
     background: white;
+    z-index: 1;
+}
+
+.form-control:focus + .input-icon,
+.input-group .form-control:focus ~ .input-icon {
+    color: #17a2b8;
+    z-index: 10;
 }
 
 .form-control::placeholder {
@@ -835,7 +852,7 @@ body {
     color: #6c757d;
     font-size: 1rem;
     cursor: pointer;
-    z-index: 3;
+    z-index: 10;
     padding: 0;
     width: 20px;
     height: 20px;
@@ -879,6 +896,27 @@ body {
 /* Custom Checkbox */
 .custom-checkbox {
     position: relative;
+}
+
+/* Ensure input icons remain visible during typing and focus */
+.input-group .input-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.form-control:focus ~ .input-icon,
+.form-control:active ~ .input-icon,
+.form-control[value]:not([value=""]) ~ .input-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: #17a2b8;
+}
+
+/* Specific fix for when input has text content */
+.input-group:has(.form-control:not(:placeholder-shown)) .input-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .custom-checkbox .form-check-input {
@@ -1115,8 +1153,8 @@ body {
 /* Mobile responsive for Auth Pages */
 @media (max-width: 768px) {
     .auth-page {
-        padding: 4rem 0 2rem 0;
-        margin-top: 80px;
+        padding: 5rem 0 2rem 0;
+        margin-top: 100px;
     }
     
     .auth-card {
@@ -1159,6 +1197,8 @@ body {
     .input-icon {
         left: 0.9rem;
         font-size: 0.9rem;
+        z-index: 10;
+        pointer-events: none;
     }
     
     .password-toggle {
@@ -1177,6 +1217,8 @@ body {
     .input-icon {
         left: 1rem;
         font-size: 0.85rem;
+        z-index: 10;
+        pointer-events: none;
     }
     
     .password-toggle {

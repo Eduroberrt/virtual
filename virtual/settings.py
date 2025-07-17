@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wii#$5*70*0-)hdw%_hb^6(j%l*@4r^($4#zx-#@_ej972nu&t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['2618211f6041.ngrok-free.app', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = ['e9dd1be7d6a0.ngrok-free.app', '127.0.0.1', 'testserver']
 
 
 # Application definition
@@ -131,26 +131,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# DaisySMS Configuration
-DAISYSMS_API_KEY = 
+
 
 # Email Configuration (Mailgun)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'postmaster@your-domain.mailgun.org'  # Replace with your Mailgun domain
-EMAIL_HOST_PASSWORD = 'your-mailgun-smtp-password'  # Replace with your Mailgun SMTP password
-DEFAULT_FROM_EMAIL = 'Young PG Virtual <noreply@your-domain.com>'
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 
 # Password Reset Settings
-PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
+PASSWORD_RESET_TIMEOUT = 3600 
 
 # Authentication Configuration
+AUTHENTICATION_BACKENDS = [
+    'app.auth_backends.EmailOrUsernameModelBackend', 
+    'django.contrib.auth.backends.ModelBackend',     
+]
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://e9dd1be7d6a0.ngrok-free.app",
+    "http://youngpgvirtual.com",
+    "https://youngpgvirtual.com",
+]
 
 # Logging Configuration
 LOGGING = {
@@ -180,3 +187,5 @@ LOGGING = {
         },
     },
 }
+
+
