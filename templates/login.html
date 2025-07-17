@@ -34,15 +34,15 @@
                                 {% endfor %}
                             {% endif %}
                             
-                            <!-- Username Field -->
+                            <!-- Username/Email Field -->
                             <div class="form-group mb-3">
-                                <label for="username" class="form-label">Username</label>
+                                <label for="username" class="form-label">Username or Email</label>
                                 <div class="input-group">
                                     <span class="input-icon">
                                         <i class="fas fa-user"></i>
                                     </span>
                                     <input type="text" class="form-control" id="username" name="username" 
-                                           placeholder="Enter your username" required>
+                                           placeholder="Enter your username or email" required>
                                 </div>
                             </div>
 
@@ -70,6 +70,11 @@
                                     </label>
                                 </div>
                                 <a href="{% url 'forgot_password' %}" class="forgot-password">Forgot password?</a>
+                            </div>
+
+                            <!-- Cloudflare Turnstile CAPTCHA -->
+                            <div class="form-group mb-4">
+                                <div class="cf-turnstile" data-sitekey="0x4AAAAAABlgQsVICCbb4SWn" data-theme="light"></div>
                             </div>
 
                             <!-- Submit Button -->

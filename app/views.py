@@ -1,13 +1,20 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import UserProfile, Service, Rental
-from .email_utils import send_welcome_email
+from .models import UserProfile, Service, Rental, PasswordResetToken
+from .turnstile import verify_turnstile, get_client_ip
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -29,55 +36,75 @@ def signup(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        
+        # Verify Turnstile CAPTCHA
+        client_ip = get_client_ip(request)
+        turnstile_result = verify_turnstile(turnstile_token, client_ip)
+        
+        if not turnstile_result.get('success'):
+            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
+            return render(request, 'signup.html')
         
         # Basic validation
         if not all([username, email, password, password_confirm]):
-            messages.error(request, 'All fields are required.')
+            messages.error(request, '❌ All fields are required. Please fill in all the information.')
             return render(request, 'signup.html')
         
         if password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
+            messages.error(request, '❌ Passwords do not match. Please make sure both password fields are identical.')
             return render(request, 'signup.html')
         
         if len(password) < 8:
-            messages.error(request, 'Password must be at least 8 characters long.')
+            messages.error(request, '❌ Password must be at least 8 characters long. Please choose a stronger password.')
             return render(request, 'signup.html')
         
         # Check if user already exists
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
+            messages.error(request, '❌ This username is already taken. Please choose a different username.')
             return render(request, 'signup.html')
         
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already exists.')
+            messages.error(request, '❌ An account with this email already exists. Please use a different email or try logging in.')
             return render(request, 'signup.html')
         
+        # Create user and redirect to dashboard
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        # Create user profile
+        UserProfile.objects.get_or_create(user=user)
+        
+        # Send welcome email using HTML template
         try:
-            # Create user
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
+            # Render the HTML template with request context for proper URLs
+            html_message = render_to_string('emails/welcome_email.html', {
+                'user': user,
+                'request': request,
+            })
+            
+            # Create plain text version by stripping HTML tags
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="Welcome to Young PG Virtual - Your Account is Ready!",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                html_message=html_message,
+                fail_silently=True,
             )
-            
-            # Create user profile
-            UserProfile.objects.create(user=user)
-            
-            # Send welcome email
-            try:
-                send_welcome_email(user)
-            except Exception as e:
-                # Don't fail registration if email fails
-                messages.warning(request, 'Account created successfully, but welcome email could not be sent.')
-            
-            # Log the user in
-            login(request, user)
-            messages.success(request, 'Account created successfully! Welcome to Young PG Virtual!')
-            return redirect('dashboard')
-            
+            logger.info(f"Welcome email sent to {email}")
         except Exception as e:
-            messages.error(request, 'Error creating account. Please try again.')
-            return render(request, 'signup.html')
+            logger.error(f"Failed to send welcome email to {email}: {str(e)}")
+        
+        # Log the user in with explicit backend and redirect to dashboard
+        user.backend = 'app.auth_backends.EmailOrUsernameModelBackend'
+        login(request, user)
+        return redirect('dashboard')
     
     return render(request, 'signup.html')
 
@@ -87,7 +114,7 @@ def login_view(request):
         password = request.POST.get('password')
         
         if not username or not password:
-            messages.error(request, 'Please enter both username and password.')
+            messages.error(request, '❌ Both username/email and password are required.')
             return render(request, 'login.html')
         
         user = authenticate(request, username=username, password=password)
@@ -98,21 +125,152 @@ def login_view(request):
             # Create user profile if it doesn't exist
             UserProfile.objects.get_or_create(user=user)
             
-            messages.success(request, 'Logged in successfully!')
+            messages.success(request, '✅ Logged in successfully!')
             
             # Redirect to next page or dashboard
             next_page = request.GET.get('next', 'dashboard')
             return redirect(next_page)
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, '❌ Invalid username/email or password.')
     
     return render(request, 'login.html')
+
+def forgot_password(request):
+    """Simple forgot password view"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()  # Don't convert to lowercase
+        
+        if not email:
+            messages.error(request, '❌ Please enter your email address.')
+            return render(request, 'forgot_password.html')
+        
+        # Use case-insensitive email lookup
+        try:
+            user = User.objects.get(email__iexact=email)
+            logger.info(f"Found user: {user.username} with email: '{user.email}'")
+        except User.DoesNotExist:
+            messages.error(request, f'❌ No account found with email: {email}')
+            logger.info(f"No user found with email: '{email}'")
+            return render(request, 'forgot_password.html')
+        
+        try:
+            # Create reset token
+            reset_token = PasswordResetToken.create_token(user)
+            
+            # Send simple reset email
+            reset_url = f"{request.scheme}://{request.get_host()}/reset-password/{reset_token.token}/"
+            
+            send_mail(
+                subject="Reset Your Password - Young PG Virtual",
+                message=f"""
+Hi {user.first_name or user.username},
+
+You requested to reset your password for Young PG Virtual.
+
+Click the link below to reset your password:
+{reset_url}
+
+This link will expire in 24 hours for security reasons.
+
+If you didn't request this, please ignore this email.
+
+Best regards,
+Young PG Virtual Team
+                """,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],  # Use the actual email from database
+                fail_silently=False,
+            )
+            logger.info(f"Password reset email sent to {user.email}")
+            messages.success(request, f'✅ Password reset email sent to {user.email}')
+            return redirect('password_reset_email_sent')
+            
+        except Exception as e:
+            logger.error(f"Error sending reset email: {str(e)}")
+            messages.error(request, f'❌ Failed to send email: {str(e)}')
+            return render(request, 'forgot_password.html')
+    
+    return render(request, 'forgot_password.html')
+
+def password_reset_email_sent(request):
+    """Display email sent confirmation page"""
+    return render(request, 'password_reset_email_sent.html')
+
+def password_reset_confirm(request, token):
+    """Handle password reset with token"""
+    try:
+        reset_token = get_object_or_404(PasswordResetToken, token=token)
+        
+        if not reset_token.is_valid():
+            messages.error(request, '❌ This reset link has expired. Please request a new one.')
+            return redirect('forgot_password')
+        
+        if request.method == 'POST':
+            password = request.POST.get('password', '')
+            password_confirm = request.POST.get('password_confirm', '')
+            
+            if not password or not password_confirm:
+                messages.error(request, '❌ Please fill in both password fields.')
+                return render(request, 'password_reset_confirm.html', {'token': token})
+            
+            if password != password_confirm:
+                messages.error(request, '❌ Passwords do not match.')
+                return render(request, 'password_reset_confirm.html', {'token': token})
+            
+            if len(password) < 8:
+                messages.error(request, '❌ Password must be at least 8 characters long.')
+                return render(request, 'password_reset_confirm.html', {'token': token})
+            
+            # Update password
+            user = reset_token.user
+            user.set_password(password)
+            user.save()
+            
+            # Mark token as used
+            reset_token.mark_as_used()
+            
+            # Send confirmation email
+            try:
+                send_mail(
+                    subject="Password Changed - Young PG Virtual",
+                    message=f"""
+Hi {user.first_name or user.username},
+
+Your password has been successfully changed.
+
+If you didn't make this change, please contact support immediately.
+
+Best regards,
+Young PG Virtual Team
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send password change notification: {str(e)}")
+            
+            # Log user in and redirect
+            login(request, user)
+            messages.success(request, '🎉 Password updated successfully! You are now logged in.')
+            return redirect('password_reset_success')
+        
+        return render(request, 'password_reset_confirm.html', {'token': token})
+        
+    except Exception as e:
+        logger.error(f"Error in password reset: {str(e)}")
+        messages.error(request, '❌ Invalid reset link.')
+        return redirect('forgot_password')
+
+def password_reset_success(request):
+    """Display success page"""
+    return render(request, 'password_reset_success.html')
 
 @login_required
 def logout_view(request):
     logout(request)
-    messages.success(request, 'Logged out successfully!')
-    return redirect('index')
+    messages.success(request, '✅ Logged out successfully! Come back soon!')
+    return redirect('login')
 
 @login_required
 def change_password(request):
@@ -126,19 +284,19 @@ def change_password(request):
         
         # Validate inputs
         if not all([current_password, new_password, confirm_password]):
-            error = 'All fields are required.'
+            error = '❌ All fields are required.'
         elif not request.user.check_password(current_password):
-            error = 'Current password is incorrect.'
+            error = '❌ Current password is incorrect. Please enter your correct current password.'
         elif new_password != confirm_password:
-            error = 'New passwords do not match.'
+            error = '❌ New passwords do not match. Please make sure both new password fields are identical.'
         elif len(new_password) < 8:
-            error = 'Password must be at least 8 characters long.'
+            error = '❌ Password must be at least 8 characters long. Please choose a stronger password.'
         else:
             # Change password
             request.user.set_password(new_password)
             request.user.save()
             update_session_auth_hash(request, request.user)  # Keep user logged in
-            success = 'Your password was successfully updated!'
+            success = '✅ Your password was successfully updated!'
     
     return render(request, 'change_password.html', {
         'error': error,

@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 from app.views import *
 from app.api_views import *
-from app.auth_views import forgot_password, password_reset_confirm, password_reset_success
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +29,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('forgot-password/', forgot_password, name='forgot_password'),
+    path('password-reset-email-sent/', password_reset_email_sent, name='password_reset_email_sent'),
     path('reset-password/<str:token>/', password_reset_confirm, name='password_reset_confirm'),
     path('password-reset-success/', password_reset_success, name='password_reset_success'),
     path('change-password/', change_password, name='change_password'),

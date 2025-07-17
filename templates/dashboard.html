@@ -78,7 +78,7 @@
             </div>
 
             <!-- Services Table -->
-            <div class="border rounded" style="height: 250px; overflow-y: auto;">
+            <div class="border rounded services-table-container" style="height: 250px; overflow-y: auto;">
                 <table class="table table-hover mb-0 table-sm">
                     <thead class="table-light sticky-top">
                         <tr style="font-size: 0.8rem;">
@@ -89,12 +89,12 @@
                     </thead>
                     <tbody>
                         {% for service in services %}
-                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}">
+                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}" data-original-price="{{ service.get_naira_price }}">
                             <td class="service-name">
                                 <div class="fw-medium" style="font-size: 0.85rem;">{{ service.name }}</div>
                             </td>
                             <td class="price">
-                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
+                                <div class="fw-medium price-display" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
@@ -329,6 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('is-invalid');
             hideValidationTooltip(this);
         }
+        // Update prices when area codes change
+        updateServicePrices();
     });
     
     // Carriers validation
@@ -350,6 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('is-invalid');
             hideValidationTooltip(this);
         }
+        // Update prices when carriers change
+        updateServicePrices();
     });
     
     // Phone validation
@@ -377,6 +381,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('is-invalid');
             hideValidationTooltip(this);
         }
+        // Update prices when phone number changes
+        updateServicePrices();
     });
 
     // Load active rentals on page load
@@ -446,6 +452,81 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTimer, 1000);
     });
 });
+
+// Service pricing functions
+function updateServicePrices() {
+    const areaCodes = document.getElementById('areaCodes').value.trim();
+    const carriers = document.getElementById('carriers').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    
+    // Calculate price multiplier based on active filters
+    let priceMultiplier = 1.0;
+    
+    // Check if any premium filters are applied
+    if (areaCodes || carriers || phone) {
+        priceMultiplier = 1.2; // 20% increase
+    }
+    
+    // Update all service prices
+    document.querySelectorAll('.service-row').forEach(row => {
+        const originalPrice = parseFloat(row.dataset.originalPrice || 0);
+        const priceDisplay = row.querySelector('.price-display');
+        
+        if (originalPrice && priceDisplay) {
+            const newPrice = originalPrice * priceMultiplier;
+            priceDisplay.textContent = formatNairaPrice(newPrice);
+        }
+    });
+}
+
+function formatNairaPrice(price) {
+    // Format price as Naira currency
+    const formatted = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(price);
+    
+    // Replace NGN with ₦ symbol for consistency
+    return formatted.replace('NGN', '₦');
+}
+
+// Clear filter functions with price update
+function clearAreaCodes() {
+    document.getElementById('areaCodes').value = '';
+    document.getElementById('areaCodes').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Area codes cleared', 'success');
+}
+
+function clearCarriers() {
+    document.getElementById('carriers').value = '';
+    document.getElementById('carriers').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Carriers cleared', 'success');
+}
+
+function clearPhone() {
+    document.getElementById('phone').value = '';
+    document.getElementById('phone').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Phone number cleared', 'success');
+}
+
+function clearAllFilters() {
+    document.getElementById('areaCodes').value = '';
+    document.getElementById('carriers').value = '';
+    document.getElementById('phone').value = '';
+    
+    // Remove any validation classes
+    document.getElementById('areaCodes').classList.remove('is-invalid');
+    document.getElementById('carriers').classList.remove('is-invalid');
+    document.getElementById('phone').classList.remove('is-invalid');
+    
+    updateServicePrices();
+    showNotification('All filters cleared', 'success');
+}
 
 // Copy to clipboard function
 function copyToClipboard(text) {
@@ -1184,35 +1265,6 @@ function hideValidationTooltip(element) {
     }
 }
 
-// Helper functions for clearing settings
-function clearAreaCodes() {
-    document.getElementById('areaCodes').value = '';
-    showNotification('Area codes cleared', 'info');
-}
-
-function clearCarriers() {
-    document.getElementById('carriers').value = '';
-    showNotification('Carriers cleared', 'info');
-}
-
-function clearPhone() {
-    document.getElementById('phone').value = '';
-    showNotification('Phone number cleared', 'info');
-}
-
-function clearAllFilters() {
-    document.getElementById('areaCodes').value = '';
-    document.getElementById('carriers').value = '';
-    document.getElementById('phone').value = '';
-    
-    // Remove any validation classes
-    document.getElementById('areaCodes').classList.remove('is-invalid');
-    document.getElementById('carriers').classList.remove('is-invalid');
-    document.getElementById('phone').classList.remove('is-invalid');
-    
-    showNotification('All filters cleared', 'success');
-}
-
 // Input validation for settings
 function validateAreaCodes(input) {
     const areaCodes = input.split(',').map(code => code.trim()).filter(code => code);
@@ -1465,4 +1517,32 @@ function enableAutoSync() {
 
 enableAutoSync();
 </script>
+
+<style>
+/* Mobile optimization for services table */
+@media screen and (max-width: 767px) {
+    .services-table-container {
+        height: 320px !important; /* Increased height to show at least 4 service rows on mobile */
+    }
+    
+    /* Optimize table row spacing on mobile */
+    .services-table-container .table-sm > tbody > tr > td {
+        padding: 0.5rem 0.25rem;
+        vertical-align: middle;
+    }
+    
+    .services-table-container .table-sm > thead > tr > th {
+        padding: 0.5rem 0.25rem;
+        vertical-align: middle;
+    }
+}
+
+/* Tablet optimization */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    .services-table-container {
+        height: 300px !important; /* Slightly increased for tablets */
+    }
+}
+</style>
+
 {% endblock %}
