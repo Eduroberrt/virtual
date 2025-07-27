@@ -13,10 +13,27 @@ from django.views.decorators.http import require_http_methods
 from .models import UserProfile, Service, Rental, PasswordResetToken
 from .turnstile import verify_turnstile, get_client_ip
 import logging
+from django.http import HttpResponse, FileResponse
+import os
+
+def robots_txt(request):
+    """Serve robots.txt file"""
+    try:
+        robots_path = os.path.join(settings.BASE_DIR, 'static', 'robots.txt')
+        return FileResponse(open(robots_path, 'rb'), content_type='text/plain')
+    except FileNotFoundError:
+        content = "User-agent: *\nDisallow:"
+        return HttpResponse(content, content_type="text/plain")
+
+def sitemap_xml(request):
+    """Serve sitemap.xml file"""
+    try:
+        sitemap_path = os.path.join(settings.BASE_DIR, 'static', 'sitemap.xml')
+        return FileResponse(open(sitemap_path, 'rb'), content_type='application/xml')
+    except FileNotFoundError:
+        return HttpResponse("Sitemap not found", status=404)
 
 logger = logging.getLogger(__name__)
-
-# Create your views here.
 
 def index(request):
     return render(request, 'index.html')
@@ -229,6 +246,8 @@ def password_reset_confirm(request, token):
             # Mark token as used
             reset_token.mark_as_used()
             
+            logger.info(f"Password successfully reset for user: {user.username}")
+            
             # Send confirmation email
             try:
                 send_mail(
@@ -247,19 +266,31 @@ Young PG Virtual Team
                     recipient_list=[user.email],
                     fail_silently=True,
                 )
+                logger.info(f"Password change notification sent to: {user.email}")
             except Exception as e:
                 logger.error(f"Failed to send password change notification: {str(e)}")
             
-            # Log user in and redirect
-            login(request, user)
-            messages.success(request, '🎉 Password updated successfully! You are now logged in.')
-            return redirect('password_reset_success')
+            # Log user in and redirect to success page
+            try:
+                login(request, user)
+                messages.success(request, '🎉 Password updated successfully! You are now logged in.')
+                logger.info(f"User {user.username} logged in after password reset")
+                return redirect('password_reset_success')
+            except Exception as e:
+                # Even if login fails, password was changed successfully
+                logger.error(f"Failed to log in user after password reset: {str(e)}")
+                messages.success(request, '✅ Password updated successfully! Please log in with your new password.')
+                return redirect('login')
         
         return render(request, 'password_reset_confirm.html', {'token': token})
         
+    except PasswordResetToken.DoesNotExist:
+        logger.warning(f"Invalid password reset token attempted: {token}")
+        messages.error(request, '❌ Invalid reset link. Please request a new password reset.')
+        return redirect('forgot_password')
     except Exception as e:
-        logger.error(f"Error in password reset: {str(e)}")
-        messages.error(request, '❌ Invalid reset link.')
+        logger.error(f"Unexpected error in password reset: {str(e)}")
+        messages.error(request, '❌ An error occurred. Please try again or request a new reset link.')
         return redirect('forgot_password')
 
 def password_reset_success(request):

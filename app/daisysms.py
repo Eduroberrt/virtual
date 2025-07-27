@@ -57,15 +57,15 @@ class DaisySMSClient:
                 execution_time=execution_time
             )
             
-            response.raise_for_status()
-            
-            # Parse response
+            # Parse response first before checking HTTP status
             response_text = response.text.strip()
             headers = dict(response.headers)
             
-            # Check for API errors
+            # Check for API errors (DaisySMS returns these even with 400 status codes)
             if response_text.startswith('BAD_KEY'):
                 raise DaisySMSException("Invalid API key")
+            elif response_text.startswith('NO_MONEY'):
+                raise DaisySMSException("Insufficient balance")
             elif response_text.startswith('MAX_PRICE_EXCEEDED'):
                 raise DaisySMSException("Maximum price exceeded")
             elif response_text.startswith('NO_NUMBERS'):
@@ -86,8 +86,6 @@ class DaisySMSClient:
                     raise DaisySMSException("No numbers available for this service")
             elif response_text.startswith('TOO_MANY_ACTIVE_RENTALS'):
                 raise DaisySMSException("Too many active rentals (max 20)")
-            elif response_text.startswith('NO_MONEY'):
-                raise DaisySMSException("Insufficient balance")
             elif response_text.startswith('NO_ACTIVATION'):
                 raise DaisySMSException("Rental not found")
             elif response_text.startswith('BAD_ID'):
@@ -104,6 +102,9 @@ class DaisySMSClient:
                     raise DaisySMSException(f"Phone number ({phone}) is currently unavailable or already rented.")
                 else:
                     raise DaisySMSException("Requested number is not available")
+            
+            # Only check HTTP status after handling DaisySMS API errors
+            response.raise_for_status()
             
             logger.info(f"DaisySMS API call successful: {action} - {response_text[:100]}")
             return response_text, headers
@@ -172,7 +173,6 @@ class DaisySMSClient:
         raise DaisySMSException(f"Unexpected balance response: {response_text}")
     
     def get_number(self, service_code: str, user=None, max_price: Optional[Decimal] = None, 
-                   ltr: bool = False, auto_renew: bool = False, 
                    area_codes: Optional[List[str]] = None,
                    carriers: Optional[List[str]] = None,
                    specific_number: Optional[str] = None) -> Tuple[str, str, Decimal]:
@@ -191,10 +191,11 @@ class DaisySMSClient:
         if max_price:
             params['max_price'] = str(max_price)
         
-        if ltr:
-            params['ltr'] = '1'
-            if auto_renew:
-                params['auto_renew'] = '1'
+        # Skip LTR parameters since we don't use long-term rentals
+        # if ltr:
+        #     params['ltr'] = '1'
+        #     if auto_renew:
+        #         params['auto_renew'] = '1'
         
         if area_codes:
             params['areas'] = ','.join(area_codes)
