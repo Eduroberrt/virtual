@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from app.views import *
 from app.api_views import *
 
@@ -42,19 +44,31 @@ urlpatterns = [
     path('news/', news, name='news'),
     path('payment/', payment, name='payment'),
     path('history/', history, name='history'),
+    path("robots.txt", robots_txt, name="robots_txt"),
+    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
     
     # API Endpoints
     path('api/balance/', get_user_balance, name='api_balance'),
     path('api/services/', get_services, name='api_services'),
     path('api/create-service-not-listed/', create_service_not_listed, name='api_create_service_not_listed'),
     path('api/realtime-prices/', get_realtime_prices, name='api_realtime_prices'),
-    path('api/sync-services/', sync_services, name='api_sync_services'),
     path('api/rent/', rent_number, name='api_rent'),
-    path('api/sms/<str:rental_id>/', check_sms, name='api_check_sms'),
     path('api/cancel/', cancel_rental, name='api_cancel'),
     path('api/expire/', expire_rental, name='api_expire'),
     path('api/auto-renew/', set_auto_renew, name='api_auto_renew'),
     path('api/rentals/', get_rentals, name='api_rentals'),
+    path('api/sms/<str:rental_id>/', check_sms, name='api_check_sms'),
     path('api/transactions/', get_transactions, name='api_transactions'),
     path('api/rental-history/', get_rental_history, name='api_rental_history'),
+    path('api/sync-services/', sync_services, name='api_sync_services'),
+    
+    # Kora Pay Payment Endpoints
+    path('api/korapay/initiate/', initiate_korapay_payment, name='api_korapay_initiate'),
+    path('api/korapay/callback/', korapay_callback, name='api_korapay_callback'),
+    path('api/korapay/webhook/', korapay_webhook, name='api_korapay_webhook'),
 ]
+
+# Serve static and media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

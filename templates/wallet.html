@@ -22,19 +22,65 @@
             <!-- Fund Wallet Card -->
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-plus-circle me-2"></i>Fund Wallet
-                            </h5>
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <div class="auth-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <h5 class="wallet-card-title">Fund Wallet</h5>
+                            <p class="wallet-card-subtitle">Add funds to your account for seamless SMS rentals</p>
                         </div>
-                        <div class="card-body">
-                            <form method="post">
+                        <div class="wallet-card-body">
+                            
+                            <!-- Fund Wallet Form -->
+                            <form id="fundWalletForm">
                                 {% csrf_token %}
-                                <label class="font-weight-bold mb-1">Enter Amount (NGN)</label>
-                                <input type="number" name="amount" class="form-control mb-3" min="100" required placeholder="e.g. 5000">
-                                <button type="submit" class="fund-wallet-btn mt-2">Pay with PaymentPoint</button>
+                                <div class="form-group mb-4">
+                                    <label class="form-label">Enter Amount (NGN)</label>
+                                    <div class="input-group-custom">
+                                        <span class="input-prefix">₦</span>
+                                        <input type="number" id="amountInput" class="form-control-custom" min="100" max="1000000" required placeholder="e.g. 5000">
+                                    </div>
+                                    <div class="form-help">Minimum amount: ₦100</div>
+                                </div>
+                                
+                                <!-- Quick Amount Buttons -->
+                                <div class="form-group mb-4">
+                                    <label class="form-label">Quick Select</label>
+                                    <div class="quick-amounts-grid">
+                                        <button type="button" class="quick-amount-btn" data-amount="1000">₦1,000</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="2500">₦2,500</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="5000">₦5,000</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="10000">₦10,000</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="25000">₦25,000</button>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary-custom w-100" id="payButton">
+                                    <i class="fas fa-credit-card me-2"></i>Pay with Kora Pay
+                                </button>
                             </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Status Messages -->
+                    <div id="successMessage" class="status-message success-message mt-3" style="display: none;">
+                        <div class="status-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="status-content">
+                            <div class="status-title">Payment Successful!</div>
+                            <div class="status-text">Your wallet has been funded successfully.</div>
+                        </div>
+                    </div>
+                    
+                    <div id="errorMessage" class="status-message error-message mt-3" style="display: none;">
+                        <div class="status-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="status-content">
+                            <div class="status-title">Payment Failed</div>
+                            <div class="status-text" id="errorText">Payment failed. Please try again.</div>
                         </div>
                     </div>
                 </div>
@@ -46,41 +92,419 @@
 
 {% block extra_js %}
 <script>
-// Simple form submission handling
+// Kora Pay wallet funding functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const fundForm = document.querySelector('form');
+    const fundForm = document.getElementById('fundWalletForm');
+    const amountInput = document.getElementById('amountInput');
+    const payButton = document.getElementById('payButton');
+    const quickAmountButtons = document.querySelectorAll('.quick-amount-btn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
     
-    fundForm.addEventListener('submit', function(e) {
-        const amount = document.querySelector('input[name="amount"]').value;
+    // Load current balance
+    loadCurrentBalance();
+    
+    // Quick amount button handlers
+    quickAmountButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const amount = this.getAttribute('data-amount');
+            amountInput.value = amount;
+            
+            // Update active state
+            quickAmountButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Form submission handler
+    fundForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const amount = parseFloat(amountInput.value);
         
         if (!amount || amount < 100) {
-            e.preventDefault();
-            alert('Please enter a valid amount (minimum ₦100)');
+            showError('Please enter a valid amount (minimum ₦100)');
             return;
         }
         
-        // Form will submit normally to backend
+        if (amount > 1000000) {
+            showError('Maximum amount allowed is ₦1,000,000');
+            return;
+        }
+        
+        // Disable button and show loading
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        try {
+            // Initiate Kora Pay payment
+            const response = await fetch('/api/korapay/initiate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    amount: amount
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Redirect to Kora Pay payment page
+                window.location.href = data.payment_link;
+            } else {
+                showError(data.error || 'Failed to initiate payment');
+                resetButton();
+            }
+        } catch (error) {
+            console.error('Payment initiation error:', error);
+            showError('Network error occurred. Please try again.');
+            resetButton();
+        }
     });
+    
+    // Check for URL parameters to show success/error messages
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === '1') {
+        showSuccess();
+        loadCurrentBalance(); // Refresh balance
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('error')) {
+        const errorType = urlParams.get('error');
+        let message = 'Payment failed. Please try again.';
+        
+        if (errorType === 'transaction_not_found') {
+            message = 'Transaction not found. Please contact support if money was deducted.';
+        } else if (errorType === 'payment_failed') {
+            message = 'Payment was cancelled or failed. Please try again.';
+        } else if (errorType === 'callback_error') {
+            message = 'Payment processing error. Please contact support if money was deducted.';
+        }
+        
+        showError(message);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    function resetButton() {
+        payButton.disabled = false;
+        payButton.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay with Kora Pay';
+    }
+    
+    function showSuccess() {
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+        setTimeout(() => {
+            successMessage.style.display = 'none';
+        }, 5000);
+    }
+    
+    function showError(message) {
+        errorText.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 8000);
+    }
+    
+    async function loadCurrentBalance() {
+        try {
+            const response = await fetch('/api/balance/', {
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('currentBalance').textContent = `₦${formatCurrency(data.balance_naira.replace(/,/g, ''))}`;
+            }
+        } catch (error) {
+            console.error('Error loading balance:', error);
+        }
+    }
+    
+    function formatCurrency(amount) {
+        try {
+            return parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        } catch (e) {
+            return '0.00';
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 });
 </script>
 
 <style>
-.fund-wallet-btn {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.5rem;
+/* Wallet page styles using website theme */
+
+/* Main wallet card */
+.wallet-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.wallet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+}
+
+.wallet-card-header {
+    padding: 3rem 2.5rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.wallet-card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 1rem 0 0.5rem 0;
+}
+
+.wallet-card-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.wallet-card-body {
+    padding: 2.5rem;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.input-group-custom {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 1rem;
+    color: #17a2b8;
+    font-weight: 600;
+    font-size: 1.1rem;
+    z-index: 10;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1.1rem;
     font-weight: 500;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
+    background: #fff;
+}
+
+.form-control-custom:focus {
+    outline: none;
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+}
+
+.form-help {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Quick amount buttons */
+.quick-amounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.quick-amount-btn {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    background: #fff;
+    color: #333;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+}
+
+.quick-amount-btn:hover {
+    border-color: #17a2b8;
+    color: #17a2b8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.2);
+}
+
+.quick-amount-btn.active {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border-color: #17a2b8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+/* Primary button */
+.btn-primary-custom {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary-custom:hover:not(:disabled) {
+    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
     color: white;
 }
 
-.fund-wallet-btn:hover {
-    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+.btn-primary-custom:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Status messages */
+.status-message {
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.success-message {
+    background: linear-gradient(135deg, #20c997 0%, #198754 100%);
     color: white;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.status-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.status-text {
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .wallet-card-header {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .wallet-card-body {
+        padding: 1.5rem;
+    }
+    
+    .balance-display-card {
+        padding: 1.5rem;
+    }
+    
+    .balance-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .balance-amount {
+        font-size: 1.8rem;
+    }
+    
+    .quick-amounts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .status-message {
+        padding: 1rem;
+    }
+    
+    .status-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
 }
 </style>
 {% endblock %}

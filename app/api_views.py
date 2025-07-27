@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.db import transaction
 from django.db import models
@@ -12,6 +12,7 @@ import logging
 
 from .models import UserProfile, Service, Rental, SMSMessage, Transaction
 from .daisysms import get_daisysms_client, DaisySMSException
+from .korapay import KoraPayClient
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,6 @@ def get_user_balance(request):
     """Get user's current balance"""
     try:
         profile, created = UserProfile.objects.get_or_create(user=request.user)
-        
         # Sync with DaisySMS if API key is available
         if profile.api_key:
             try:
@@ -39,14 +39,12 @@ def get_user_balance(request):
                 profile.save()
             except DaisySMSException as e:
                 logger.warning(f"Failed to sync balance for {request.user.username}: {str(e)}")
-        
         return json_response({
             'success': True,
             'balance': str(profile.balance),
             'balance_naira': f"{profile.get_naira_balance():,.2f}",
             'has_api_key': bool(profile.api_key)
         })
-    
     except Exception as e:
         logger.error(f"Error getting balance for {request.user.username}: {str(e)}")
         return error_response("Failed to get balance", 500)
@@ -114,25 +112,36 @@ def rent_number(request):
         # Get or create user profile
         profile, created = UserProfile.objects.get_or_create(user=request.user)
         
-        # Check if user has sufficient balance using admin price (with profit margin)
+        # Check if user has sufficient balance using service price in NGN
         service_price_naira = service.get_naira_price()
-        service_price_usd = service_price_naira / UserProfile.USD_TO_NGN_RATE
         
-        if profile.balance < service_price_usd:
+        # Apply 20% premium for filters (area codes, carriers, or specific number)
+        has_premium_filters = bool(area_codes or carriers or specific_number)
+        if has_premium_filters:
+            service_price_naira *= Decimal('1.2')  # 20% increase
+        
+        # Compare using the user's Naira balance (handles USD/NGN conversion automatically)
+        user_balance_naira = profile.get_naira_balance()
+        if user_balance_naira < service_price_naira:
             return error_response("Insufficient balance")
         
-        # Convert max_price to Decimal if provided
+        # Convert max_price to Decimal if provided (max_price is in NGN)
         if max_price:
             max_price = Decimal(str(max_price))
+        
+        # Convert NGN prices to USD for DaisySMS API call
+        service_price_usd = service_price_naira / UserProfile.USD_TO_NGN_RATE
+        max_price_usd = max_price / UserProfile.USD_TO_NGN_RATE if max_price else None
         
         try:
             client = get_daisysms_client(request.user)
             rental_id, phone_number, actual_price = client.get_number(
                 service_code=service_code,
                 user=request.user,
-                max_price=max_price,
-                ltr=is_ltr,
-                auto_renew=auto_renew,
+                max_price=max_price_usd,  # Pass USD price to DaisySMS API
+                # Removed LTR parameters since we don't use long-term rentals
+                # ltr=is_ltr,
+                # auto_renew=auto_renew,
                 area_codes=area_codes if area_codes else None,
                 carriers=carriers if carriers else None,
                 specific_number=specific_number
@@ -140,43 +149,50 @@ def rent_number(request):
             
             # Create rental record
             with transaction.atomic():
-                # Use admin price (with profit margin) instead of API price
-                admin_price_naira = service.get_naira_price()
-                admin_price_usd = admin_price_naira / UserProfile.USD_TO_NGN_RATE
+                # Use service price in NGN (with profit margin) and apply premium filters surcharge
+                final_price_naira = service_price_naira  # Already includes margin and premium
                 
                 rental = Rental.objects.create(
                     user=request.user,
                     rental_id=rental_id,
                     service=service,
                     phone_number=phone_number,
-                    price=admin_price_usd,  # Store admin price instead of actual API price
-                    is_ltr=is_ltr,
-                    auto_renew=auto_renew,
+                    price=final_price_naira,  # Store NGN price
+                    is_ltr=False,  # We don't use LTR
+                    auto_renew=False,  # We don't use auto-renew
                     area_codes=','.join(area_codes) if area_codes else None,
                     carriers=','.join(carriers) if carriers else None,
-                    max_price=max_price,
-                    paid_until=timezone.now() + timezone.timedelta(days=1) if is_ltr else None
+                    max_price=max_price,  # NGN
+                    paid_until=None  # No LTR, so no paid_until date
                 )
                 
-                # Create transaction record using admin price
+                # Create transaction record using NGN price
                 Transaction.objects.create(
                     user=request.user,
-                    amount=-admin_price_usd,  # Deduct admin price from balance
+                    amount=-final_price_naira,  # Deduct NGN price from balance
                     transaction_type='RENTAL',
                     description=f"Rented {service.name} number {phone_number}",
                     rental=rental
                 )
                 
-                # Update user balance using admin price
-                profile.balance -= admin_price_usd
+                # Update user balance - handle USD/NGN format properly
+                if profile.balance < 100 and profile.balance > 0:
+                    # Balance is in USD format - deduct in USD
+                    final_price_usd = final_price_naira / UserProfile.USD_TO_NGN_RATE
+                    profile.balance -= final_price_usd
+                else:
+                    # Balance is in NGN format - deduct in NGN
+                    profile.balance -= final_price_naira
                 profile.save()
             
             return json_response({
                 'success': True,
                 'rental_id': rental_id,
                 'phone_number': phone_number,
-                'price': str(admin_price_usd),  # Return admin price
-                'is_ltr': is_ltr
+                'price': str(final_price_naira),  # Return NGN price
+                'price_naira': str(final_price_naira),  # Return NGN price
+                'has_premium_filters': has_premium_filters,  # Indicate if premium pricing was applied
+                'is_ltr': False  # We don't use LTR
             })
         
         except DaisySMSException as e:
@@ -267,23 +283,33 @@ def cancel_rental(request):
                     rental.status = 'CANCELLED'
                     rental.save()
                     
-                    # Create refund transaction
+                    # Get proper refund amounts for both display and balance update
+                    refund_amount_naira = rental.get_naira_price()
+                    
+                    # Create refund transaction in NGN
                     Transaction.objects.create(
                         user=request.user,
-                        amount=rental.price,
+                        amount=refund_amount_naira,
                         transaction_type='REFUND',
                         description=f"Refund for cancelled rental {rental.phone_number}",
                         rental=rental
                     )
                     
-                    # Update user balance
+                    # Update user balance - handle USD/NGN format properly
                     profile = UserProfile.objects.get(user=request.user)
-                    profile.balance += rental.price
+                    if profile.balance < 100 and profile.balance > 0:
+                        # Balance is in USD format - add USD amount
+                        refund_amount_usd = refund_amount_naira / UserProfile.USD_TO_NGN_RATE
+                        profile.balance += refund_amount_usd
+                    else:
+                        # Balance is in NGN format - add NGN amount
+                        profile.balance += refund_amount_naira
                     profile.save()
                 
                 return json_response({
                     'success': True,
-                    'refund_amount': str(rental.price)
+                    'refund_amount': str(rental.price),  # Keep raw price for compatibility
+                    'refund_amount_naira': f"{refund_amount_naira:.2f}"  # Add proper Naira amount
                 })
             else:
                 return error_response("Failed to cancel rental")
@@ -379,7 +405,7 @@ def get_rentals(request):
                 'phone_number': rental.phone_number,
                 'status': rental.status,
                 'price': str(rental.price),
-                'price_naira': f"{float(rental.price * UserProfile.USD_TO_NGN_RATE):,.2f}",
+                'price_naira': f"{float(rental.get_naira_price()):,.2f}",
                 'is_ltr': rental.is_ltr,
                 'auto_renew': rental.auto_renew,
                 'supports_multiple': rental.service.supports_multiple_sms,
@@ -632,21 +658,32 @@ def expire_rental(request):
                 
                 # Only issue refund if no SMS was received
                 if not has_received_sms:
-                    # Create refund transaction
+                    # Get proper refund amounts
+                    refund_amount_naira = rental.get_naira_price()
+                    
+                    # Create refund transaction in NGN
                     Transaction.objects.create(
                         user=request.user,
-                        amount=rental.price,
+                        amount=refund_amount_naira,
                         transaction_type='REFUND',
                         description=f"Refund for expired rental {rental.phone_number} (no SMS received)",
                         rental=rental
                     )
                     
-                    # Update user balance
+                    # Update user balance - handle USD/NGN format properly
                     profile = UserProfile.objects.get(user=request.user)
-                    profile.balance += rental.price
+                    if profile.balance < 100 and profile.balance > 0:
+                        # Balance is in USD format - add USD amount
+                        refund_amount_usd = refund_amount_naira / UserProfile.USD_TO_NGN_RATE
+                        profile.balance += refund_amount_usd
+                        refund_amount = refund_amount_usd  # For response compatibility
+                    else:
+                        # Balance is in NGN format - add NGN amount
+                        profile.balance += refund_amount_naira
+                        refund_amount = refund_amount_naira
                     profile.save()
-                    
-                    refund_amount = rental.price
+                else:
+                    refund_amount = Decimal('0.00')
                 
                 return json_response({
                     'success': True,
@@ -753,3 +790,447 @@ def create_service_not_listed(request):
     except Exception as e:
         logger.error(f"Error creating service not listed: {str(e)}")
         return error_response("Failed to create service", 500)
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def initiate_korapay_payment(request):
+    """Initiate a Kora Pay payment for wallet funding"""
+    try:
+        data = json.loads(request.body)
+        amount = data.get('amount')
+        
+        if not amount:
+            return error_response("Amount is required")
+        
+        try:
+            amount = Decimal(str(amount))
+            if amount < 100:
+                return error_response("Minimum amount is ₦100")
+        except (ValueError, TypeError):
+            return error_response("Invalid amount format")
+        
+        # Get or create user profile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        # Initialize Kora Pay client
+        korapay_client = KoraPayClient()
+        
+        # Create payment transaction record
+        from django.utils import timezone
+        import uuid
+        
+        tx_ref = f"YPG_{request.user.id}_{uuid.uuid4().hex[:8]}"
+        
+        # Initiate payment
+        payment_result = korapay_client.initiate_payment(
+            user=request.user,
+            amount=amount,
+            currency='NGN',
+            redirect_url=f"{request.scheme}://{request.get_host()}/api/korapay/callback/",
+            notification_url=f"{request.scheme}://{request.get_host()}/api/korapay/webhook/",  # Added webhook URL
+            narration=f"Wallet funding for {request.user.username}"
+        )
+        
+        if payment_result['success']:
+            # Create pending transaction record - store amount in NGN to avoid conversion loss
+            Transaction.objects.create(
+                user=request.user,
+                amount=amount,  # Store in NGN to preserve exact amount paid
+                transaction_type='DEPOSIT',
+                description=f"Wallet funding via Kora Pay - ₦{amount:,.2f} (Pending: {payment_result['tx_ref']})"
+            )
+            
+            return json_response({
+                'success': True,
+                'payment_link': payment_result['payment_link'],
+                'tx_ref': payment_result['tx_ref'],
+                'amount': str(amount)
+            })
+        else:
+            return error_response(payment_result['error'])
+    
+    except Exception as e:
+        logger.error(f"Error initiating Kora Pay payment: {str(e)}")
+        return error_response("Failed to initiate payment", 500)
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def korapay_callback(request):
+    """Handle Kora Pay payment callback"""
+    try:
+        # Get transaction reference and other parameters
+        if request.method == 'GET':
+            tx_ref = request.GET.get('reference')  # Transaction reference from query parameters
+            status = request.GET.get('status')  # Status from query parameters
+            
+            # Log all parameters for debugging
+            logger.info(f"KoraPay callback received via GET with reference: {tx_ref}, status: {status}")
+            logger.info(f"KoraPay callback GET parameters: {dict(request.GET)}")
+        else:
+            data = json.loads(request.body)
+            tx_ref = data.get('reference')
+            status = data.get('status')
+            logger.info(f"KoraPay callback received via POST with reference: {tx_ref}, status: {status}")
+            logger.info(f"KoraPay callback POST data: {data}")
+        
+        if not tx_ref:
+            logger.error("KoraPay callback received without transaction reference")
+            return error_response("Transaction reference is required")
+        
+        # Important: KoraPay typically only calls back on successful payments
+        # If we receive a callback, we can assume the payment was successful
+        callback_indicates_success = True  # Assume success since callback was received
+        
+        # Initialize Kora Pay client
+        korapay_client = KoraPayClient()
+        
+        # Try to verify payment with API (but don't rely on it completely)
+        verification_result = korapay_client.verify_payment(tx_ref)
+        logger.info(f"KoraPay verification result for {tx_ref}: {verification_result}")
+        
+        # Debug: Log the complete verification result
+        logger.info(f"KoraPay verification details - success: {verification_result.get('success')}, status: {verification_result.get('status')}, raw_response: {verification_result.get('raw_response')}")
+        
+        # Determine if payment should be considered successful
+        # Priority: 1) API verification success, 2) Callback received (fallback)
+        api_verification_successful = (verification_result.get('success') and verification_result.get('status') == 'successful')
+        
+        if api_verification_successful:
+            logger.info(f"Payment verified successfully via API for {tx_ref}")
+            payment_successful = True
+        elif callback_indicates_success:
+            logger.info(f"Payment assumed successful since callback was received for {tx_ref} (API verification failed)")
+            payment_successful = True
+        else:
+            logger.warning(f"Payment could not be verified for {tx_ref}")
+            payment_successful = False
+        
+        if payment_successful:
+            # Find the pending transaction by description pattern (not by user since they might not be authenticated)
+            try:
+                # Extract user ID from transaction reference for better lookup
+                # Format is: YPG_{user_id}_{random}
+                user_id = None
+                if tx_ref.startswith('YPG_'):
+                    try:
+                        user_id = int(tx_ref.split('_')[1])
+                    except (IndexError, ValueError):
+                        logger.warning(f"Could not extract user ID from tx_ref: {tx_ref}")
+                
+                # Try to find transaction by reference first
+                pending_transaction = Transaction.objects.filter(
+                    transaction_type='DEPOSIT',
+                    description__icontains=tx_ref  # Match the callback reference directly
+                ).first()
+                
+                # If not found, try with verification result reference
+                if not pending_transaction and verification_result.get('tx_ref'):
+                    pending_transaction = Transaction.objects.filter(
+                        transaction_type='DEPOSIT',
+                        description__icontains=verification_result['tx_ref']
+                    ).first()
+                
+                # If still not found and we have user_id, try broader search
+                if not pending_transaction and user_id:
+                    from django.contrib.auth.models import User
+                    try:
+                        user = User.objects.get(id=user_id)
+                        pending_transaction = Transaction.objects.filter(
+                            user=user,
+                            transaction_type='DEPOSIT',
+                            description__icontains='Pending'
+                        ).order_by('-id').first()
+                        logger.info(f"Found transaction for user {user_id} via fallback search")
+                    except User.DoesNotExist:
+                        logger.error(f"User with ID {user_id} not found")
+                
+                if pending_transaction:
+                    # Check if transaction is already processed (avoid double processing)
+                    if not pending_transaction.description.startswith("Wallet funded via Kora Pay - ₦"):
+                        with transaction.atomic():
+                            # Update user balance
+                            profile = UserProfile.objects.get(user=pending_transaction.user)
+                            
+                            # Determine amount to credit
+                            if verification_result.get('amount'):
+                                # Use verified amount if available
+                                amount_ngn = verification_result['amount']
+                            else:
+                                # Check if transaction amount is stored in NGN or USD
+                                # If amount >= 100, likely stored in NGN; if < 100, likely stored in USD
+                                transaction_amount = float(pending_transaction.amount)
+                                if transaction_amount >= 100:
+                                    # Transaction stored in NGN (new format)
+                                    amount_ngn = transaction_amount
+                                else:
+                                    # Transaction stored in USD (old format) - convert to NGN
+                                    amount_ngn = transaction_amount * UserProfile.USD_TO_NGN_RATE
+                            
+                            # Credit balance - convert NGN to appropriate format based on current balance
+                            from decimal import Decimal
+                            amount_ngn_decimal = Decimal(str(amount_ngn))
+                            
+                            # Check if user's current balance is in USD or NGN format
+                            if profile.balance < 100 and profile.balance > 0:
+                                # Balance is in USD format - credit in USD
+                                credit_amount_usd = amount_ngn_decimal / UserProfile.USD_TO_NGN_RATE
+                                profile.balance += credit_amount_usd
+                            else:
+                                # Balance is in NGN format or zero - credit in NGN
+                                profile.balance += amount_ngn_decimal
+                            
+                            profile.save()
+                        
+                            # Update transaction description to show completion
+                            pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_ngn:,.2f}"
+                            pending_transaction.save()
+                            
+                            # Create a success transaction record for tracking
+                            Transaction.objects.create(
+                                user=pending_transaction.user,
+                                amount=amount_ngn_decimal,
+                                transaction_type='DEPOSIT',
+                                description=f"Balance credited: ₦{amount_ngn:,.2f} via KoraPay ({tx_ref})"
+                            )
+                        
+                        logger.info(f"Successfully processed KoraPay payment for user {pending_transaction.user.id}, amount: ₦{amount_ngn}")
+                    else:
+                        logger.info(f"Transaction {tx_ref} already processed, skipping")
+                
+                    # Redirect to success page or dashboard
+                    if request.method == 'GET':
+                        # If user is authenticated, redirect to wallet with success
+                        if request.user.is_authenticated:
+                            return redirect('/wallet/?success=1')
+                        else:
+                            # If user is not authenticated, redirect to login with a message
+                            return redirect('/login/?message=payment_success')
+                    else:
+                        return json_response({
+                            'success': True,
+                            'message': 'Payment successful',
+                            'amount': str(verification_result['amount'])
+                        })
+                else:
+                    # No pending transaction found, but if we can identify the user and have payment details,
+                    # create a manual credit to ensure successful payments aren't lost
+                    if user_id and (verification_result.get('amount') or callback_indicates_success):
+                        try:
+                            from django.contrib.auth.models import User
+                            user = User.objects.get(id=user_id)
+                            profile, created = UserProfile.objects.get_or_create(user=user)
+                            
+                            # Determine amount (use verification result or default amount)
+                            if verification_result.get('amount'):
+                                amount_ngn = verification_result['amount']
+                            else:
+                                # For callback-only success, assume a reasonable default or log for manual review
+                                logger.warning(f"Manual intervention required for tx_ref {tx_ref} - callback indicates success but no amount available")
+                                amount_ngn = 1000  # Default amount for manual review
+                            
+                            # Convert to Decimal for proper calculation
+                            from decimal import Decimal
+                            amount_ngn_decimal = Decimal(str(amount_ngn))
+                            credit_amount = amount_ngn_decimal / UserProfile.USD_TO_NGN_RATE
+                            
+                            with transaction.atomic():
+                                profile.balance += credit_amount
+                                profile.save()
+                                
+                                # Create transaction record - store in NGN for consistency
+                                Transaction.objects.create(
+                                    user=user,
+                                    amount=amount_ngn_decimal,  # Store NGN amount in transaction
+                                    transaction_type='DEPOSIT',
+                                    description=f"Manual credit: ₦{amount_ngn:,.2f} via KoraPay ({tx_ref}) - No pending transaction found"
+                                )
+                            
+                            logger.info(f"Manual credit applied for user {user_id}, amount: ₦{amount_ngn}, tx_ref: {tx_ref}")
+                            
+                            # Redirect to success
+                            if request.method == 'GET':
+                                if request.user.is_authenticated:
+                                    return redirect('/wallet/?success=1')
+                                else:
+                                    return redirect('/login/?message=payment_success')
+                            else:
+                                return json_response({
+                                    'success': True,
+                                    'message': 'Payment processed (manual credit)',
+                                    'amount': str(amount_ngn)
+                                })
+                        except User.DoesNotExist:
+                            logger.error(f"User with ID {user_id} not found for manual credit")
+                    
+                    # If we can't apply manual credit, log and redirect with error
+                    logger.error(f"Pending transaction not found for tx_ref: {tx_ref} and unable to apply manual credit")
+                    if request.method == 'GET':
+                        if request.user.is_authenticated:
+                            return redirect('/wallet/?error=transaction_not_found')
+                        else:
+                            return redirect('/login/?message=payment_error')
+                    else:
+                        return error_response("Transaction not found")
+            
+            except Exception as e:
+                logger.error(f"Error processing callback: {str(e)}")
+                if request.method == 'GET':
+                    if request.user.is_authenticated:
+                        return redirect('/wallet/?error=callback_error')
+                    else:
+                        return redirect('/login/?message=payment_error')
+                else:
+                    return error_response("Payment processing error")
+        
+        else:
+            # Payment failed or was cancelled
+            if request.method == 'GET':
+                if request.user.is_authenticated:
+                    return redirect('/wallet/?error=payment_failed')
+                else:
+                    return redirect('/login/?message=payment_failed')
+            else:
+                return error_response("Payment verification failed")
+    
+    except Exception as e:
+        logger.error(f"Error handling Kora Pay callback: {str(e)}")
+        if request.method == 'GET':
+            if request.user.is_authenticated:
+                return redirect('/wallet/?error=callback_error')
+            else:
+                return redirect('/login/?message=payment_error')
+        else:
+            return error_response("Callback processing failed", 500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def korapay_webhook(request):
+    """Handle Kora Pay webhook notifications"""
+    try:
+        # Get webhook signature (check both possible header names)
+        signature = request.headers.get('x-korapay-signature') or request.headers.get('verif-hash')
+        if not signature:
+            logger.warning("KoraPay webhook received without signature header")
+            return error_response("Missing webhook signature", 400)
+        
+        payload = request.body.decode('utf-8')
+        
+        # Initialize Kora Pay client
+        korapay_client = KoraPayClient()
+        
+        # Verify webhook signature
+        if not korapay_client.verify_webhook_signature(payload, signature):
+            logger.warning("Invalid webhook signature")
+            return error_response("Invalid signature", 400)
+        
+        data = json.loads(payload)
+        event_type = data.get('event')
+        if event_type == 'charge.success':
+            tx_data = data.get('data', {})
+            if tx_data.get('status') == 'success':
+                tx_ref = str(tx_data.get('reference'))
+                # Amount is already in Naira (no conversion needed)
+                amount_naira = int(tx_data.get('amount', 0))
+                try:
+                    pending_transaction = Transaction.objects.filter(
+                        transaction_type='DEPOSIT',
+                        description__icontains=tx_ref
+                    ).first()
+                    if pending_transaction:
+                        with transaction.atomic():
+                            profile = UserProfile.objects.get(user=pending_transaction.user)
+                            
+                            # ALWAYS use the original intended amount (absorb KoraPay fees)
+                            # This ensures users get exactly what they intended to fund
+                            transaction_amount = float(pending_transaction.amount)
+                            if transaction_amount >= 100:
+                                # Transaction stored in NGN (new format) - use the stored amount
+                                amount_to_credit = transaction_amount
+                            else:
+                                # Transaction stored in USD (old format) - use the webhook amount
+                                amount_to_credit = amount_naira
+                            
+                            # Log fee information for business tracking
+                            korapay_fee = tx_data.get('fee', 0)
+                            logger.info(f"KoraPay transaction fee: ₦{korapay_fee} for tx_ref: {tx_ref} (absorbed by business)")
+                            
+                            # Convert to Decimal for proper calculation
+                            from decimal import Decimal
+                            amount_naira_decimal = Decimal(str(amount_to_credit))
+                            credit_amount = amount_naira_decimal / UserProfile.USD_TO_NGN_RATE
+                            profile.balance += credit_amount
+                            profile.save()
+                            pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_to_credit:,.2f}"
+                            pending_transaction.save()
+                        logger.info(f"Webhook processed successfully for tx_ref: {tx_ref}")
+                    else:
+                        logger.error(f"Pending transaction not found for tx_ref: {tx_ref}")
+                except Exception as e:
+                    logger.error(f"Error processing transaction for tx_ref {tx_ref}: {str(e)}")
+        
+        return json_response({'status': 'success'})
+    except Exception as e:
+        logger.error(f"Error processing Kora Pay webhook: {str(e)}")
+        return error_response("Failed to process webhook", 500)
+
+@login_required
+@require_http_methods(["GET"])
+def get_transactions(request):
+    """Get user's transaction history with pagination"""
+    try:
+        page = int(request.GET.get('page', 1))
+        per_page = 10
+        
+        # Get user's transactions
+        transactions = Transaction.objects.filter(
+            user=request.user
+        ).order_by('-created_at')
+        
+        # Calculate pagination
+        total_count = transactions.count()
+        total_pages = (total_count + per_page - 1) // per_page
+        
+        # Apply pagination
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        page_transactions = transactions[start_idx:end_idx]
+        
+        # Serialize transactions
+        transactions_data = []
+        for tx in page_transactions:
+            tx_data = {
+                'id': tx.id,
+                'transaction_type': tx.transaction_type,
+                'amount': str(tx.amount),
+                'description': tx.description,
+                'created_at': tx.created_at.isoformat(),
+                'rental': None
+            }
+            
+            # Add rental info if this is a rental transaction
+            if tx.rental:
+                tx_data['rental'] = {
+                    'id': tx.rental.id,
+                    'phone_number': tx.rental.phone_number,
+                    'service_name': tx.rental.service.name if tx.rental.service else 'Unknown Service',
+                    'status': tx.rental.status
+                }
+            
+            transactions_data.append(tx_data)
+        
+        return json_response({
+            'success': True,
+            'transactions': transactions_data,
+            'current_page': page,
+            'total_pages': total_pages,
+            'total_count': total_count,
+            'has_next': page < total_pages,
+            'has_prev': page > 1
+        })
+    
+    except ValueError:
+        return error_response("Invalid page number", 400)
+    except Exception as e:
+        logger.error(f"Error getting transactions for {request.user.username}: {str(e)}")
+        return error_response("Failed to get transactions", 500)

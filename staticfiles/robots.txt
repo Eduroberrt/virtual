@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and API endpoints
+Disallow: /admin/
+Disallow: /api/
+Disallow: /logout/
+Disallow: /change-password/
+
+# Allow important pages
+Allow: /
+Allow: /signup/
+Allow: /login/
+Allow: /faq/
+Allow: /privacy/
+Allow: /terms/
+
+# Sitemap location
+Sitemap: https://youngpgvirtual.com/static/sitemap.xml
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1

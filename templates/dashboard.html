@@ -797,7 +797,16 @@ async function cancelRental(rentalId) {
         const data = await response.json();
         
         if (data.success) {
-            showNotification(`Rental cancelled. Refund: ₦${formatCurrency(parseFloat(data.refund_amount) * 1650)}`, 'success');
+            // Use the proper Naira refund amount from backend
+            let refundNaira;
+            if (data.refund_amount_naira) {
+                refundNaira = parseFloat(data.refund_amount_naira);
+            } else {
+                // Fallback for backward compatibility
+                const refundUSD = parseFloat(data.refund_amount);
+                refundNaira = refundUSD * 1650;
+            }
+            showNotification(`Rental cancelled. Refund: ₦${formatCurrency(refundNaira)}`, 'success');
             
             // Remove the rental row immediately from the table
             const rentalRow = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
@@ -874,7 +883,7 @@ function updateSMSCode(rentalId, code) {
         
         // Update code cell with ✅ icon and green text
         codeCell.innerHTML = `
-            <span class="text-success">✅ ${code}</span>
+            <span class="text-success">${code}</span>
             <button class="btn btn-sm ms-1" onclick="copyToClipboard('${code}')">
                 <i class="fas fa-copy"></i>
             </button>
@@ -983,8 +992,10 @@ async function handleRentalExpiration(timer) {
         const data = await response.json();
         
         if (data.success) {
-            // Show notification about expiration and refund
-            showNotification(`Rental expired. Refund: ₦${formatCurrency(parseFloat(data.refund_amount || 0) * 1650)}`, 'info');
+            // Calculate refund in Naira using proper conversion
+            const refundUSD = parseFloat(data.refund_amount || 0);
+            const refundNaira = refundUSD * 1650; // Use same rate as backend
+            showNotification(`Rental expired. Refund: ₦${formatCurrency(refundNaira)}`, 'info');
             
             // Remove the rental row from the table
             if (row) {

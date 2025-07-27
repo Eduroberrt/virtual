@@ -19,12 +19,19 @@
                 </div>
             </div>
 
-            <!-- Payment History Table -->
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-dark">
+            <!-- Payment History Card -->
+            <div class="payments-card">
+                <div class="payments-card-header">
+                    <div class="auth-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h5 class="payments-card-title">Transaction History</h5>
+                    <p class="payments-card-subtitle">View your recent transactions and payment activity</p>
+                </div>
+                <div class="payments-card-body">
+                    <div class="table-container">
+                        <table class="transactions-table">
+                            <thead>
                                 <tr>
                                     <th>Description</th>
                                     <th>Amount</th>
@@ -34,11 +41,9 @@
                             <tbody id="paymentTableBody">
                                 <tr>
                                     <td colspan="3" class="text-center py-4">
-                                        <div class="d-flex justify-content-center">
-                                            <div class="spinner-border text-primary me-3" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                            <span class="text-muted">Loading payment history...</span>
+                                        <div class="loading-state">
+                                            <div class="loading-spinner"></div>
+                                            <span class="loading-text">Loading transaction history...</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -49,11 +54,11 @@
             </div>
 
             <!-- Pagination -->
-            <nav aria-label="Payment pagination" class="mt-4">
-                <ul class="pagination justify-content-center" id="paginationControls">
+            <div class="pagination-wrapper mt-4">
+                <div class="pagination-container" id="paginationControls">
                     <!-- Pagination will be populated by JavaScript -->
-                </ul>
-            </nav>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -61,110 +66,103 @@
 
 {% block extra_js %}
 <script>
-let currentPage = 1;
-let totalPages = 1;
-let allPayments = [];
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Load payment history
-    loadPaymentHistory();
+    loadTransactionHistory();
 });
 
-async function loadPaymentHistory() {
+let currentPage = 1;
+let totalPages = 1;
+let allTransactions = [];
+
+async function loadTransactionHistory() {
     try {
-        // For now, we'll show sample payment data since the API might not be implemented
-        const samplePayments = [
-            {
-                description: 'Wallet Funding via PaymentPoint',
-                amount: 10000,
-                date: new Date().toISOString()
-            },
-            {
-                description: 'Account Top-up via Bank Transfer',
-                amount: 25000,
-                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'PaymentPoint Deposit',
-                amount: 5000,
-                date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'Wallet Funding via PaymentPoint',
-                amount: 15000,
-                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'Account Credit - Refund',
-                amount: 2500,
-                date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'PaymentPoint Deposit',
-                amount: 30000,
-                date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'Bank Transfer Credit',
-                amount: 50000,
-                date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                description: 'Wallet Funding via PaymentPoint',
-                amount: 8000,
-                date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString()
+        showLoading(true);
+        
+        const response = await fetch(`/api/transactions/?page=${currentPage}`, {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
             }
-        ];
+        });
         
-        allPayments = samplePayments;
-        totalPages = Math.ceil(samplePayments.length / 10); // 10 items per page
+        if (!response.ok) {
+            throw new Error('Failed to load transaction history');
+        }
         
-        renderPaymentTable();
-        renderPagination();
+        const data = await response.json();
+        
+        if (data.transactions) {
+            allTransactions = data.transactions;
+            totalPages = data.total_pages;
+            currentPage = data.current_page;
+            
+            renderTransactions();
+            renderPagination();
+        } else {
+            showEmptyState();
+        }
         
     } catch (error) {
-        console.error('Error loading payment history:', error);
+        console.error('Error loading transaction history:', error);
         showErrorState();
+    } finally {
+        showLoading(false);
     }
 }
 
-function renderPaymentTable() {
+function renderTransactions() {
     const tbody = document.getElementById('paymentTableBody');
     
-    if (allPayments.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="3" class="text-center py-5">
-                    <div class="text-muted">
-                        <i class="fas fa-credit-card fa-3x mb-3"></i>
-                        <h5>No payment history found</h5>
-                        <p>You haven't made any payments yet. <a href="/wallet/">Fund your wallet</a> to see payments here.</p>
-                    </div>
-                </td>
-            </tr>
-        `;
+    if (allTransactions.length === 0) {
+        showEmptyState();
         return;
     }
     
-    // Paginate results
-    const startIndex = (currentPage - 1) * 10;
-    const endIndex = startIndex + 10;
-    const pagedPayments = allPayments.slice(startIndex, endIndex);
-    
-    tbody.innerHTML = pagedPayments.map(payment => {
-        const date = new Date(payment.date);
+    tbody.innerHTML = allTransactions.map(transaction => {
+        const date = new Date(transaction.created_at);
         const formattedDate = formatDateToLA(date);
+        const amount = parseFloat(transaction.amount);
+        const isDeposit = transaction.transaction_type.includes('DEPOSIT');
+        const isRefund = transaction.transaction_type === 'REFUND';
+        const isRental = transaction.transaction_type === 'RENTAL';
+        
+        let icon, colorClass, sign;
+        
+        if (isDeposit) {
+            icon = 'fas fa-plus-circle';
+            colorClass = 'text-success';
+            sign = '+';
+        } else if (isRefund) {
+            icon = 'fas fa-undo';
+            colorClass = 'text-info';
+            sign = '+';
+        } else if (isRental) {
+            icon = 'fas fa-minus-circle';
+            colorClass = 'text-danger';
+            sign = '-';
+        } else {
+            icon = 'fas fa-exchange-alt';
+            colorClass = 'text-warning';
+            sign = amount >= 0 ? '+' : '-';
+        }
+        
+        // All amounts are now stored in NGN - no conversion needed
+        const nairaAmount = Math.abs(amount);
         
         return `
             <tr>
                 <td>
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-plus-circle text-success me-2"></i>
-                        <span class="fw-medium">${payment.description}</span>
+                        <i class="${icon} ${colorClass} me-2"></i>
+                        <div>
+                            <span class="fw-medium">${transaction.description}</span>
+                            ${transaction.rental && transaction.rental.phone_number ? 
+                                `<br><small class="text-muted">Phone: ${transaction.rental.phone_number}</small>` : 
+                                ''}
+                        </div>
                     </div>
                 </td>
                 <td>
-                    <span class="fw-bold text-success">+₦${formatCurrency(payment.amount)}</span>
+                    <span class="fw-bold ${colorClass}">${sign}₦${formatCurrency(nairaAmount)}</span>
                 </td>
                 <td>
                     <span class="text-muted">${formattedDate}</span>
@@ -172,6 +170,58 @@ function renderPaymentTable() {
             </tr>
         `;
     }).join('');
+}
+
+function showLoading(show) {
+    const tbody = document.getElementById('paymentTableBody');
+    
+    if (show) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center py-4">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="spinner-border text-primary me-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="text-muted">Loading transaction history...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function showEmptyState() {
+    const tbody = document.getElementById('paymentTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="3" class="text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-receipt fa-3x mb-3 opacity-50"></i>
+                    <h5>No transactions found</h5>
+                    <p class="mb-0">Your transaction history will appear here when you make payments or rentals.</p>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function showErrorState() {
+    const tbody = document.getElementById('paymentTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="3" class="text-center py-5">
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Error loading transactions</h5>
+                    <p class="mb-2">Unable to load your transaction history.</p>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTransactionHistory()">
+                        <i class="fas fa-redo me-1"></i>Try Again
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
 function renderPagination() {
@@ -182,145 +232,432 @@ function renderPagination() {
         return;
     }
     
-    let paginationHTML = '';
+    let paginationHTML = '<div class="pagination-buttons">';
     
     // Previous button
-    paginationHTML += `
-        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
-        </li>
-    `;
-    
-    // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
+    if (currentPage > 1) {
         paginationHTML += `
-            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-            </li>
+            <button class="pagination-btn pagination-prev" onclick="changePage(${currentPage - 1})" aria-label="Previous">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
         `;
     }
     
-    // Next button
-    paginationHTML += `
-        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
-        </li>
-    `;
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
     
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn pagination-number" onclick="changePage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            paginationHTML += `<button class="pagination-btn pagination-number active">${i}</button>`;
+        } else {
+            paginationHTML += `<button class="pagination-btn pagination-number" onclick="changePage(${i})">${i}</button>`;
+        }
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn pagination-number" onclick="changePage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        paginationHTML += `
+            <button class="pagination-btn pagination-next" onclick="changePage(${currentPage + 1})" aria-label="Next">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+    }
+    
+    paginationHTML += '</div>';
     pagination.innerHTML = paginationHTML;
 }
 
 function changePage(page) {
-    if (page < 1 || page > totalPages) return;
-    currentPage = page;
-    renderPaymentTable();
-    renderPagination();
-    
-    // Scroll to top of table
-    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
-}
-
-function formatDateToLA(date) {
-    // Convert to Los Angeles timezone
-    const options = {
-        timeZone: 'America/Los_Angeles',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short'
-    };
-    
-    return new Intl.DateTimeFormat('en-US', options).format(date);
-}
-
-function showErrorState() {
-    const tbody = document.getElementById('paymentTableBody');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="3" class="text-center py-5">
-                <div class="text-danger">
-                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
-                    <h5>Error loading payment history</h5>
-                    <p>Unable to load payment history. Please try again later.</p>
-                    <button class="btn btn-outline-primary" onclick="loadPaymentHistory()">
-                        <i class="fas fa-refresh me-2"></i>Retry
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `;
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+        currentPage = page;
+        loadTransactionHistory();
+        
+        // Scroll to top of table
+        document.querySelector('.payments-card').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 }
 
 function formatCurrency(amount) {
-    try {
-        return parseFloat(amount).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    } catch (e) {
-        return '0.00';
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
+}
+
+function formatDateToLA(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    }).format(date);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
+    return cookieValue;
 }
 </script>
 
 <style>
-/* Custom styles for payment history */
-.table th {
-    border-top: none;
+/* Payments page styles using website theme */
+
+/* Main payments card */
+.payments-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.payments-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+}
+
+.payments-card-header {
+    padding: 3rem 2.5rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.payments-card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 1rem 0 0.5rem 0;
+}
+
+.payments-card-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.payments-card-body {
+    padding: 0;
+}
+
+/* Table styles */
+.table-container {
+    overflow-x: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.transactions-table thead th {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
     font-weight: 600;
+    text-align: left;
+    border: none;
     font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.table td {
+.transactions-table tbody td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     vertical-align: middle;
-    border-top: 1px solid #dee2e6;
 }
 
-.table-hover tbody tr:hover {
-    background-color: rgba(23, 162, 184, 0.05);
+.transactions-table tbody tr {
+    transition: background-color 0.2s ease;
 }
 
-/* Animation for table rows */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.transactions-table tbody tr:hover {
+    background-color: rgba(23, 162, 184, 0.02);
 }
 
-.table tbody tr {
-    animation: fadeInUp 0.3s ease-out;
+.transactions-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-/* Pagination styling */
-.pagination .page-link {
+/* Loading state */
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(23, 162, 184, 0.2);
+    border-top: 3px solid #17a2b8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Empty and error states */
+.empty-state, .error-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: #666;
+}
+
+.empty-state i, .error-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.error-state {
+    color: #dc3545;
+}
+
+.error-state i {
+    color: #dc3545;
+}
+
+/* Pagination styles */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    background: white;
+    color: #333;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn:hover {
+    border-color: #17a2b8;
     color: #17a2b8;
-    border-color: #dee2e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.2);
 }
 
-.pagination .page-item.active .page-link {
-    background-color: #17a2b8;
+.pagination-btn.active {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     border-color: #17a2b8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
 }
 
-.pagination .page-link:hover {
-    color: #138496;
-    background-color: #f8f9fa;
-    border-color: #17a2b8;
+.pagination-number {
+    min-width: 45px;
+    justify-content: center;
+}
+
+.pagination-prev, .pagination-next {
+    font-weight: 600;
+}
+
+.pagination-ellipsis {
+    padding: 0.75rem 0.5rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Transaction row styling */
+.transaction-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.transaction-content {
+    display: flex;
+    align-items: center;
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-description {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.transaction-meta {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.transaction-amount {
+    text-align: right;
+}
+
+.amount-primary {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.amount-secondary {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.text-success {
+    color: #20c997 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .payments-card-header {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        padding: 1rem;
+    }
+    
+    .transactions-table thead th {
+        font-size: 0.8rem;
+    }
+    
+    .transactions-table tbody td {
+        font-size: 0.875rem;
+    }
+    
+    .pagination-buttons {
+        gap: 0.25rem;
+    }
+    
+    .pagination-btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .pagination-number {
+        min-width: 40px;
+    }
+    
+    .transaction-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+    }
+    
+    .loading-state {
+        padding: 2rem 1rem;
+    }
+    
+    .loading-spinner {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+@media (max-width: 576px) {
+    .transaction-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .transaction-amount {
+        text-align: left;
+        width: 100%;
+    }
+    
+    .pagination-prev .fas,
+    .pagination-next .fas {
+        display: none;
+    }
 }
 </style>
 {% endblock %}
