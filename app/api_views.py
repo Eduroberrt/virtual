@@ -878,33 +878,38 @@ def korapay_callback(request):
             logger.error("KoraPay callback received without transaction reference")
             return error_response("Transaction reference is required")
         
-        # Important: KoraPay typically only calls back on successful payments
-        # If we receive a callback, we can assume the payment was successful
-        callback_indicates_success = True  # Assume success since callback was received
-        
         # Initialize Kora Pay client
         korapay_client = KoraPayClient()
         
-        # Try to verify payment with API (but don't rely on it completely)
+        # Always verify payment with API - don't assume callback means success
         verification_result = korapay_client.verify_payment(tx_ref)
         logger.info(f"KoraPay verification result for {tx_ref}: {verification_result}")
         
         # Debug: Log the complete verification result
         logger.info(f"KoraPay verification details - success: {verification_result.get('success')}, status: {verification_result.get('status')}, raw_response: {verification_result.get('raw_response')}")
         
-        # Determine if payment should be considered successful
-        # Priority: 1) API verification success, 2) Callback received (fallback)
+        # Check both callback status and API verification
+        # Callback status should indicate success
+        callback_status_success = status and status.lower() in ['success', 'successful', 'paid']
+        
+        # API verification should also confirm success
         api_verification_successful = (verification_result.get('success') and verification_result.get('status') == 'successful')
         
-        if api_verification_successful:
-            logger.info(f"Payment verified successfully via API for {tx_ref}")
-            payment_successful = True
-        elif callback_indicates_success:
-            logger.info(f"Payment assumed successful since callback was received for {tx_ref} (API verification failed)")
-            payment_successful = True
+        # Payment is only successful if BOTH callback and API verification confirm it
+        payment_successful = callback_status_success and api_verification_successful
+        
+        if payment_successful:
+            logger.info(f"Payment verified successfully for {tx_ref} - both callback and API confirm success")
         else:
-            logger.warning(f"Payment could not be verified for {tx_ref}")
-            payment_successful = False
+            logger.warning(f"Payment verification failed for {tx_ref} - callback_status: {status}, api_success: {api_verification_successful}")
+            # Redirect to failure page
+            if request.method == 'GET':
+                if request.user.is_authenticated:
+                    return redirect('/wallet/?error=payment_failed')
+                else:
+                    return redirect('/login/?message=payment_failed')
+            else:
+                return error_response("Payment verification failed")
         
         if payment_successful:
             # Find the pending transaction by description pattern (not by user since they might not be authenticated)
@@ -1013,58 +1018,8 @@ def korapay_callback(request):
                             'amount': str(verification_result['amount'])
                         })
                 else:
-                    # No pending transaction found, but if we can identify the user and have payment details,
-                    # create a manual credit to ensure successful payments aren't lost
-                    if user_id and (verification_result.get('amount') or callback_indicates_success):
-                        try:
-                            from django.contrib.auth.models import User
-                            user = User.objects.get(id=user_id)
-                            profile, created = UserProfile.objects.get_or_create(user=user)
-                            
-                            # Determine amount (use verification result or default amount)
-                            if verification_result.get('amount'):
-                                amount_ngn = verification_result['amount']
-                            else:
-                                # For callback-only success, assume a reasonable default or log for manual review
-                                logger.warning(f"Manual intervention required for tx_ref {tx_ref} - callback indicates success but no amount available")
-                                amount_ngn = 1000  # Default amount for manual review
-                            
-                            # Convert to Decimal for proper calculation
-                            from decimal import Decimal
-                            amount_ngn_decimal = Decimal(str(amount_ngn))
-                            credit_amount = amount_ngn_decimal / UserProfile.USD_TO_NGN_RATE
-                            
-                            with transaction.atomic():
-                                profile.balance += credit_amount
-                                profile.save()
-                                
-                                # Create transaction record - store in NGN for consistency
-                                Transaction.objects.create(
-                                    user=user,
-                                    amount=amount_ngn_decimal,  # Store NGN amount in transaction
-                                    transaction_type='DEPOSIT',
-                                    description=f"Manual credit: ₦{amount_ngn:,.2f} via KoraPay ({tx_ref}) - No pending transaction found"
-                                )
-                            
-                            logger.info(f"Manual credit applied for user {user_id}, amount: ₦{amount_ngn}, tx_ref: {tx_ref}")
-                            
-                            # Redirect to success
-                            if request.method == 'GET':
-                                if request.user.is_authenticated:
-                                    return redirect('/wallet/?success=1')
-                                else:
-                                    return redirect('/login/?message=payment_success')
-                            else:
-                                return json_response({
-                                    'success': True,
-                                    'message': 'Payment processed (manual credit)',
-                                    'amount': str(amount_ngn)
-                                })
-                        except User.DoesNotExist:
-                            logger.error(f"User with ID {user_id} not found for manual credit")
-                    
-                    # If we can't apply manual credit, log and redirect with error
-                    logger.error(f"Pending transaction not found for tx_ref: {tx_ref} and unable to apply manual credit")
+                    # No pending transaction found - this should not happen for legitimate payments
+                    logger.error(f"Pending transaction not found for tx_ref: {tx_ref}")
                     if request.method == 'GET':
                         if request.user.is_authenticated:
                             return redirect('/wallet/?error=transaction_not_found')
@@ -1138,32 +1093,36 @@ def korapay_webhook(request):
                         description__icontains=tx_ref
                     ).first()
                     if pending_transaction:
-                        with transaction.atomic():
-                            profile = UserProfile.objects.get(user=pending_transaction.user)
-                            
-                            # ALWAYS use the original intended amount (absorb KoraPay fees)
-                            # This ensures users get exactly what they intended to fund
-                            transaction_amount = float(pending_transaction.amount)
-                            if transaction_amount >= 100:
-                                # Transaction stored in NGN (new format) - use the stored amount
-                                amount_to_credit = transaction_amount
-                            else:
-                                # Transaction stored in USD (old format) - use the webhook amount
-                                amount_to_credit = amount_naira
-                            
-                            # Log fee information for business tracking
-                            korapay_fee = tx_data.get('fee', 0)
-                            logger.info(f"KoraPay transaction fee: ₦{korapay_fee} for tx_ref: {tx_ref} (absorbed by business)")
-                            
-                            # Convert to Decimal for proper calculation
-                            from decimal import Decimal
-                            amount_naira_decimal = Decimal(str(amount_to_credit))
-                            credit_amount = amount_naira_decimal / UserProfile.USD_TO_NGN_RATE
-                            profile.balance += credit_amount
-                            profile.save()
-                            pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_to_credit:,.2f}"
-                            pending_transaction.save()
-                        logger.info(f"Webhook processed successfully for tx_ref: {tx_ref}")
+                        # Check if transaction is already processed (avoid double processing)
+                        if not pending_transaction.description.startswith("Wallet funded via Kora Pay - ₦"):
+                            with transaction.atomic():
+                                profile = UserProfile.objects.get(user=pending_transaction.user)
+                                
+                                # ALWAYS use the original intended amount (absorb KoraPay fees)
+                                # This ensures users get exactly what they intended to fund
+                                transaction_amount = float(pending_transaction.amount)
+                                if transaction_amount >= 100:
+                                    # Transaction stored in NGN (new format) - use the stored amount
+                                    amount_to_credit = transaction_amount
+                                else:
+                                    # Transaction stored in USD (old format) - use the webhook amount
+                                    amount_to_credit = amount_naira
+                                
+                                # Log fee information for business tracking
+                                korapay_fee = tx_data.get('fee', 0)
+                                logger.info(f"KoraPay transaction fee: ₦{korapay_fee} for tx_ref: {tx_ref} (absorbed by business)")
+                                
+                                # Convert to Decimal for proper calculation
+                                from decimal import Decimal
+                                amount_naira_decimal = Decimal(str(amount_to_credit))
+                                credit_amount = amount_naira_decimal / UserProfile.USD_TO_NGN_RATE
+                                profile.balance += credit_amount
+                                profile.save()
+                                pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_to_credit:,.2f}"
+                                pending_transaction.save()
+                            logger.info(f"Webhook processed successfully for tx_ref: {tx_ref}")
+                        else:
+                            logger.info(f"Transaction {tx_ref} already processed via webhook, skipping")
                     else:
                         logger.error(f"Pending transaction not found for tx_ref: {tx_ref}")
                 except Exception as e:

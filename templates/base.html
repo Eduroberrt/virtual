@@ -90,6 +90,16 @@
     
     <!-- Mobile Input Zoom Prevention -->
     <style>
+        /* Prevent horizontal overflow */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
         /* Prevent zoom on input focus for iOS devices */
         @media screen and (max-width: 991px) {
             input[type="text"],

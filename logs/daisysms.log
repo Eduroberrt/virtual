@@ -2508,3 +2508,12 @@ DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name
 DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
 DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
 DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'

@@ -50,7 +50,7 @@ def faq(request):
 def signup(request):
     if request.method == 'POST':
         username = request.POST.get('username')
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').lower().strip()  # Normalize email to lowercase
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
         turnstile_token = request.POST.get('cf-turnstile-response')
@@ -127,11 +127,15 @@ def signup(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
         
+        # Normalize email to lowercase if it looks like an email
+        if '@' in username:
+            username = username.lower()
+        
         if not username or not password:
-            messages.error(request, '❌ Both username/email and password are required.')
+            messages.error(request, 'Both username/email and password are required.')
             return render(request, 'login.html')
         
         user = authenticate(request, username=username, password=password)
@@ -142,28 +146,28 @@ def login_view(request):
             # Create user profile if it doesn't exist
             UserProfile.objects.get_or_create(user=user)
             
-            messages.success(request, '✅ Logged in successfully!')
+            messages.success(request, 'Logged in successfully!')
             
             # Redirect to next page or dashboard
             next_page = request.GET.get('next', 'dashboard')
             return redirect(next_page)
         else:
-            messages.error(request, '❌ Invalid username/email or password.')
+            messages.error(request, 'Invalid username/email or password.')
     
     return render(request, 'login.html')
 
 def forgot_password(request):
     """Simple forgot password view"""
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()  # Don't convert to lowercase
+        email = request.POST.get('email', '').lower().strip()  # Normalize to lowercase
         
         if not email:
             messages.error(request, '❌ Please enter your email address.')
             return render(request, 'forgot_password.html')
         
-        # Use case-insensitive email lookup
+        # Use direct email lookup since we normalized to lowercase
         try:
-            user = User.objects.get(email__iexact=email)
+            user = User.objects.get(email=email)
             logger.info(f"Found user: {user.username} with email: '{user.email}'")
         except User.DoesNotExist:
             messages.error(request, f'❌ No account found with email: {email}')

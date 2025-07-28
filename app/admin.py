@@ -13,7 +13,7 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'price', 'daily_price', 'profit_margin', 'display_naira_price', 'available_numbers', 'is_active', 'is_special_service']
     list_filter = ['is_active', 'supports_multiple_sms']
     search_fields = ['name', 'code']
-    readonly_fields = ['created_at', 'updated_at', 'display_naira_price', 'display_naira_daily_price']
+    readonly_fields = ['created_at', 'updated_at', 'display_naira_price', 'display_naira_daily_price', 'display_profit_margin_naira']
     list_editable = ['is_active', 'price', 'daily_price', 'profit_margin']
     fieldsets = (
         ('Basic Information', {
@@ -21,10 +21,10 @@ class ServiceAdmin(admin.ModelAdmin):
         }),
         ('Pricing (USD)', {
             'fields': ('price', 'daily_price', 'profit_margin'),
-            'description': 'Set your desired price for this service. For "Service Not Listed", this is the price charged for unlisted services.'
+            'description': 'Set base price in USD and profit margin in Naira. Example: profit_margin = 100.00 means add ₦100 to each service price.'
         }),
         ('Pricing (Naira - Calculated)', {
-            'fields': ('display_naira_price', 'display_naira_daily_price'),
+            'fields': ('display_naira_price', 'display_naira_daily_price', 'display_profit_margin_naira'),
             'classes': ('collapse',)
         }),
         ('Availability', {
@@ -43,6 +43,10 @@ class ServiceAdmin(admin.ModelAdmin):
     def display_naira_daily_price(self, obj):
         return f"₦{obj.get_naira_daily_price():,.2f}"
     display_naira_daily_price.short_description = 'Daily Price (NGN)'
+    
+    def display_profit_margin_naira(self, obj):
+        return f"₦{obj.profit_margin:,.2f}"
+    display_profit_margin_naira.short_description = 'Profit Margin (NGN)'
     
     def is_special_service(self, obj):
         return obj.code == 'service_not_listed'

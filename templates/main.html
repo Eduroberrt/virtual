@@ -22,6 +22,16 @@
     
     <!-- Footer Styling -->
     <style>
+        /* Prevent horizontal overflow */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
             display: flex;
             flex-direction: column;
@@ -279,7 +289,7 @@
                     <a href="#" class="btn btn-link p-0" id="profileDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="outline:none;">
                         <img src="https://www.acctplugs.com/assets/images/user/profile/avatar-1.jpg" alt="profile" class="rounded-circle" style="width:38px; height:38px; object-fit:cover; border:2px solid #17a2b8;">
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown" style="min-width: 280px; border-radius: 18px; padding: 32px 28px 32px 28px; margin-top: 12px;">
+                    <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown" style="min-width: min(280px, 90vw); border-radius: 18px; padding: 32px 28px 32px 28px; margin-top: 12px;">
                         <div class="text-center pb-3">
                             <img src="https://www.acctplugs.com/assets/images/user/profile/avatar-1.jpg" alt="profile" class="rounded-circle mb-2" style="width:60px; height:60px; object-fit:cover; border:2px solid #17a2b8;">
                             <div class="mb-1 fw-bold" style="font-size:0.8rem;">{{ user.username|default:"User" }}</div>
@@ -341,7 +351,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link {% if request.resolver_match.url_name == 'service' %}active{% endif %}">
+                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Buy Socials</span>
                         </a>
@@ -414,7 +424,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link {% if request.resolver_match.url_name == 'service' %}active{% endif %}">
+                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link">
                             <i class="fas fa-shopping-cart"></i>
                             <span>Buy Socials</span>
                         </a>

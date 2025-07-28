@@ -926,11 +926,24 @@ body {
     border-radius: 4px;
     background: white;
     margin-right: 0.75rem;
+    position: relative;
 }
 
 .custom-checkbox .form-check-input:checked {
     background-color: #17a2b8;
     border-color: #17a2b8;
+}
+
+.custom-checkbox .form-check-input:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    line-height: 1;
 }
 
 .custom-checkbox .form-check-label {
@@ -1138,23 +1151,11 @@ body {
     text-decoration: underline;
 }
 
-/* Enhanced notification positioning */
-@media (max-width: 576px) {
-    .alert {
-        position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
-        right: 10px !important;
-        max-width: none !important;
-        margin: 0 !important;
-    }
-}
-
 /* Mobile responsive for Auth Pages */
 @media (max-width: 768px) {
     .auth-page {
-        padding: 5rem 0 2rem 0;
-        margin-top: 100px;
+        padding: 3rem 0 2rem 0;
+        margin-top: 60px;
     }
     
     .auth-card {
@@ -1187,6 +1188,13 @@ body {
     
     .auth-title {
         font-size: 1.5rem;
+    }
+    
+    /* Ensure alerts stay within the normal document flow on mobile */
+    .auth-card .alert {
+        position: relative;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
     }
     
     .form-control {

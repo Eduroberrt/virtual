@@ -23,9 +23,11 @@ class EmailOrUsernameModelBackend(BaseBackend):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            # If username doesn't exist, try to find by email
+            # If username doesn't exist, try to find by email (normalize to lowercase)
             try:
-                user = User.objects.get(email=username)
+                # Normalize email to lowercase for comparison
+                normalized_email = username.lower().strip()
+                user = User.objects.get(email=normalized_email)
             except User.DoesNotExist:
                 # Neither username nor email found
                 return None
