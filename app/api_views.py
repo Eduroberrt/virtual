@@ -792,6 +792,7 @@ def create_service_not_listed(request):
         return error_response("Failed to create service", 500)
 
 @login_required
+@login_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def initiate_korapay_payment(request):
@@ -807,8 +808,14 @@ def initiate_korapay_payment(request):
             amount = Decimal(str(amount))
             if amount < 100:
                 return error_response("Minimum amount is ₦100")
+            if amount > 1000000:
+                return error_response("Maximum amount is ₦1,000,000")
         except (ValueError, TypeError):
             return error_response("Invalid amount format")
+        
+        # Validate user email
+        if not request.user.email:
+            return error_response("User email is required for payment")
         
         # Get or create user profile
         profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -819,16 +826,30 @@ def initiate_korapay_payment(request):
         # Create payment transaction record
         from django.utils import timezone
         import uuid
+        from datetime import datetime
         
-        tx_ref = f"YPG_{request.user.id}_{uuid.uuid4().hex[:8]}"
+        # Generate truly unique reference with timestamp
+        tx_ref = f"YPG_{request.user.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         
         # Initiate payment
+        # Use separate URLs: redirect for user, webhook for automatic processing
+        from django.conf import settings
+        
+        # Redirect URL - just redirects user to wallet (no processing)
+        redirect_url = f"{request.scheme}://{request.get_host()}/api/korapay/unified/"
+        
+        # Webhook URL - processes the payment automatically 
+        webhook_url = f"{request.scheme}://{request.get_host()}/api/korapay/unified/"
+        
+        logger.info(f"Redirect URL: {redirect_url}")
+        logger.info(f"Webhook URL: {webhook_url}")
+        
         payment_result = korapay_client.initiate_payment(
             user=request.user,
             amount=amount,
             currency='NGN',
-            redirect_url=f"{request.scheme}://{request.get_host()}/api/korapay/callback/",
-            notification_url=f"{request.scheme}://{request.get_host()}/api/korapay/webhook/",  # Added webhook URL
+            redirect_url=redirect_url,  # User redirect (GET)
+            notification_url=webhook_url,  # Webhook processing (POST)
             narration=f"Wallet funding for {request.user.username}"
         )
         
@@ -857,281 +878,29 @@ def initiate_korapay_payment(request):
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def korapay_callback(request):
-    """Handle Kora Pay payment callback"""
-    try:
-        # Get transaction reference and other parameters
-        if request.method == 'GET':
-            tx_ref = request.GET.get('reference')  # Transaction reference from query parameters
-            status = request.GET.get('status')  # Status from query parameters
-            
-            # Log all parameters for debugging
-            logger.info(f"KoraPay callback received via GET with reference: {tx_ref}, status: {status}")
-            logger.info(f"KoraPay callback GET parameters: {dict(request.GET)}")
-        else:
-            data = json.loads(request.body)
-            tx_ref = data.get('reference')
-            status = data.get('status')
-            logger.info(f"KoraPay callback received via POST with reference: {tx_ref}, status: {status}")
-            logger.info(f"KoraPay callback POST data: {data}")
-        
-        if not tx_ref:
-            logger.error("KoraPay callback received without transaction reference")
-            return error_response("Transaction reference is required")
-        
-        # Initialize Kora Pay client
-        korapay_client = KoraPayClient()
-        
-        # Always verify payment with API - don't assume callback means success
-        verification_result = korapay_client.verify_payment(tx_ref)
-        logger.info(f"KoraPay verification result for {tx_ref}: {verification_result}")
-        
-        # Debug: Log the complete verification result
-        logger.info(f"KoraPay verification details - success: {verification_result.get('success')}, status: {verification_result.get('status')}, raw_response: {verification_result.get('raw_response')}")
-        
-        # Check both callback status and API verification
-        # Callback status should indicate success
-        callback_status_success = status and status.lower() in ['success', 'successful', 'paid']
-        
-        # API verification should also confirm success
-        api_verification_successful = (verification_result.get('success') and verification_result.get('status') == 'successful')
-        
-        # Payment is only successful if BOTH callback and API verification confirm it
-        payment_successful = callback_status_success and api_verification_successful
-        
-        if payment_successful:
-            logger.info(f"Payment verified successfully for {tx_ref} - both callback and API confirm success")
-        else:
-            logger.warning(f"Payment verification failed for {tx_ref} - callback_status: {status}, api_success: {api_verification_successful}")
-            # Redirect to failure page
-            if request.method == 'GET':
-                if request.user.is_authenticated:
-                    return redirect('/wallet/?error=payment_failed')
-                else:
-                    return redirect('/login/?message=payment_failed')
-            else:
-                return error_response("Payment verification failed")
-        
-        if payment_successful:
-            # Find the pending transaction by description pattern (not by user since they might not be authenticated)
-            try:
-                # Extract user ID from transaction reference for better lookup
-                # Format is: YPG_{user_id}_{random}
-                user_id = None
-                if tx_ref.startswith('YPG_'):
-                    try:
-                        user_id = int(tx_ref.split('_')[1])
-                    except (IndexError, ValueError):
-                        logger.warning(f"Could not extract user ID from tx_ref: {tx_ref}")
-                
-                # Try to find transaction by reference first
-                pending_transaction = Transaction.objects.filter(
-                    transaction_type='DEPOSIT',
-                    description__icontains=tx_ref  # Match the callback reference directly
-                ).first()
-                
-                # If not found, try with verification result reference
-                if not pending_transaction and verification_result.get('tx_ref'):
-                    pending_transaction = Transaction.objects.filter(
-                        transaction_type='DEPOSIT',
-                        description__icontains=verification_result['tx_ref']
-                    ).first()
-                
-                # If still not found and we have user_id, try broader search
-                if not pending_transaction and user_id:
-                    from django.contrib.auth.models import User
-                    try:
-                        user = User.objects.get(id=user_id)
-                        pending_transaction = Transaction.objects.filter(
-                            user=user,
-                            transaction_type='DEPOSIT',
-                            description__icontains='Pending'
-                        ).order_by('-id').first()
-                        logger.info(f"Found transaction for user {user_id} via fallback search")
-                    except User.DoesNotExist:
-                        logger.error(f"User with ID {user_id} not found")
-                
-                if pending_transaction:
-                    # Check if transaction is already processed (avoid double processing)
-                    if not pending_transaction.description.startswith("Wallet funded via Kora Pay - ₦"):
-                        with transaction.atomic():
-                            # Update user balance
-                            profile = UserProfile.objects.get(user=pending_transaction.user)
-                            
-                            # Determine amount to credit
-                            if verification_result.get('amount'):
-                                # Use verified amount if available
-                                amount_ngn = verification_result['amount']
-                            else:
-                                # Check if transaction amount is stored in NGN or USD
-                                # If amount >= 100, likely stored in NGN; if < 100, likely stored in USD
-                                transaction_amount = float(pending_transaction.amount)
-                                if transaction_amount >= 100:
-                                    # Transaction stored in NGN (new format)
-                                    amount_ngn = transaction_amount
-                                else:
-                                    # Transaction stored in USD (old format) - convert to NGN
-                                    amount_ngn = transaction_amount * UserProfile.USD_TO_NGN_RATE
-                            
-                            # Credit balance - convert NGN to appropriate format based on current balance
-                            from decimal import Decimal
-                            amount_ngn_decimal = Decimal(str(amount_ngn))
-                            
-                            # Check if user's current balance is in USD or NGN format
-                            if profile.balance < 100 and profile.balance > 0:
-                                # Balance is in USD format - credit in USD
-                                credit_amount_usd = amount_ngn_decimal / UserProfile.USD_TO_NGN_RATE
-                                profile.balance += credit_amount_usd
-                            else:
-                                # Balance is in NGN format or zero - credit in NGN
-                                profile.balance += amount_ngn_decimal
-                            
-                            profile.save()
-                        
-                            # Update transaction description to show completion
-                            pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_ngn:,.2f}"
-                            pending_transaction.save()
-                            
-                            # Create a success transaction record for tracking
-                            Transaction.objects.create(
-                                user=pending_transaction.user,
-                                amount=amount_ngn_decimal,
-                                transaction_type='DEPOSIT',
-                                description=f"Balance credited: ₦{amount_ngn:,.2f} via KoraPay ({tx_ref})"
-                            )
-                        
-                        logger.info(f"Successfully processed KoraPay payment for user {pending_transaction.user.id}, amount: ₦{amount_ngn}")
-                    else:
-                        logger.info(f"Transaction {tx_ref} already processed, skipping")
-                
-                    # Redirect to success page or dashboard
-                    if request.method == 'GET':
-                        # If user is authenticated, redirect to wallet with success
-                        if request.user.is_authenticated:
-                            return redirect('/wallet/?success=1')
-                        else:
-                            # If user is not authenticated, redirect to login with a message
-                            return redirect('/login/?message=payment_success')
-                    else:
-                        return json_response({
-                            'success': True,
-                            'message': 'Payment successful',
-                            'amount': str(verification_result['amount'])
-                        })
-                else:
-                    # No pending transaction found - this should not happen for legitimate payments
-                    logger.error(f"Pending transaction not found for tx_ref: {tx_ref}")
-                    if request.method == 'GET':
-                        if request.user.is_authenticated:
-                            return redirect('/wallet/?error=transaction_not_found')
-                        else:
-                            return redirect('/login/?message=payment_error')
-                    else:
-                        return error_response("Transaction not found")
-            
-            except Exception as e:
-                logger.error(f"Error processing callback: {str(e)}")
-                if request.method == 'GET':
-                    if request.user.is_authenticated:
-                        return redirect('/wallet/?error=callback_error')
-                    else:
-                        return redirect('/login/?message=payment_error')
-                else:
-                    return error_response("Payment processing error")
-        
-        else:
-            # Payment failed or was cancelled
-            if request.method == 'GET':
-                if request.user.is_authenticated:
-                    return redirect('/wallet/?error=payment_failed')
-                else:
-                    return redirect('/login/?message=payment_failed')
-            else:
-                return error_response("Payment verification failed")
+    """Handle Kora Pay payment callback - DISABLED, use unified endpoint"""
+    logger.warning("korapay_callback called but DISABLED - redirecting to unified handler")
     
-    except Exception as e:
-        logger.error(f"Error handling Kora Pay callback: {str(e)}")
-        if request.method == 'GET':
-            if request.user.is_authenticated:
-                return redirect('/wallet/?error=callback_error')
-            else:
-                return redirect('/login/?message=payment_error')
+    # Extract reference and redirect to unified handler
+    if request.method == 'GET':
+        tx_ref = request.GET.get('reference')
+        if tx_ref:
+            return redirect(f'/api/korapay/unified/?reference={tx_ref}&status=success')
         else:
-            return error_response("Callback processing failed", 500)
+            return redirect('/wallet/?error=callback_error')
+    else:
+        return JsonResponse({
+            'error': 'This endpoint is disabled. Use /api/korapay/unified/ instead'
+        }, status=410)
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def korapay_webhook(request):
-    """Handle Kora Pay webhook notifications"""
-    try:
-        # Get webhook signature (check both possible header names)
-        signature = request.headers.get('x-korapay-signature') or request.headers.get('verif-hash')
-        if not signature:
-            logger.warning("KoraPay webhook received without signature header")
-            return error_response("Missing webhook signature", 400)
-        
-        payload = request.body.decode('utf-8')
-        
-        # Initialize Kora Pay client
-        korapay_client = KoraPayClient()
-        
-        # Verify webhook signature
-        if not korapay_client.verify_webhook_signature(payload, signature):
-            logger.warning("Invalid webhook signature")
-            return error_response("Invalid signature", 400)
-        
-        data = json.loads(payload)
-        event_type = data.get('event')
-        if event_type == 'charge.success':
-            tx_data = data.get('data', {})
-            if tx_data.get('status') == 'success':
-                tx_ref = str(tx_data.get('reference'))
-                # Amount is already in Naira (no conversion needed)
-                amount_naira = int(tx_data.get('amount', 0))
-                try:
-                    pending_transaction = Transaction.objects.filter(
-                        transaction_type='DEPOSIT',
-                        description__icontains=tx_ref
-                    ).first()
-                    if pending_transaction:
-                        # Check if transaction is already processed (avoid double processing)
-                        if not pending_transaction.description.startswith("Wallet funded via Kora Pay - ₦"):
-                            with transaction.atomic():
-                                profile = UserProfile.objects.get(user=pending_transaction.user)
-                                
-                                # ALWAYS use the original intended amount (absorb KoraPay fees)
-                                # This ensures users get exactly what they intended to fund
-                                transaction_amount = float(pending_transaction.amount)
-                                if transaction_amount >= 100:
-                                    # Transaction stored in NGN (new format) - use the stored amount
-                                    amount_to_credit = transaction_amount
-                                else:
-                                    # Transaction stored in USD (old format) - use the webhook amount
-                                    amount_to_credit = amount_naira
-                                
-                                # Log fee information for business tracking
-                                korapay_fee = tx_data.get('fee', 0)
-                                logger.info(f"KoraPay transaction fee: ₦{korapay_fee} for tx_ref: {tx_ref} (absorbed by business)")
-                                
-                                # Convert to Decimal for proper calculation
-                                from decimal import Decimal
-                                amount_naira_decimal = Decimal(str(amount_to_credit))
-                                credit_amount = amount_naira_decimal / UserProfile.USD_TO_NGN_RATE
-                                profile.balance += credit_amount
-                                profile.save()
-                                pending_transaction.description = f"Wallet funded via Kora Pay - ₦{amount_to_credit:,.2f}"
-                                pending_transaction.save()
-                            logger.info(f"Webhook processed successfully for tx_ref: {tx_ref}")
-                        else:
-                            logger.info(f"Transaction {tx_ref} already processed via webhook, skipping")
-                    else:
-                        logger.error(f"Pending transaction not found for tx_ref: {tx_ref}")
-                except Exception as e:
-                    logger.error(f"Error processing transaction for tx_ref {tx_ref}: {str(e)}")
-        
-        return json_response({'status': 'success'})
-    except Exception as e:
-        logger.error(f"Error processing Kora Pay webhook: {str(e)}")
-        return error_response("Failed to process webhook", 500)
+    """Handle Kora Pay webhook notifications - DISABLED, use unified endpoint"""
+    logger.warning("korapay_webhook called but DISABLED")
+    return JsonResponse({
+        'error': 'This endpoint is disabled. Use /api/korapay/unified/ instead'
+    }, status=410)
 
 @login_required
 @require_http_methods(["GET"])

@@ -2517,3 +2517,50 @@ Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_S
 Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
 Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
 Error initiating Kora Pay payment: 'Settings' object has no attribute 'KORAPAY_SECRET_KEY'
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+KoraPay callback received via GET with reference: YPG_19_c34476a9, status: None
+KoraPay callback GET parameters: {'reference': ['YPG_19_c34476a9']}
+KoraPay callback full URL: http://127.0.0.1:8000/api/korapay/callback/?reference=YPG_19_c34476a9
+KoraPay verification result for YPG_19_c34476a9: {'success': False, 'status': 'failed', 'error': 'HTTP 404: {"status":false,"code":"AA026","message":"Charge not found","data":null}', 'raw_response': '{"status":false,"code":"AA026","message":"Charge not found","data":null}'}
+KoraPay verification details - success: False, status: failed, raw_response: {"status":false,"code":"AA026","message":"Charge not found","data":null}
+Payment verification failed for YPG_19_c34476a9 - callback_status: None, api_success: False
+Invalid webhook signature
+KoraPay callback received via GET with reference: YPG_19_5d120bfb, status: None
+KoraPay callback GET parameters: {'reference': ['YPG_19_5d120bfb']}
+KoraPay callback full URL: http://f4657352474c.ngrok-free.app/api/korapay/callback/?reference=YPG_19_5d120bfb
+KoraPay verification result for YPG_19_5d120bfb: {'success': False, 'status': 'failed', 'error': 'HTTP 404: {"status":false,"code":"AA026","message":"Charge not found","data":null}', 'raw_response': '{"status":false,"code":"AA026","message":"Charge not found","data":null}'}
+KoraPay verification details - success: False, status: failed, raw_response: {"status":false,"code":"AA026","message":"Charge not found","data":null}
+Payment verification failed for YPG_19_5d120bfb - callback_status: None, api_success: False
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Invalid webhook signature
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getNumber - ACCESS_NUMBER:308433888:15043339908
+DaisySMS API call successful: setStatus - ACCESS_CANCEL
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+korapay_webhook called but DISABLED
+Using unified URL for KoraPay: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+Redirect URL: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+Webhook URL: http://f4657352474c.ngrok-free.app/api/korapay/unified/
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
+DaisySMS API call successful: getPricesVerification - {"2redbeans":{"187":{"name":"2RedBeans","ttl":900,"count":100,"cost":"0.50","repeatable":true}},"auw
