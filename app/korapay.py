@@ -16,12 +16,18 @@ class KoraPayClient:
             import uuid
             reference = f"YPG_{user.id}_{uuid.uuid4().hex[:8]}"
         
-        # KoraPay expects amount in base currency (Naira), not kobo
-        # Remove the kobo conversion that was causing 100x multiplication
-        amount_for_payment = int(amount)  # Keep amount as-is in Naira
+        # KoraPay expects amount as integer in base currency
+        # Ensure amount is properly converted to integer
+        try:
+            amount_for_payment = int(float(amount))
+            # Ensure minimum amount
+            if amount_for_payment < 1:
+                amount_for_payment = 1
+        except (ValueError, TypeError):
+            amount_for_payment = 1000  # Default fallback
         
         payload = {
-            "amount": amount_for_payment,  # Amount in Naira (not kobo)
+            "amount": amount_for_payment,
             "currency": currency,
             "reference": reference,
             "redirect_url": redirect_url,

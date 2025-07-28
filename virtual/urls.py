@@ -20,6 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from app.views import *
 from app.api_views import *
+from app.debug_views import debug_callback
+from app.unified_korapay import unified_korapay_handler
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -66,6 +68,8 @@ urlpatterns = [
     path('api/korapay/initiate/', initiate_korapay_payment, name='api_korapay_initiate'),
     path('api/korapay/callback/', korapay_callback, name='api_korapay_callback'),
     path('api/korapay/webhook/', korapay_webhook, name='api_korapay_webhook'),
+    path('api/korapay/unified/', unified_korapay_handler, name='api_korapay_unified'),
+    path('api/debug/callback/', debug_callback, name='api_debug_callback'),
 ]
 
 # Serve static and media files in development

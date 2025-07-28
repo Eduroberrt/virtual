@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wii#$5*70*0-)hdw%_hb^6(j%l*@4r^($4#zx-#@_ej972nu&t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '786a423a15e9.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'f4657352474c.ngrok-free.app']
 
 
 # Application definition
@@ -155,7 +155,7 @@ LOGOUT_REDIRECT_URL = '/login/'
 CSRF_TRUSTED_ORIGINS = [
     "http://youngpgvirtual.com",
     "https://youngpgvirtual.com",
-    "https://786a423a15e9.ngrok-free.app"
+    "https://f4657352474c.ngrok-free.app"
 ]
 
 # Logging Configuration

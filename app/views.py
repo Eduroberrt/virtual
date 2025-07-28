@@ -129,6 +129,15 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        
+        # Verify Turnstile CAPTCHA first
+        client_ip = get_client_ip(request)
+        turnstile_result = verify_turnstile(turnstile_token, client_ip)
+        
+        if not turnstile_result.get('success'):
+            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
+            return render(request, 'login.html')
         
         # Normalize email to lowercase if it looks like an email
         if '@' in username:
@@ -160,6 +169,15 @@ def forgot_password(request):
     """Simple forgot password view"""
     if request.method == 'POST':
         email = request.POST.get('email', '').lower().strip()  # Normalize to lowercase
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        
+        # Verify Turnstile CAPTCHA first
+        client_ip = get_client_ip(request)
+        turnstile_result = verify_turnstile(turnstile_token, client_ip)
+        
+        if not turnstile_result.get('success'):
+            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
+            return render(request, 'forgot_password.html')
         
         if not email:
             messages.error(request, '❌ Please enter your email address.')
