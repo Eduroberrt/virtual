@@ -47,7 +47,7 @@ class Service(models.Model):
     icon_url = models.URLField(blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Now stores NGN price
     daily_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Now stores NGN price
-    profit_margin = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Profit margin percentage (e.g., 15.00 for 15%)")
+    profit_margin = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Profit margin in Naira (e.g., 100.00 for ₦100)")
     available_numbers = models.IntegerField(default=0)
     supports_multiple_sms = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -74,9 +74,9 @@ class Service(models.Model):
             # Price is already stored in NGN
             base_price_naira = Decimal(str(self.price))
         
-        # Apply profit margin
-        margin_amount = base_price_naira * (Decimal(str(self.profit_margin)) / Decimal('100'))
-        return base_price_naira + margin_amount
+        # Apply absolute profit margin in Naira (not percentage)
+        absolute_margin = Decimal(str(self.profit_margin))
+        return base_price_naira + absolute_margin
     
     def get_naira_daily_price(self):
         """Get daily price in Naira with profit margin - handles both USD and NGN stored prices"""
@@ -90,9 +90,9 @@ class Service(models.Model):
             # Daily price is already stored in NGN
             base_daily_price_naira = Decimal(str(self.daily_price))
         
-        # Apply profit margin
-        margin_amount = base_daily_price_naira * (Decimal(str(self.profit_margin)) / Decimal('100'))
-        return base_daily_price_naira + margin_amount
+        # Apply absolute profit margin in Naira (not percentage)
+        absolute_margin = Decimal(str(self.profit_margin))
+        return base_daily_price_naira + absolute_margin
     
     def get_usd_price(self):
         """Convert NGN price to USD for DaisySMS API calls"""
