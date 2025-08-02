@@ -1,0 +1,95 @@
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-01 14:12:28.805959
+GET redirect: YPG_30_68f79253 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-01 14:18:02.983556
+GET redirect: YPG_30_be72b05d - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-08-01 14:20:25.128100
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_30_36065315","payment_reference":"YPG_30_36065315","currency":"NGN","amount":130,"fee":2.1,"payment_method":"bank_transfer","status":"success"}}
+Reference: YPG_30_36065315, Status: success
+PROCESSING WEBHOOK: YPG_30_36065315
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-01 14:20:27.715142
+GET redirect: YPG_30_36065315 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-08-01 14:20:32.332660
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_30_be72b05d","payment_reference":"YPG_30_be72b05d","currency":"NGN","amount":130,"fee":2.1,"payment_method":"bank_transfer","status":"success"}}
+Reference: YPG_30_be72b05d, Status: success
+PROCESSING WEBHOOK: YPG_30_be72b05d
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-08-01 14:55:49.102020
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_34_5e29f8ff","payment_reference":"YPG_34_5e29f8ff","currency":"NGN","amount":2500,"fee":40.31,"payment_method":"bank_transfer","status":"success"}}
+Reference: YPG_34_5e29f8ff, Status: success
+PROCESSING WEBHOOK: YPG_34_5e29f8ff
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-01 14:55:59.384288
+GET redirect: YPG_34_5e29f8ff - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-08-01 15:42:26.173147
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_34_b2cb24f9","payment_reference":"YPG_34_b2cb24f9","currency":"NGN","amount":1000,"fee":16.13,"payment_method":"bank_transfer","status":"success"}}
+Reference: YPG_34_b2cb24f9, Status: success
+PROCESSING WEBHOOK: YPG_34_b2cb24f9
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-01 15:42:29.003616
+GET redirect: YPG_34_b2cb24f9 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-02 00:52:47.116534
+GET redirect: YPG_35_78844198 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-02 00:53:01.764029
+GET redirect: YPG_35_8e26e16c - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-08-02 00:55:14.703958
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_35_c1f10e6b","payment_reference":"YPG_35_c1f10e6b","currency":"NGN","amount":2000,"fee":32.25,"payment_method":"bank_transfer","status":"success"}}
+Reference: YPG_35_c1f10e6b, Status: success
+PROCESSING WEBHOOK: YPG_35_c1f10e6b
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-02 00:55:20.028207
+GET redirect: YPG_35_c1f10e6b - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-08-02 00:55:23.137559
+GET redirect: YPG_35_c1f10e6b - NO PROCESSING, just redirect

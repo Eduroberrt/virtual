@@ -50,7 +50,6 @@
                                 <th>Name</th>
                                 <th>Code</th>
                                 <th>Price</th>
-                                <th>LTR Price/day</th>
                                 <th>
                                     <span class="hidden sm:flex">Multiple<br>SMS</span>
                                     <span class="sm:hidden">🔁</span>
@@ -67,7 +66,6 @@
                                 <td>{{ service.name }}</td>
                                 <td>{{ service.code }}</td>
                                 <td>{{ service.get_naira_price|format_naira }}</td>
-                                <td>{{ service.get_naira_daily_price|format_naira }}</td>
                                 <td>
                                     {% comment %} Hardcoded Multiple SMS - services that typically support multiple SMS {% endcomment %}
                                     {% with multiple_sms_codes='2redbeans,auw,aarp,acima,af247,afterpay,alibabacloud,alipay,ally,am,pm,wx,archer,ashleymadison,aspiration,anl,axos,qv,boa,baselane,bcbs,beehiiv,bestbuy,betfanatics,ie,bz,bluesky,bmoalto,bmoharris,bphr,bridgemoney,bright,mo,burner,butcherbox,apr,it,chargepoint,chase,chime,circlek,citi,citizens,cleo,abb,cod,cmb,re,cpulse,courtyard,sx,cryptocom,current,currently,cvs,dave,dingdingding,discover,docusign,ac,doublelist,dovetail,draftkings,dh,espnbet,etoro,everbank,experian,fb,fanaticslive,fanduel,feastables,fedex,fidelity,netbenefits,fivesurveys,cn,flip,foundcom,frostbank,gameflip,gcx,gemini,getholdings,go2bank,gofundme,golden1,go,gf,greendot,greenlight,grifin,happn,vz,hitch,hopper,hostinger,hsbc,huntington,inkind,innago,instacart,ig,intuit,agk,jointrue,kt,keybank,klarna,klover,koho,kraken,lego,lightningai' %}
@@ -78,7 +76,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="5" class="text-center text-muted py-4">
                                     <i class="fas fa-info-circle me-2"></i>No services available. Please check back later.
                                 </td>
                             </tr>

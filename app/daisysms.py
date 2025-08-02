@@ -46,6 +46,12 @@ class DaisySMSClient:
             response = requests.get(self.BASE_URL, params=params, timeout=30)
             execution_time = time.time() - start_time
             
+            # DETAILED DEBUGGING - Log exact request details
+            logger.info(f"DaisySMS Request URL: {response.url}")
+            logger.info(f"DaisySMS Request params: {params}")
+            logger.info(f"DaisySMS Response status: {response.status_code}")
+            logger.info(f"DaisySMS Response text: {response.text}")
+            
             # Log the API call
             log_entry = APILog.objects.create(
                 user=user,
@@ -189,13 +195,9 @@ class DaisySMSClient:
         params = {'service': service_code}
         
         if max_price:
-            params['max_price'] = str(max_price)
-        
-        # Skip LTR parameters since we don't use long-term rentals
-        # if ltr:
-        #     params['ltr'] = '1'
-        #     if auto_renew:
-        #         params['auto_renew'] = '1'
+            # Round max_price to 2 decimal places to avoid precision issues with DaisySMS API
+            rounded_price = round(float(max_price), 2)
+            params['max_price'] = str(rounded_price)
         
         if area_codes:
             params['areas'] = ','.join(area_codes)
@@ -273,15 +275,6 @@ class DaisySMSClient:
         
         return response_text == 'OK'
     
-    def set_auto_renew(self, rental_id: str, auto_renew: bool, user=None) -> bool:
-        """
-        Set auto-renew for long-term rental
-        """
-        params = {'id': rental_id, 'value': 'true' if auto_renew else 'false'}
-        response_text, _ = self._make_request('setAutoRenew', params, user=user)
-        
-        return response_text == 'OK'
-    
     def get_extra_activation(self, previous_activation_id: str, user=None) -> str:
         """
         Get additional message on same number
@@ -336,7 +329,6 @@ class DaisySMSClient:
                         defaults={
                             'name': service_data.get('name', service_code),
                             'price': Decimal(str(service_data.get('cost', 0))),
-                            'daily_price': Decimal(str(service_data.get('ltr', 0))),
                             'available_numbers': min(int(service_data.get('count', 0)), 100),
                             'supports_multiple_sms': service_data.get('multi', False),
                         }
@@ -347,7 +339,6 @@ class DaisySMSClient:
                         if service_code != 'service_not_listed':
                             # Update existing service with API prices
                             service.price = Decimal(str(service_data.get('cost', 0)))
-                            service.daily_price = Decimal(str(service_data.get('ltr', 0)))
                             service.available_numbers = min(int(service_data.get('count', 0)), 100)
                             service.supports_multiple_sms = service_data.get('multi', False)
                             service.save()
@@ -366,16 +357,13 @@ class DaisySMSClient:
             raise DaisySMSException(f"Failed to sync services: {str(e)}")
 
 
-def get_daisysms_client(user) -> DaisySMSClient:
+def get_daisysms_client(user=None) -> DaisySMSClient:
     """
-    Get DaisySMS client instance for user
+    Get DaisySMS client instance using system API key
     """
-    if hasattr(user, 'userprofile') and user.userprofile.api_key:
-        return DaisySMSClient(user.userprofile.api_key)
-    
-    # Fall back to system API key if available
+    # Use system API key (individual user API keys have been removed)
     system_api_key = getattr(settings, 'DAISYSMS_API_KEY', None)
     if system_api_key:
         return DaisySMSClient(system_api_key)
     
-    raise DaisySMSException("No API key configured for user")
+    raise DaisySMSException("No system API key configured")

@@ -50,7 +50,7 @@
                                 <label class="col-sm-3 col-form-label fw-medium">Current Balance:</label>
                                 <div class="col-sm-9">
                                     <div class="d-flex align-items-center">
-                                        <span class="badge bg-success fs-6">${{ profile.balance }}</span>
+                                        <span class="badge bg-success fs-6">{{ profile.get_naira_balance|format_naira }}</span>
                                         <button class="btn btn-sm btn-outline-primary ms-3" onclick="syncBalance()">
                                             <i class="fas fa-sync me-1"></i>Sync Balance
                                         </button>

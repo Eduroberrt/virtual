@@ -53,7 +53,7 @@ class Command(BaseCommand):
             for service in services:
                 self.stdout.write(
                     f"  - {service.name} ({service.code}): "
-                    f"${service.price} (one-time), ${service.daily_price} (daily)"
+                    f"${service.price} (one-time)"
                 )
                 
         except DaisySMSException as e:
