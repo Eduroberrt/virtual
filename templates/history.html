@@ -8,43 +8,24 @@
     /* Mobile table scrolling improvements */
     @media (max-width: 768px) {
         .table-responsive {
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
+            font-size: 0.875rem;
         }
         
-        .table-responsive::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .table-responsive::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        .table-responsive::-webkit-scrollbar-thumb {
-            background: #17a2b8;
-            border-radius: 4px;
-        }
-        
-        .table-responsive::-webkit-scrollbar-thumb:hover {
-            background: #138496;
-        }
-        
-        /* Ensure table cells don't wrap */
-        .table td, .table th {
-            white-space: nowrap;
-        }
-        
-        /* Adjust button sizes for mobile */
-        .table .btn-sm {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.4rem;
+        .table td {
+            padding: 0.5rem 0.25rem;
+            vertical-align: middle;
         }
     }
     
-    /* Smooth scrolling for all devices */
-    .table-responsive {
-        scroll-behavior: smooth;
+    @media (max-width: 576px) {
+        .table-responsive {
+            font-size: 0.75rem;
+        }
+        
+        .table td {
+            padding: 0.375rem 0.1875rem;
+            min-width: auto;
+        }
     }
 </style>
 {% endblock %}

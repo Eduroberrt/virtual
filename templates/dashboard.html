@@ -12,7 +12,7 @@
             <h2 class="h5 fw-bold mb-2">SMS Verifications</h2>
 
             <div class="text-muted mb-3" style="font-size: 0.875rem;">
-                <p class="mb-1">Rent a phone for 7 minutes.</p>
+                <p class="mb-1">Rent a phone for up to 5 minutes.</p>
                 <p class="mb-0">Credits are only used if you receive the SMS code.</p>
             </div>
 
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Rent the service immediately without confirmation
             console.log('Renting service immediately'); // Debug log
-            rentNumber(serviceCode, false, false, areaCodes, carriers, phone);
+            rentNumber(serviceCode, areaCodes, carriers, phone);
         });
     });
 
@@ -558,8 +558,8 @@ function copyToClipboard(text) {
 }
 
 // Rental management functions
-async function rentNumber(serviceCode, ltr = false, autoRenew = false, areaCodes = [], carriers = [], phone = null) {
-    console.log('Renting number with params:', { serviceCode, ltr, autoRenew, areaCodes, carriers, phone }); // Debug log
+async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = null) {
+    console.log('Renting number with params:', { serviceCode, areaCodes, carriers, phone }); // Debug log
     
     // Validate inputs before making the request
     let hasValidationErrors = false;
@@ -599,8 +599,6 @@ async function rentNumber(serviceCode, ltr = false, autoRenew = false, areaCodes
             },
             body: JSON.stringify({
                 service_code: serviceCode,
-                ltr: ltr,
-                auto_renew: autoRenew,
                 area_codes: areaCodes,
                 carriers: carriers,
                 number: phone
@@ -696,7 +694,7 @@ function updateRentalsTable(rentals) {
     const activeRentals = rentals.filter(rental => {
         const createdAt = new Date(rental.created_at);
         const now = new Date();
-        const isExpired = (now - createdAt) > (7 * 60 * 1000);
+        const isExpired = (now - createdAt) > (5 * 60 * 1000); // 5 minutes
         const isCancelled = rental.status === 'CANCELLED' || rental.status === 'EXPIRED';
         
         // Only show rentals that are still active (not cancelled/expired) or have received code
@@ -723,13 +721,15 @@ function updateRentalsTable(rentals) {
     }
     
     tbody.innerHTML = activeRentals.map(rental => {
-        // Handle price formatting safely
+        // Use the exact price that was charged and stored in the rental record
         let priceDisplay = '₦0.00';
         try {
             if (rental.price_naira) {
-                const numericPrice = typeof rental.price_naira === 'string' 
-                    ? parseFloat(rental.price_naira.replace(/,/g, ''))
-                    : parseFloat(rental.price_naira);
+                // The price_naira from the API is already formatted, just ensure it has ₦ symbol
+                priceDisplay = rental.price_naira.startsWith('₦') ? rental.price_naira : `₦${rental.price_naira}`;
+            } else if (rental.price) {
+                // Fallback: format the raw price as NGN currency
+                const numericPrice = parseFloat(rental.price);
                 priceDisplay = `₦${formatCurrency(numericPrice)}`;
             }
         } catch (e) {
@@ -759,7 +759,7 @@ function updateRentalsTable(rentals) {
             </td>
             <td>${priceDisplay}</td>
             <td class="countdown-timer" data-created="${rental.created_at}" data-has-code="${hasCode}">
-                ${hasCode ? '<span class="text-success">✅</span>' : '420s'}
+                ${hasCode ? '<span class="text-success">✅</span>' : '300s'}
             </td>
             <td>
                 ${rental.status === 'WAITING' && !hasCode ? `
@@ -928,7 +928,7 @@ function startCountdownTimers() {
         }
         
         const createdAt = new Date(timer.getAttribute('data-created'));
-        const endTime = new Date(createdAt.getTime() + 7 * 60 * 1000); // 7 minutes
+        const endTime = new Date(createdAt.getTime() + 5 * 60 * 1000); // 5 minutes
         
         const updateTimer = () => {
             // Check if timer has been updated to show code received
@@ -948,8 +948,8 @@ function startCountdownTimers() {
             } else {
                 // Show countdown in seconds only
                 timer.textContent = `${totalSeconds}s`;
-                if (totalSeconds <= 60) {
-                    timer.classList.add('text-warning'); // Show warning when under 1 minute
+                if (totalSeconds <= 120) { // Show warning when under 2 minutes
+                    timer.classList.add('text-warning');
                 }
             }
         };
@@ -992,10 +992,9 @@ async function handleRentalExpiration(timer) {
         const data = await response.json();
         
         if (data.success) {
-            // Calculate refund in Naira using proper conversion
-            const refundUSD = parseFloat(data.refund_amount || 0);
-            const refundNaira = refundUSD * 1650; // Use same rate as backend
-            showNotification(`Rental expired. Refund: ₦${formatCurrency(refundNaira)}`, 'info');
+            // Refund amount is already in Naira from backend
+            const refundNaira = parseFloat(data.refund_amount || 0);
+            showNotification(`Rental expired after 5 minutes. Refund: ₦${formatCurrency(refundNaira)}`, 'info');
             
             // Remove the rental row from the table
             if (row) {
@@ -1386,7 +1385,7 @@ function handleServiceNotListed(searchTerm, hasVisibleServices) {
             const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null;
             
             console.log('Renting service not listed:', { serviceCode, areaCodes, carriers, phone });
-            rentNumber(serviceCode, false, false, areaCodes, carriers, phone);
+            rentNumber(serviceCode, areaCodes, carriers, phone);
         });
         
         // Insert at the beginning of tbody

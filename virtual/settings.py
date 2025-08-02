@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wii#$5*70*0-)hdw%_hb^6(j%l*@4r^($4#zx-#@_ej972nu&t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'f4657352474c.ngrok-free.app']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -136,8 +136,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'Young PG Virtual <noreply@youngpgvirtual.com>'
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Password Reset Settings
 PASSWORD_RESET_TIMEOUT = 3600 
@@ -155,7 +153,8 @@ LOGOUT_REDIRECT_URL = '/login/'
 CSRF_TRUSTED_ORIGINS = [
     "http://youngpgvirtual.com",
     "https://youngpgvirtual.com",
-    "https://f4657352474c.ngrok-free.app"
+    "http://www.youngpgvirtual.com",
+    "https://www.youngpgvirtual.com",
 ]
 
 # Logging Configuration

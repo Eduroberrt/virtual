@@ -30,20 +30,11 @@ def get_user_balance(request):
     """Get user's current balance"""
     try:
         profile, created = UserProfile.objects.get_or_create(user=request.user)
-        # Sync with DaisySMS if API key is available
-        if profile.api_key:
-            try:
-                client = get_daisysms_client(request.user)
-                remote_balance = client.get_balance(user=request.user)
-                profile.balance = remote_balance
-                profile.save()
-            except DaisySMSException as e:
-                logger.warning(f"Failed to sync balance for {request.user.username}: {str(e)}")
+        # Return user's wallet balance (no DaisySMS sync needed)
         return json_response({
             'success': True,
             'balance': str(profile.balance),
             'balance_naira': f"{profile.get_naira_balance():,.2f}",
-            'has_api_key': bool(profile.api_key)
         })
     except Exception as e:
         logger.error(f"Error getting balance for {request.user.username}: {str(e)}")
@@ -54,15 +45,8 @@ def get_user_balance(request):
 def get_services(request):
     """Get available services with pricing"""
     try:
-        # Sync services from API if possible
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            if profile.api_key:
-                client = get_daisysms_client(request.user)
-                client.sync_services(user=request.user)
-        except (UserProfile.DoesNotExist, DaisySMSException) as e:
-            logger.warning(f"Could not sync services: {str(e)}")
-        
+        # Services are synced via admin using the shared DaisySMS API account
+        # No need for individual user API keys
         services = Service.objects.filter(is_active=True)
         
         services_data = []
@@ -73,9 +57,7 @@ def get_services(request):
                 'name': service.name,
                 'icon_url': service.icon_url,
                 'price': str(service.price),
-                'daily_price': str(service.daily_price),
                 'price_naira': f"{service.get_naira_price():,.2f}",
-                'daily_price_naira': f"{service.get_naira_daily_price():,.2f}",
                 'profit_margin': str(service.profit_margin),
                 'available_numbers': service.available_numbers,
                 'supports_multiple_sms': service.supports_multiple_sms
@@ -98,8 +80,6 @@ def rent_number(request):
         data = json.loads(request.body)
         service_code = data.get('service_code')
         max_price = data.get('max_price')
-        is_ltr = data.get('ltr', False)
-        auto_renew = data.get('auto_renew', False)
         area_codes = data.get('area_codes', [])
         carriers = data.get('carriers', [])
         specific_number = data.get('number')
@@ -109,94 +89,151 @@ def rent_number(request):
         
         service = get_object_or_404(Service, code=service_code, is_active=True)
         
-        # Get or create user profile
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        # Get base service price (USD converted to NGN + profit margin)
+        base_service_price_naira = service.get_naira_price()
+        original_price_usd = service.get_usd_price()  # Keep original USD for calculations
         
-        # Check if user has sufficient balance using service price in NGN
-        service_price_naira = service.get_naira_price()
-        
-        # Apply 20% premium for filters (area codes, carriers, or specific number)
+        # Apply 20% premium to the FINAL service price for filters (same as frontend)
         has_premium_filters = bool(area_codes or carriers or specific_number)
         if has_premium_filters:
-            service_price_naira *= Decimal('1.2')  # 20% increase
+            service_price_naira = base_service_price_naira * Decimal('1.2')  # 20% increase on final NGN price
+        else:
+            service_price_naira = base_service_price_naira
         
-        # Compare using the user's Naira balance (handles USD/NGN conversion automatically)
-        user_balance_naira = profile.get_naira_balance()
-        if user_balance_naira < service_price_naira:
-            return error_response("Insufficient balance")
+        # Calculate equivalent USD price for DaisySMS API (reverse calculation)
+        base_price_usd = service_price_naira / UserProfile.USD_TO_NGN_RATE
         
         # Convert max_price to Decimal if provided (max_price is in NGN)
         if max_price:
             max_price = Decimal(str(max_price))
         
-        # Convert NGN prices to USD for DaisySMS API call
-        service_price_usd = service_price_naira / UserProfile.USD_TO_NGN_RATE
+        # Use the premium-adjusted USD price for DaisySMS API call
         max_price_usd = max_price / UserProfile.USD_TO_NGN_RATE if max_price else None
         
         try:
-            client = get_daisysms_client(request.user)
-            rental_id, phone_number, actual_price = client.get_number(
-                service_code=service_code,
-                user=request.user,
-                max_price=max_price_usd,  # Pass USD price to DaisySMS API
-                # Removed LTR parameters since we don't use long-term rentals
-                # ltr=is_ltr,
-                # auto_renew=auto_renew,
-                area_codes=area_codes if area_codes else None,
-                carriers=carriers if carriers else None,
-                specific_number=specific_number
-            )
-            
-            # Create rental record
+            # CRITICAL: Lock user profile BEFORE calling DaisySMS API to prevent race conditions
             with transaction.atomic():
-                # Use service price in NGN (with profit margin) and apply premium filters surcharge
-                final_price_naira = service_price_naira  # Already includes margin and premium
+                # Get user profile with row-level lock to prevent concurrent access
+                profile, created = UserProfile.objects.get_or_create(user=request.user)
+                if not created:
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
                 
-                rental = Rental.objects.create(
+                # Check balance while holding the lock
+                user_balance_naira = profile.get_naira_balance()
+                if user_balance_naira < service_price_naira:
+                    return error_response("Insufficient balance")
+                
+                # Check active rental limit (max 3 active rentals per user)
+                active_rentals_count = Rental.objects.filter(
                     user=request.user,
-                    rental_id=rental_id,
-                    service=service,
-                    phone_number=phone_number,
-                    price=final_price_naira,  # Store NGN price
-                    is_ltr=False,  # We don't use LTR
-                    auto_renew=False,  # We don't use auto-renew
-                    area_codes=','.join(area_codes) if area_codes else None,
-                    carriers=','.join(carriers) if carriers else None,
-                    max_price=max_price,  # NGN
-                    paid_until=None  # No LTR, so no paid_until date
-                )
+                    status='WAITING'
+                ).count()
+                if active_rentals_count >= 3:
+                    return error_response("Maximum limit reached. You can only have 3 active rentals at a time.")
                 
-                # Create transaction record using NGN price
-                Transaction.objects.create(
-                    user=request.user,
-                    amount=-final_price_naira,  # Deduct NGN price from balance
-                    transaction_type='RENTAL',
-                    description=f"Rented {service.name} number {phone_number}",
-                    rental=rental
-                )
+                # Call DaisySMS API while holding the lock (this ensures no other request can interfere)
+                client = get_daisysms_client()
+                try:
+                    rental_id, phone_number, actual_price = client.get_number(
+                        service_code=service_code,
+                        user=request.user,
+                        max_price=base_price_usd,  # Pass premium-adjusted USD price to DaisySMS API
+                        area_codes=area_codes if area_codes else None,
+                        carriers=carriers if carriers else None,
+                        specific_number=specific_number
+                    )
+                    logger.info(f"DaisySMS API success: rental_id={rental_id}, phone={phone_number}")
+                except DaisySMSException as e:
+                    logger.error(f"DaisySMS API failed: {str(e)}")
+                    return error_response(str(e))
+                except Exception as api_error:
+                    logger.error(f"Unexpected DaisySMS error: {str(api_error)}")
+                    return error_response(f"API communication error: {str(api_error)}")
                 
-                # Update user balance - handle USD/NGN format properly
-                if profile.balance < 100 and profile.balance > 0:
-                    # Balance is in USD format - deduct in USD
-                    final_price_usd = final_price_naira / UserProfile.USD_TO_NGN_RATE
-                    profile.balance -= final_price_usd
-                else:
-                    # Balance is in NGN format - deduct in NGN
+                # DaisySMS call succeeded, now handle database operations
+                try:
+                    # Final price is already calculated with premium applied
+                    final_price_naira = service_price_naira
+                    
+                    # Debug logging for price breakdown
+                    logger.info(f"Price breakdown - Original USD: ${original_price_usd}, Final USD: ${base_price_usd}, Final NGN: ₦{final_price_naira}, Premium: {has_premium_filters}")
+                    
+                    rental = Rental.objects.create(
+                        user=request.user,
+                        rental_id=rental_id,
+                        service=service,
+                        phone_number=phone_number,
+                        price=final_price_naira,  # Store final NGN price (includes premium if filters used)
+                        area_codes=','.join(area_codes) if area_codes else None,
+                        carriers=','.join(carriers) if carriers else None,
+                        max_price=max_price  # NGN
+                    )
+                    logger.info(f"Rental record created: {rental.id}, price=₦{final_price_naira}, premium_applied={has_premium_filters}")
+                    
+                    # Create transaction record using final NGN price (includes premium)
+                    Transaction.objects.create(
+                        user=request.user,
+                        amount=-final_price_naira,  # Deduct final NGN price (with premium) from balance
+                        transaction_type='RENTAL',
+                        description=f"Rented {service.name} number {phone_number}{' (Premium filters applied)' if has_premium_filters else ''}",
+                        rental=rental
+                    )
+                    logger.info(f"Transaction record created for rental {rental_id}")
+                    
+                    # Update user balance (all balances are in NGN) - this is now atomic with the check
+                    old_balance = profile.balance
                     profile.balance -= final_price_naira
-                profile.save()
+                    profile.save()
+                    logger.info(f"Balance updated: {old_balance} -> {profile.balance} (deducted {final_price_naira})")
+                    
+                    # If we reach here, everything succeeded
+                    logger.info(f"Rental process completed successfully: {rental_id}")
+                    
+                except Exception as db_error:
+                    # CRITICAL: DaisySMS succeeded but database failed!
+                    logger.error(f"DATABASE ERROR after DaisySMS success! rental_id={rental_id}, phone={phone_number}, error={str(db_error)}")
+                    
+                    # Since we're in a transaction, the database changes will rollback automatically
+                    # But we need to cancel the DaisySMS rental outside the transaction
+                    raise db_error  # This will rollback the transaction
             
+            # Transaction completed successfully, return success
             return json_response({
                 'success': True,
                 'rental_id': rental_id,
                 'phone_number': phone_number,
-                'price': str(final_price_naira),  # Return NGN price
-                'price_naira': str(final_price_naira),  # Return NGN price
+                'price': str(service_price_naira),  # Return final NGN price (includes premium)
+                'price_naira': str(service_price_naira),  # Return final NGN price (includes premium)
+                'base_price_naira': str(base_service_price_naira),  # Original service price in NGN
+                'premium_amount': str(service_price_naira - base_service_price_naira) if has_premium_filters else '0.00',  # Premium amount in NGN
+                'profit_margin': str(service.profit_margin),  # Margin amount
                 'has_premium_filters': has_premium_filters,  # Indicate if premium pricing was applied
-                'is_ltr': False  # We don't use LTR
+                'price_breakdown': {
+                    'original_usd': str(original_price_usd),
+                    'premium_usd': str((service_price_naira - base_service_price_naira) / UserProfile.USD_TO_NGN_RATE) if has_premium_filters else '0.00',
+                    'final_usd': str(base_price_usd),
+                    'final_naira_before_margin': str(service_price_naira - service.profit_margin),
+                    'margin_naira': str(service.profit_margin),
+                    'final_total_naira': str(service_price_naira)
+                }
             })
-        
-        except DaisySMSException as e:
-            return error_response(str(e))
+            
+        except Exception as e:
+            # Check if we have rental_id (meaning DaisySMS succeeded but DB failed)
+            if 'rental_id' in locals():
+                logger.error(f"Database transaction failed after DaisySMS success! Attempting to cancel rental_id={rental_id}")
+                try:
+                    client = get_daisysms_client()
+                    cancel_success = client.cancel_rental(rental_id=rental_id, user=request.user)
+                    if cancel_success:
+                        logger.info(f"Successfully cancelled rental_id={rental_id} on DaisySMS after database failure")
+                    else:
+                        logger.error(f"Failed to cancel rental_id={rental_id} on DaisySMS - MANUAL INTERVENTION REQUIRED!")
+                except Exception as cancel_error:
+                    logger.error(f"Error cancelling rental_id={rental_id}: {str(cancel_error)} - MANUAL INTERVENTION REQUIRED!")
+            
+            logger.error(f"Final error in rent_number: {str(e)}")
+            return error_response(f"Rental failed: {str(e)}", 500)
     
     except Exception as e:
         logger.error(f"Error renting number: {str(e)}")
@@ -216,7 +253,7 @@ def check_sms(request, rental_id):
             })
         
         try:
-            client = get_daisysms_client(request.user)
+            client = get_daisysms_client()
             status, code, full_text = client.get_status(
                 rental_id=rental_id, 
                 user=request.user, 
@@ -274,36 +311,39 @@ def cancel_rental(request):
             return error_response("Cannot cancel this rental")
         
         try:
-            client = get_daisysms_client(request.user)
+            client = get_daisysms_client()
             success = client.cancel_rental(rental_id=rental_id, user=request.user)
             
             if success:
                 with transaction.atomic():
+                    # Check if already refunded
+                    rental = Rental.objects.select_for_update().get(rental_id=rental_id, user=request.user)
+                    if rental.refunded:
+                        return error_response("Rental already refunded")
+                    
                     # Update rental status
                     rental.status = 'CANCELLED'
+                    rental.refunded = True
                     rental.save()
                     
                     # Get proper refund amounts for both display and balance update
                     refund_amount_naira = rental.get_naira_price()
+                    
+                    # Check if this rental had premium filters applied
+                    had_premium = bool(rental.area_codes or rental.carriers)
                     
                     # Create refund transaction in NGN
                     Transaction.objects.create(
                         user=request.user,
                         amount=refund_amount_naira,
                         transaction_type='REFUND',
-                        description=f"Refund for cancelled rental {rental.phone_number}",
+                        description=f"Refund for cancelled rental {rental.phone_number}{' (incl. premium)' if had_premium else ''}",
                         rental=rental
                     )
                     
-                    # Update user balance - handle USD/NGN format properly
-                    profile = UserProfile.objects.get(user=request.user)
-                    if profile.balance < 100 and profile.balance > 0:
-                        # Balance is in USD format - add USD amount
-                        refund_amount_usd = refund_amount_naira / UserProfile.USD_TO_NGN_RATE
-                        profile.balance += refund_amount_usd
-                    else:
-                        # Balance is in NGN format - add NGN amount
-                        profile.balance += refund_amount_naira
+                    # Update user balance (all balances are in NGN)
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    profile.balance += refund_amount_naira
                     profile.save()
                 
                 return json_response({
@@ -322,50 +362,6 @@ def cancel_rental(request):
         return error_response("Failed to cancel rental", 500)
 
 @login_required
-@csrf_exempt
-@require_http_methods(["POST"])
-def set_auto_renew(request):
-    """Set auto-renew for long-term rental"""
-    try:
-        data = json.loads(request.body)
-        rental_id = data.get('id')
-        checked = data.get('checked', False)
-        
-        if not rental_id:
-            return error_response("Rental ID is required")
-        
-        rental = get_object_or_404(Rental, rental_id=rental_id, user=request.user)
-        
-        if not rental.is_ltr:
-            return error_response("Not a long-term rental")
-        
-        try:
-            client = get_daisysms_client(request.user)
-            success = client.set_auto_renew(
-                rental_id=rental_id, 
-                auto_renew=checked, 
-                user=request.user
-            )
-            
-            if success:
-                rental.auto_renew = checked
-                rental.save()
-                
-                return json_response({
-                    'success': True,
-                    'auto_renew': checked
-                })
-            else:
-                return error_response("Failed to update auto-renew")
-        
-        except DaisySMSException as e:
-            return error_response(str(e))
-    
-    except Exception as e:
-        logger.error(f"Error setting auto-renew: {str(e)}")
-        return error_response("Failed to set auto-renew", 500)
-
-@login_required
 @require_http_methods(["GET"])
 def get_rentals(request):
     """Get user's active rentals for dashboard display"""
@@ -377,7 +373,7 @@ def get_rentals(request):
         # Get rentals that should be shown in the dashboard:
         # 1. Active waiting rentals (not expired, not cancelled)
         # 2. Rentals that have received SMS (regardless of status)
-        expiry_threshold = timezone.now() - timezone.timedelta(minutes=7)
+        expiry_threshold = timezone.now() - timezone.timedelta(minutes=5)
         
         rentals = Rental.objects.filter(
             user=request.user
@@ -398,6 +394,10 @@ def get_rentals(request):
         rentals_data = []
         for rental in page_obj:
             latest_message = rental.messages.first()
+            
+            # Check if premium filters were applied to this rental
+            has_premium_applied = bool(rental.area_codes or rental.carriers)
+            
             rentals_data.append({
                 'rental_id': rental.rental_id,
                 'service_name': rental.service.name,
@@ -406,13 +406,13 @@ def get_rentals(request):
                 'status': rental.status,
                 'price': str(rental.price),
                 'price_naira': f"{float(rental.get_naira_price()):,.2f}",
-                'is_ltr': rental.is_ltr,
-                'auto_renew': rental.auto_renew,
+                'has_premium_applied': has_premium_applied,  # Indicate if premium was applied
+                'area_codes': rental.area_codes,
+                'carriers': rental.carriers,
                 'supports_multiple': rental.service.supports_multiple_sms,
                 'code': latest_message.code if latest_message else None,
                 'full_text': latest_message.full_text if latest_message else None,
-                'created_at': rental.created_at.isoformat(),
-                'paid_until': rental.paid_until.isoformat() if rental.paid_until else None
+                'created_at': rental.created_at.isoformat()
             })
         
         return json_response({
@@ -577,12 +577,10 @@ def get_rental_history(request):
                 'phone_number': rental.phone_number,
                 'status': rental.status,
                 'price': str(rental.price),
-                'price_naira': f"{float(rental.price * UserProfile.USD_TO_NGN_RATE):,.2f}",
+                'price_naira': f"{float(rental.get_naira_price()):,.2f}",
                 'code': latest_message.code if latest_message else None,
                 'full_text': latest_message.full_text if latest_message else None,
-                'created_at': rental.created_at.isoformat(),
-                'is_ltr': rental.is_ltr,
-                'auto_renew': rental.auto_renew,
+                'created_at': rental.created_at.isoformat()
             })
         
         # Calculate statistics
@@ -612,8 +610,7 @@ def get_rental_history(request):
                 'successful_rentals': successful_rentals,
                 'cancelled_rentals': cancelled_rentals,
                 'expired_rentals': expired_rentals,
-                'total_spent_usd': str(total_spent),
-                'total_spent_naira': f"{float(total_spent * UserProfile.USD_TO_NGN_RATE):,.2f}",
+                'total_spent_naira': f"{float(total_spent):,.2f}",
             }
         })
     
@@ -622,89 +619,11 @@ def get_rental_history(request):
         return error_response("Failed to get rental history", 500)
 
 @login_required
-@csrf_exempt
-@require_http_methods(["POST"])
-def expire_rental(request):
-    """Expire a rental and issue refund for rentals that didn't receive SMS"""
-    try:
-        data = json.loads(request.body)
-        rental_id = data.get('id')
-        
-        if not rental_id:
-            return error_response("Rental ID is required")
-        
-        rental = get_object_or_404(Rental, rental_id=rental_id, user=request.user)
-        
-        # Check if rental is in a state that can be expired
-        if rental.status in ['CANCELLED', 'DONE', 'RECEIVED']:
-            return error_response("Cannot expire this rental")
-        
-        # Check if rental has received any SMS messages
-        has_received_sms = rental.messages.exists()
-        
-        # Check if rental is actually expired (more than 7 minutes old)
-        from django.utils import timezone
-        expiry_time = rental.created_at + timezone.timedelta(minutes=7)
-        if timezone.now() < expiry_time:
-            return error_response("Rental has not expired yet")
-        
-        try:
-            with transaction.atomic():
-                # Update rental status
-                rental.status = 'EXPIRED'
-                rental.save()
-                
-                refund_amount = Decimal('0.00')
-                
-                # Only issue refund if no SMS was received
-                if not has_received_sms:
-                    # Get proper refund amounts
-                    refund_amount_naira = rental.get_naira_price()
-                    
-                    # Create refund transaction in NGN
-                    Transaction.objects.create(
-                        user=request.user,
-                        amount=refund_amount_naira,
-                        transaction_type='REFUND',
-                        description=f"Refund for expired rental {rental.phone_number} (no SMS received)",
-                        rental=rental
-                    )
-                    
-                    # Update user balance - handle USD/NGN format properly
-                    profile = UserProfile.objects.get(user=request.user)
-                    if profile.balance < 100 and profile.balance > 0:
-                        # Balance is in USD format - add USD amount
-                        refund_amount_usd = refund_amount_naira / UserProfile.USD_TO_NGN_RATE
-                        profile.balance += refund_amount_usd
-                        refund_amount = refund_amount_usd  # For response compatibility
-                    else:
-                        # Balance is in NGN format - add NGN amount
-                        profile.balance += refund_amount_naira
-                        refund_amount = refund_amount_naira
-                    profile.save()
-                else:
-                    refund_amount = Decimal('0.00')
-                
-                return json_response({
-                    'success': True,
-                    'refund_amount': str(refund_amount),
-                    'had_sms': has_received_sms
-                })
-        
-        except Exception as e:
-            logger.error(f"Error expiring rental {rental_id}: {str(e)}")
-            return error_response("Failed to process rental expiration")
-    
-    except Exception as e:
-        logger.error(f"Error expiring rental: {str(e)}")
-        return error_response("Failed to expire rental", 500)
-
-@login_required
 @require_http_methods(["GET"])
 def get_realtime_prices(request):
     """Get real-time prices from DaisySMS API"""
     try:
-        client = get_daisysms_client(request.user)
+        client = get_daisysms_client()
         
         # Get real-time prices from DaisySMS
         prices_data = client.get_prices_verification(user=request.user)
@@ -767,7 +686,6 @@ def create_service_not_listed(request):
             name='Service Not Listed',
             code='service_not_listed',
             price=Decimal('2.50'),
-            daily_price=Decimal('0.00'),
             profit_margin=Decimal('30.00'),
             available_numbers=999,
             supports_multiple_sms=True,

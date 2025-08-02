@@ -372,13 +372,7 @@ def dashboard(request):
 def profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
-    if request.method == 'POST':
-        api_key = request.POST.get('api_key', '').strip()
-        profile.api_key = api_key if api_key else None
-        profile.save()
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('profile')
-    
+    # Profile is now read-only since users don't need API keys
     context = {
         'profile': profile,
     }

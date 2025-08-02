@@ -8,8 +8,7 @@ from datetime import timedelta
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    api_key = models.CharField(max_length=255, blank=True, null=True)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Now stores NGN balance
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Stores NGN balance
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -19,34 +18,20 @@ class UserProfile(models.Model):
         return f"{self.user.username} - ₦{self.balance}"
     
     def get_naira_balance(self):
-        """Get balance in Naira - handles both USD and NGN stored balances"""
+        """Get balance in Naira (all balances are stored in NGN)"""
         from decimal import Decimal
-        
-        # Detect if balance is stored in USD (< 100) or NGN (>= 100)
-        if self.balance < 100 and self.balance > 0:
-            # Balance is stored in USD - convert to NGN
-            return Decimal(str(self.balance)) * self.USD_TO_NGN_RATE
-        else:
-            # Balance is already stored in NGN or is zero
-            return Decimal(str(self.balance))
+        return Decimal(str(self.balance))
     
     def get_usd_balance(self):
-        """Get balance in USD for DaisySMS API calls"""
+        """Convert NGN balance to USD for DaisySMS API calls"""
         from decimal import Decimal
-        
-        # If balance is already in USD format, return as-is
-        if self.balance < 100 and self.balance > 0:
-            return Decimal(str(self.balance))
-        else:
-            # Balance is in NGN - convert to USD
-            return Decimal(str(self.balance)) / self.USD_TO_NGN_RATE
+        return Decimal(str(self.balance)) / self.USD_TO_NGN_RATE
 
 class Service(models.Model):
     code = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
     icon_url = models.URLField(blank=True, null=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Now stores NGN price
-    daily_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Now stores NGN price
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Stores USD price from DaisySMS API
     profit_margin = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Profit margin in Naira (e.g., 100.00 for ₦100)")
     available_numbers = models.IntegerField(default=0)
     supports_multiple_sms = models.BooleanField(default=False)
@@ -63,40 +48,21 @@ class Service(models.Model):
         return f"{self.name} ({self.code})"
     
     def get_naira_price(self):
-        """Get price in Naira with profit margin - handles both USD and NGN stored prices"""
+        """Get price in Naira: USD base price converted to NGN + profit margin"""
         from decimal import Decimal
         
-        # Detect if price is stored in USD (< 100) or NGN (>= 100)
-        if self.price < 100:
-            # Price is stored in USD - convert to NGN first
-            base_price_naira = Decimal(str(self.price)) * self.USD_TO_NGN_RATE
-        else:
-            # Price is already stored in NGN
-            base_price_naira = Decimal(str(self.price))
+        # Convert USD base price to NGN
+        base_price_usd = Decimal(str(self.price))
+        base_price_naira = base_price_usd * self.USD_TO_NGN_RATE
         
-        # Apply absolute profit margin in Naira (not percentage)
+        # Apply absolute profit margin in Naira
         absolute_margin = Decimal(str(self.profit_margin))
         return base_price_naira + absolute_margin
     
-    def get_naira_daily_price(self):
-        """Get daily price in Naira with profit margin - handles both USD and NGN stored prices"""
-        from decimal import Decimal
-        
-        # Detect if daily_price is stored in USD (< 100) or NGN (>= 100)
-        if self.daily_price < 100:
-            # Daily price is stored in USD - convert to NGN first
-            base_daily_price_naira = Decimal(str(self.daily_price)) * self.USD_TO_NGN_RATE
-        else:
-            # Daily price is already stored in NGN
-            base_daily_price_naira = Decimal(str(self.daily_price))
-        
-        # Apply absolute profit margin in Naira (not percentage)
-        absolute_margin = Decimal(str(self.profit_margin))
-        return base_daily_price_naira + absolute_margin
-    
     def get_usd_price(self):
-        """Convert NGN price to USD for DaisySMS API calls"""
-        return self.get_naira_price() / self.USD_TO_NGN_RATE
+        """Get USD base price (for DaisySMS API calls)"""
+        from decimal import Decimal
+        return Decimal(str(self.price))
 
 class Rental(models.Model):
     STATUS_CHOICES = [
@@ -112,13 +78,11 @@ class Rental(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=20)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
-    price = models.DecimalField(max_digits=12, decimal_places=2)  # Now stores NGN price
-    is_ltr = models.BooleanField(default=False)  # Long-term rental
-    auto_renew = models.BooleanField(default=False)
-    paid_until = models.DateTimeField(blank=True, null=True)  # For LTR
+    price = models.DecimalField(max_digits=12, decimal_places=2)  # Stores NGN price
     area_codes = models.CharField(max_length=255, blank=True, null=True)
     carriers = models.CharField(max_length=255, blank=True, null=True)
     max_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)  # NGN
+    refunded = models.BooleanField(default=False)  # Prevent double refunds
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -130,32 +94,20 @@ class Rental(models.Model):
 
     @property
     def is_expired(self):
-        if self.is_ltr and self.paid_until:
-            return timezone.now() > self.paid_until
-        return False
+        """Check if rental has expired (5 minutes)"""
+        from datetime import timedelta
+        expiry_time = self.created_at + timedelta(minutes=5)
+        return timezone.now() > expiry_time
     
     def get_naira_price(self):
-        """Get rental price in Naira - handles both USD and NGN stored prices"""
+        """Get rental price in Naira (all prices are stored in NGN)"""
         from decimal import Decimal
-        
-        # Detect if price is stored in USD (< 100) or NGN (>= 100)
-        if self.price < 100:
-            # Price is stored in USD - convert to NGN
-            return Decimal(str(self.price)) * UserProfile.USD_TO_NGN_RATE
-        else:
-            # Price is already stored in NGN
-            return Decimal(str(self.price))
+        return Decimal(str(self.price))
     
     def get_usd_price(self):
-        """Get rental price in USD for DaisySMS API calls"""
+        """Convert NGN price to USD for DaisySMS API calls"""
         from decimal import Decimal
-        
-        # If price is already in USD format, return as-is
-        if self.price < 100:
-            return Decimal(str(self.price))
-        else:
-            # Price is in NGN - convert to USD
-            return Decimal(str(self.price)) / UserProfile.USD_TO_NGN_RATE
+        return Decimal(str(self.price)) / UserProfile.USD_TO_NGN_RATE
 
 class SMSMessage(models.Model):
     rental = models.ForeignKey(Rental, on_delete=models.CASCADE, related_name='messages')
@@ -174,7 +126,6 @@ class Transaction(models.Model):
         ('DEPOSIT', 'Deposit'),
         ('RENTAL', 'Rental Payment'),
         ('REFUND', 'Refund'),
-        ('LTR_RENEWAL', 'LTR Renewal'),
         ('PENALTY', 'Penalty'),
     ]
 

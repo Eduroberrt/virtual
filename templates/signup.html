@@ -23,6 +23,7 @@
                         <!-- Sign Up Form -->
                         <form class="auth-form" method="post">
                             {% csrf_token %}
+                            <input type="hidden" name="debug_csrf" value="{{ csrf_token }}">
                             
                             <!-- Display Messages -->
                             {% if messages %}
