@@ -1,22 +1,18 @@
 @echo off
-REM Start the auto-cancel daemon as a background Windows service using NSSM
+REM DEPRECATED: Start the auto-cancel daemon as a background Windows service using NSSM
+REM This functionality is no longer needed since we now sync with DaisySMS API
 
-echo Setting up Auto-Cancel as Windows Service...
 echo.
-
-REM Check if NSSM is available
-where nssm >nul 2>nul
-if %errorlevel% neq 0 (
-    echo ERROR: NSSM ^(Non-Sucking Service Manager^) is not installed.
-    echo.
-    echo Please download NSSM from: https://nssm.cc/download
-    echo Extract nssm.exe to a folder in your PATH
-    echo.
-    pause
-    exit /b 1
-)
-
-echo Installing VirtualSMS Auto-Cancel Service...
+echo ⚠️  DEPRECATED SCRIPT ⚠️
+echo.
+echo This auto-cancel service installation is no longer needed.
+echo We now sync expiration status with DaisySMS API instead of time-based expiration.
+echo.
+echo If you already have the VirtualSMS-AutoCancel service installed, you can remove it with:
+echo nssm remove "VirtualSMS-AutoCancel" confirm
+echo.
+pause
+exit /b 0
 
 REM Install the service
 nssm install "VirtualSMS-AutoCancel" python "c:\Users\WDN\Desktop\virtual\auto_cancel_daemon.py"

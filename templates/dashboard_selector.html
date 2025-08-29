@@ -1,0 +1,170 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Choose Your Service - Young PG Virtual{% endblock %}
+
+{% block content %}
+<!-- Dashboard Selector -->
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <div class="text-center mb-5 selector-header">
+                <h2 class="fw-bold mb-3">Choose Your SMS Service</h2>
+                <p class="text-muted">Select which SMS verification service you'd like to use</p>
+            </div>
+            
+            <div class="row g-3 justify-content-center">
+                <!-- USA Verification Button -->
+                <div class="col-12 col-md-6 col-lg-5">
+                    <button class="btn btn-success btn-lg w-100 dashboard-btn" onclick="location.href='{% url 'dashboard_2' %}'">
+                        <i class="fas fa-flag-usa me-2"></i>
+                        USA Verification
+                    </button>
+                </div>
+                
+                <!-- All Countries Button -->
+                <div class="col-12 col-md-6 col-lg-5">
+                    <button class="btn btn-primary btn-lg w-100 dashboard-btn" onclick="location.href='{% url 'dashboard_1' %}'">
+                        <i class="fas fa-globe me-2"></i>
+                        <span class="btn-text countries-btn-text">All Countries Number</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Both services use the same wallet balance. You can switch between them anytime.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-btn {
+    padding: 20px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.dashboard-btn .btn-text {
+    white-space: nowrap;
+}
+
+.countries-btn-text {
+    padding-right: 8px;
+}
+
+.selector-header {
+    padding: 0 20px;
+}
+
+.dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    color: white;
+}
+
+.dashboard-btn:active {
+    transform: translateY(0);
+}
+
+.btn-success.dashboard-btn:hover {
+    background-color: #157347;
+}
+
+.btn-primary.dashboard-btn:hover {
+    background-color: #0b5ed7;
+}
+
+.container-fluid {
+    padding-top: 60px;
+    padding-bottom: 60px;
+    min-height: calc(100vh - 200px);
+}
+
+@media (max-width: 768px) {
+    .selector-header {
+        padding: 0 25px;
+    }
+    
+    .row.g-3 {
+        margin: 0 20px;
+    }
+    
+    .dashboard-btn {
+        padding: 18px 20px;
+        font-size: 1rem;
+        margin-bottom: 15px;
+        width: auto;
+        max-width: 280px;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+    
+    .col-12 {
+        padding-left: 0;
+        padding-right: 0;
+        text-align: center;
+    }
+    
+    .container-fluid {
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+    
+    .col-12:last-child .dashboard-btn {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .selector-header {
+        padding: 0 30px;
+    }
+    
+    .row.g-3 {
+        margin: 0 10px;
+    }
+    
+    .dashboard-btn {
+        padding: 16px 18px;
+        font-size: 0.95rem;
+        max-width: 250px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click animation to dashboard buttons
+    const dashboardBtns = document.querySelectorAll('.dashboard-btn');
+    
+    dashboardBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Add pressed effect
+            this.style.transform = 'translateY(0) scale(0.98)';
+            
+            // Reset after short delay
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px) scale(1)';
+            }, 150);
+        });
+    });
+});
+</script>
+{% endblock %}

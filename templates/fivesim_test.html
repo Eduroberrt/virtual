@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}5sim API Test - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-dark mb-3">5sim API Test</h1>
+                <p class="lead text-muted">Test integration with 5sim.net pricing API</p>
+            </div>
+
+            <!-- Test Controls -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Quick Tests</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" onclick="testCountries()">Get Countries</button>
+                                <button class="btn btn-primary" onclick="testProducts()">Get Products</button>
+                                <button class="btn btn-primary" onclick="testAllPrices()">Get All Prices</button>
+                                <button class="btn btn-success" onclick="testSpecific()">Test England + Facebook</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Custom Test</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Country</label>
+                                <input type="text" class="form-control" id="testCountry" placeholder="e.g., england">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Product</label>
+                                <input type="text" class="form-control" id="testProduct" placeholder="e.g., facebook">
+                            </div>
+                            <button class="btn btn-outline-primary w-100" onclick="testCustom()">Test Custom</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">API Response</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearResults()">Clear</button>
+                </div>
+                <div class="card-body">
+                    <div id="loading" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2">Testing API...</div>
+                    </div>
+                    
+                    <div id="results" class="mt-3">
+                        <p class="text-muted">No tests run yet. Click a button above to test the API.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
+
+function showResults(data, url = '') {
+    const resultsDiv = document.getElementById('results');
+    
+    let html = '';
+    if (url) {
+        html += `<div class="alert alert-info"><strong>Endpoint:</strong> ${url}</div>`;
+    }
+    
+    if (data.success) {
+        html += `<div class="alert alert-success">✅ API call successful</div>`;
+        html += `<pre class="bg-light p-3 rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
+    } else {
+        html += `<div class="alert alert-danger">❌ API call failed: ${data.error}</div>`;
+        html += `<pre class="bg-light p-3 rounded"><code>${JSON.stringify(data, null, 2)}</code></pre>`;
+    }
+    
+    resultsDiv.innerHTML = html;
+}
+
+function showError(error, url = '') {
+    const resultsDiv = document.getElementById('results');
+    let html = '';
+    if (url) {
+        html += `<div class="alert alert-info"><strong>Endpoint:</strong> ${url}</div>`;
+    }
+    html += `<div class="alert alert-danger">❌ Network error: ${error}</div>`;
+    resultsDiv.innerHTML = html;
+}
+
+async function testCountries() {
+    showLoading(true);
+    const url = '/api/5sim/countries/';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        showResults(data, url);
+    } catch (error) {
+        showError(error.message, url);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function testProducts() {
+    showLoading(true);
+    const url = '/api/5sim/products-list/';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        showResults(data, url);
+    } catch (error) {
+        showError(error.message, url);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function testAllPrices() {
+    showLoading(true);
+    const url = '/api/5sim/prices/';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        showResults(data, url);
+    } catch (error) {
+        showError(error.message, url);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function testSpecific() {
+    showLoading(true);
+    const url = '/api/5sim/prices/england/facebook/';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        showResults(data, url);
+    } catch (error) {
+        showError(error.message, url);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function testCustom() {
+    const country = document.getElementById('testCountry').value.trim();
+    const product = document.getElementById('testProduct').value.trim();
+    
+    if (!country || !product) {
+        alert('Please enter both country and product');
+        return;
+    }
+    
+    showLoading(true);
+    const url = `/api/5sim/prices/${country}/${product}/`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        showResults(data, url);
+    } catch (error) {
+        showError(error.message, url);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function clearResults() {
+    document.getElementById('results').innerHTML = '<p class="text-muted">No tests run yet. Click a button above to test the API.</p>';
+}
+</script>
+{% endblock %}

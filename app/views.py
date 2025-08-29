@@ -47,6 +47,12 @@ def terms(request):
 def faq(request):
     return render(request, 'faq.html')
 
+def how_to_buy(request):
+    return render(request, 'how_to_buy.html')
+
+def simple_dropdown_test(request):
+    return render(request, 'simple_dropdown_test.html')
+
 def signup(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -357,26 +363,76 @@ def change_password(request):
     })
 
 @login_required
-def dashboard(request):
-    # Get user's recent rentals and all active services for dashboard
-    recent_rentals = Rental.objects.filter(user=request.user).select_related('service')[:5]
-    services = Service.objects.filter(is_active=True).order_by('name')
-    
-    context = {
-        'recent_rentals': recent_rentals,
-        'services': services,
-    }
-    return render(request, 'dashboard.html', context)
-
-@login_required
-def profile(request):
+def dashboard_selector(request):
+    """
+    Dashboard selector page - shows options to choose between Dashboard 1 (5sim) and Dashboard 2 (DaisySMS)
+    """
+    # Get user profile for balance display
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
-    # Profile is now read-only since users don't need API keys
     context = {
-        'profile': profile,
+        'user_profile': profile,
     }
-    return render(request, 'profile.html', context)
+    return render(request, 'dashboard_selector.html', context)
+
+@login_required
+def dashboard_1(request):
+    """
+    Dashboard 1 - 5sim.net SMS verification service
+    """
+    # Get user profile for balance display
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    context = {
+        'user_profile': profile,
+        'dashboard_type': '5sim',
+        'dashboard_name': 'Dashboard 1 - 5sim',
+    }
+    return render(request, 'dashboard-1.html', context)
+
+@login_required
+def dashboard_2(request):
+    """
+    Dashboard 2 - DaisySMS verification service
+    """
+    # Get user profile for balance display
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Get services for DaisySMS
+    services = Service.objects.filter(available_numbers__gt=0).order_by('name')
+    
+    context = {
+        'user_profile': profile,
+        'services': services,
+        'dashboard_type': 'daisysms',
+        'dashboard_name': 'Dashboard 2 - DaisySMS',
+    }
+    return render(request, 'dashboard-2.html', context)
+
+@login_required
+def dashboard(request):
+    """
+    Legacy dashboard view - redirect to dashboard selector
+    """
+    return redirect('dashboard_selector')
+
+def fivesim_test(request):
+    """
+    Test page for 5sim API endpoints
+    """
+    return render(request, 'fivesim_test.html')
+
+def countries_list(request):
+    """
+    Display all available countries in a table
+    """
+    return render(request, 'countries.html')
+
+def products_list(request):
+    """
+    Display all available products in a table/grid
+    """
+    return render(request, 'products.html')
 
 @login_required
 def stats(request):

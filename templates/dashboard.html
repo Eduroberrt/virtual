@@ -1,1558 +1,1586 @@
 {% extends 'main.html' %}
+{% load static %}
 {% load currency_filters %}
 
 {% block title %}Dashboard - Young PG Virtual{% endblock %}
 
 {% block content %}
-<div class="dashboard-content">
-<div class="row g-0">
-    <!-- SMS Verifications Section -->
-    <div class="col-12 col-lg-5 border-end">
-        <div class="p-2 p-md-3 p-lg-4">
-            <h2 class="h5 fw-bold mb-2">SMS Verifications</h2>
+{% csrf_token %}
 
-            <div class="text-muted mb-3" style="font-size: 0.875rem;">
-                <p class="mb-1">Rent a phone for up to 5 minutes.</p>
-                <p class="mb-0">Credits are only used if you receive the SMS code.</p>
-            </div>
+<!-- Modern Dashboard Layout -->
+<div class="modern-dashboard">
+    <!-- Main Content Area -->
+    <div class="container-fluid">
+        <div class="row g-4">
+            <!-- Service Selection Panel -->
+            <div class="col-xl-5">
+                <div class="service-panel glass-card">
+                    <div class="card-header">
+                        <h5 class="card-title fw-bold mb-0">
+                            SMS Verification
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4 small">
+                            Rent a phone for up to 15 minutes.<br>
+                            Credits are only used if you receive the SMS code.
+                        </p>
+                        
+                        <!-- Modern Form Controls -->
+                        <div class="form-stack">
+                            <div class="form-group">
+                                <label class="modern-label">
+                                    <i class="fas fa-flag me-2"></i>Country
+                                </label>
+                                <div class="modern-select-wrapper">
+                                    <select class="modern-select" id="countrySelect">
+                                        <option value="">Choose your country...</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="modern-label">
+                                    <i class="fas fa-apps me-2"></i>Service
+                                </label>
+                                <div class="modern-select-wrapper">
+                                    <select class="modern-select" id="productSelect">
+                                        <option value="">Select country first</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- Service Search and Settings -->
-            <div class="d-flex gap-2 mb-3">
-                <div class="input-group flex-grow-1">
-                    <span class="input-group-text" style="font-size: 0.875rem;">Service</span>
-                    <input type="text" class="form-control" id="serviceFilter" placeholder="Search services..." style="font-size: 0.875rem;">
-                    <button class="btn btn-primary btn-sm" type="button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <button class="btn btn-primary btn-sm" type="button" id="settingsToggle">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
-
-            <!-- Settings Panel -->
-            <div class="settings-panel" id="settingsPanel" style="display: none;">
-                <div class="card border-0 bg-light mb-3">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted fw-medium" style="font-size: 0.75rem;">Number Preferences (Optional)</small>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                                <i class="fas fa-times me-1"></i>Clear All
+                        <!-- Service Info Panel -->
+                        <div id="serviceInfoPanel" class="service-info-panel" style="display: none;">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Country</span>
+                                    <span class="info-value" id="selectedCountry">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Service</span>
+                                    <span class="info-value" id="selectedProduct">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Operator</span>
+                                    <span class="info-value" id="selectedOperator">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Price</span>
+                                    <span class="info-value text-success fw-bold" id="selectedPrice">-</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Purchase Button -->
+                            <button class="btn btn-primary btn-lg w-100 purchase-btn" id="purchaseBtn">
+                                <i class="fas fa-shopping-cart me-2"></i>Purchase SMS Number
                             </button>
                         </div>
-                        <div class="mb-2">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Area codes</span>
-                                <input type="text" class="form-control" id="areaCodes" placeholder="503, 202, 404 (optional)" style="font-size: 0.8rem;" title="Enter 3-digit US area codes separated by commas">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Popular area codes: 503 (OR), 202 (DC), 404 (GA), 213 (CA). Increases price by 20%.
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearAreaCodes()">Clear</button>
-                            </small>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Carriers</span>
-                                <input type="text" class="form-control" id="carriers" placeholder="tmo, vz, att (optional)" style="font-size: 0.8rem;" title="Enter carrier codes separated by commas">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Use: tmo (T-Mobile), vz (Verizon), att (AT&T). Increases price by 20%. 
-                                <a href="#carrierInfoModal" data-bs-toggle="modal" class="text-decoration-none">More info</a>
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearCarriers()">Clear</button>
-                            </small>
-                        </div>
-
-                        <div class="mb-0">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Phone</span>
-                                <input type="text" class="form-control" id="phone" placeholder="1112223333 (optional)" style="font-size: 0.8rem;" title="Enter specific 10-digit phone number">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Specific 10-digit phone number. Increases price by 20%.
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearPhone()">Clear</button>
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Services Table -->
-            <div class="border rounded services-table-container" style="height: 250px; overflow-y: auto;">
-                <table class="table table-hover mb-0 table-sm">
-                    <thead class="table-light sticky-top">
-                        <tr style="font-size: 0.8rem;">
-                            <th>Service</th>
-                            <th>Price</th>
-                            <th class="text-center" style="width: 40px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in services %}
-                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}" data-original-price="{{ service.get_naira_price }}">
-                            <td class="service-name">
-                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.name }}</div>
-                            </td>
-                            <td class="price">
-                                <div class="fw-medium price-display" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
-                            </td>
-                            <td class="text-center">
-                                <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
-                                    <span class="text-muted">♡</span>
-                                </button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center py-4">
-                                <div class="text-muted">
-                                    <p class="mb-2" style="font-size: 0.9rem;">No services available.</p>
-                                    <small>Please contact admin to add services.</small>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rented Numbers Section -->
-    <div class="col-12 col-lg-7">
-        <div class="p-2 p-md-3 p-lg-4">
-            <h2 class="h5 fw-bold mb-2">Rented numbers</h2>
-
-            <div class="text-muted mb-3" style="font-size: 0.875rem;">
-                <p class="mb-1">No need to refresh the page to get the code.</p>
-                <p class="mb-0">You can get more SMS to the same number for free when 🔁 is displayed.</p>
-            </div>
-
-            <!-- Active Rentals Counter -->
-            <div class="d-flex justify-content-end mb-3">
-                <div class="border border-2 rounded px-3 py-1">
-                    <span class="fw-medium" id="rentalCounter">0 / 20</span>
+            <!-- Recent Orders Panel -->
+            <div class="col-xl-7">
+                <div id="recentOrdersPanel" class="orders-panel glass-card">
+                    <div class="card-header">
+                        <h5 class="card-title fw-bold mb-0">
+                            Recent Orders
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <p class="text-muted px-4 pt-3 mb-3 small">Monitor your orders in real-time. No need to refresh the page.</p>
+                        
+                        <div class="orders-container">
+                            <div class="modern-table-wrapper">
+                                <table class="modern-table" id="ordersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Country</th>
+                                            <th>Number</th>
+                                            <th>TTL</th>
+                                            <th>Code</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ordersTableBody">
+                                        <tr id="noOrdersRow" class="no-orders-row">
+                                            <td colspan="5">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-inbox"></i>
+                                                    <h6 class="mb-1">No orders yet</h6>
+                                                    <p class="text-muted small mb-0">Your orders will appear here once you make a purchase.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Rentals Table -->
-            <div class="table-responsive">
-                <table class="table table-hover table-sm">
-                    <thead class="table-light">
-                        <tr style="font-size: 0.8rem;">
-                            <th>ID</th>
-                            <th>Service</th>
-                            <th>Phone</th>
-                            <th>Code</th>
-                            <th>Cost</th>
-                            <th>TTL</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <div class="text-muted">
-                                    <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
-                                    <small>Click on a service to rent a number.</small>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- History Link -->
-            <div class="text-center mt-4">
-                <a href="/history/" class="text-decoration-none">View number history</a>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-
-<!-- Carrier Info Modal -->
-<div class="modal fade" id="carrierInfoModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Why choose carrier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>There are 3 carriers in the USA: T-Mobile (tmo), Verizon (vz), and AT&T (att).</p>
-                <p>If you're experiencing issues on services like Tinder, where it says an account already exists, we recommend you try Verizon, or AT&T.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Full Message Modal -->
-<div class="modal fade" id="fullMessageModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Full Message</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="font-monospace">Your WhatsApp verification code is: 123456</p>
-                <p class="font-monospace">Don't share this code with anyone.</p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+<!-- Hidden operators table -->
+<table class="d-none" id="operatorsTable">
+    <tbody id="operatorsTableBody"></tbody>
+</table>
 
-{% block extra_js %}
+<!-- Modern CSS Styles -->
+<style>
+:root {
+    --primary-color: #198754;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 16px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    --gradient-secondary: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+}
+
+/* Modern Dashboard Layout */
+.modern-dashboard {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    padding: 1rem 0 0.1rem 0;
+}
+
+.hero-section {
+    margin-bottom: 2rem;
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(25, 135, 84, 0.15);
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(25, 135, 84, 0.25);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.glass-card .card-header {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(32, 201, 151, 0.08) 100%);
+    border-bottom: 1px solid rgba(25, 135, 84, 0.1);
+    border-radius: calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px) 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+.glass-card .card-body {
+    border-radius: 0 0 calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px);
+}
+
+/* Override glass card for specific panels */
+.orders-panel.glass-card .card-body,
+.service-panel.glass-card .card-body {
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    overflow: hidden;
+}
+
+/* Panel Layout */
+.service-panel,
+.orders-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.service-panel .card-body,
+.orders-panel .card-body {
+    flex: 1;
+}
+
+.orders-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-table-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-table {
+    flex: 1;
+}
+
+.no-orders-row {
+    height: 200px;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: var(--gradient-primary);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+.welcome-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.hero-icon {
+    font-size: 3rem;
+    opacity: 0.3;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.feature-pills {
+    gap: 0.5rem;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+.pill-primary { background: rgba(255, 255, 255, 0.2); }
+.pill-success { background: rgba(255, 255, 255, 0.15); }
+.pill-info { background: rgba(255, 255, 255, 0.1); }
+
+/* Balance Card */
+.balance-card {
+    text-align: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid rgba(25, 135, 84, 0.1);
+}
+
+.balance-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.balance-card .balance-amount {
+    font-size: 1.8rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Service Panel */
+.service-panel .card-header {
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+/* Modern Form Controls */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    position: relative;
+}
+
+.modern-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.modern-select-wrapper {
+    position: relative;
+}
+
+.modern-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: var(--border-radius-sm);
+    background: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+}
+
+.modern-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+.modern-select:hover {
+    border-color: #ced4da;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.modern-select:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Service Info Panel */
+.service-info-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--border-radius);
+    border: 1px solid #dee2e6;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* Purchase Button */
+.purchase-btn {
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 0.875rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.purchase-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.purchase-btn:hover::before {
+    left: 100%;
+}
+
+.purchase-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Orders Panel */
+.orders-panel .card-header {
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+.orders-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Modern Table */
+.modern-table-wrapper {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--dark-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modern-table tbody td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.modern-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: rgba(25, 135, 84, 0.02);
+}
+
+/* Ensure last row respects border radius */
+.modern-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--border-radius);
+}
+
+.modern-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--border-radius);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--secondary-color);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Badges and Pills */
+.badge {
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Gradient Button */
+.btn-gradient {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    color: white;
+}
+
+/* Custom Scrollbar */
+.orders-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.orders-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.orders-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+.orders-container::-webkit-scrollbar-thumb:hover {
+    background: #157347;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modern-dashboard {
+        padding: 1rem 0;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-icon {
+        display: none;
+    }
+    
+    .feature-pills {
+        justify-content: center;
+    }
+    
+    .balance-card .balance-amount {
+        font-size: 1.5rem;
+    }
+    
+    /* Keep cancel button inline with TTL countdown on mobile */
+    .countdown-timer {
+        display: inline-block;
+        margin-right: 0.25rem;
+    }
+    
+    .btn-link.text-danger {
+        display: inline-block;
+        margin-left: 0.25rem;
+        vertical-align: middle;
+    }
+}
+
+/* Animation Classes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Loading States */
+.btn:disabled {
+    opacity: 0.7;
+    transform: none !important;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Toast Improvements */
+.toast {
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
+}
+
+/* Status Indicators */
+.status-active { color: var(--success-color); }
+.status-pending { color: var(--warning-color); }
+.status-cancelled { color: var(--secondary-color); }
+.status-completed { color: var(--info-color); }
+
+/* Action Buttons */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+.action-btn-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+}
+
+.action-btn-danger:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Cancel Button in TTL Column */
+.btn-link.text-danger {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.btn-link.text-danger:hover {
+    background: rgba(220, 53, 69, 0.15);
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+/* Z-index fix to prevent dropdown from going behind cards */
+.glass-card {
+    position: relative;
+    z-index: 1;
+}
+
+.service-panel {
+    z-index: 1;
+}
+
+.orders-panel {
+    z-index: 1;
+}
+
+/* WORKING Dark mode styles - copied from dashboard-2 pattern */
+[data-theme="dark"] .glass-card {
+    background-color: #000000 !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .glass-card .card-header {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-bottom-color: #404040 !important;
+}
+
+[data-theme="dark"] .glass-card .card-body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .glass-card .card-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .glass-card p {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .glass-card .text-muted {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .glass-card .small {
+    color: #b3b3b3 !important;
+}
+
+/* Modern form controls dark mode */
+[data-theme="dark"] .modern-label {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .modern-select {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .modern-select option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .select-arrow {
+    color: #ffffff !important;
+}
+
+/* Modern table dark mode - exact copy of dashboard-2 working pattern */
+[data-theme="dark"] .modern-table {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .modern-table th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .modern-table td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .modern-table tbody tr {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .modern-table tbody tr:hover {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .modern-table-wrapper {
+    background-color: #000000 !important;
+}
+
+/* Empty state dark mode */
+[data-theme="dark"] .empty-state {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .empty-state h6 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .empty-state i {
+    color: #b3b3b3 !important;
+}
+
+/* Service info panel dark mode */
+[data-theme="dark"] .service-info-panel {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .info-label {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .info-value {
+    color: #ffffff !important;
+}
+</style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Settings panel toggle
-    const settingsToggle = document.getElementById('settingsToggle');
-    const settingsPanel = document.getElementById('settingsPanel');
-    
-    settingsToggle.addEventListener('click', function() {
-        if (settingsPanel.style.display === 'none') {
-            settingsPanel.style.display = 'block';
-        } else {
-            settingsPanel.style.display = 'none';
-        }
-    });
+console.log('🟢 Modern Dashboard JavaScript loaded');
 
-    // Service search functionality
-    const serviceFilter = document.getElementById('serviceFilter');
-    const serviceRows = document.querySelectorAll('.service-row');
-    
-    serviceFilter.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        let hasVisibleServices = false;
+class SMSDashboard {
+    constructor() {
+        console.log('🏗️ SMSDashboard constructor called');
+        this.countries = {};
+        this.products = {};
+        this.currentPrices = {};
+        this.selectedService = {};
+        this.orderTimerInterval = null;
+        this.smsCheckInterval = null;
         
-        serviceRows.forEach(row => {
-            const serviceName = row.getAttribute('data-service').toLowerCase();
-            if (serviceName.includes(searchTerm)) {
-                row.style.display = '';
-                hasVisibleServices = true;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        // Show/hide "service not listed" option based on search results
-        handleServiceNotListed(searchTerm, hasVisibleServices);
-        
-        // Re-sort visible services by favorites
-        if (searchTerm === '') {
-            sortServicesByFavorites();
-        }
-    });
-
-    // Favorite toggle functionality
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-    
-    // Load saved favorites from localStorage
-    loadFavorites();
-    
-    favoriteButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent service row click
-            
-            const row = this.closest('.service-row');
-            const serviceCode = row.getAttribute('data-code');
-            const isFavorite = this.getAttribute('data-favorite') === 'true';
-            const heartIcon = this.querySelector('span');
-            
-            if (isFavorite) {
-                // Remove from favorites
-                this.setAttribute('data-favorite', 'false');
-                heartIcon.textContent = '♡';
-                heartIcon.className = 'text-muted';
-                removeFavorite(serviceCode);
-            } else {
-                // Add to favorites
-                this.setAttribute('data-favorite', 'true');
-                heartIcon.textContent = '♥';
-                heartIcon.className = 'text-danger';
-                addFavorite(serviceCode);
-            }
-            
-            // Re-sort the services table
-            sortServicesByFavorites();
-        });
-    });
-
-    // Service row click functionality
-    serviceRows.forEach(row => {
-        row.addEventListener('click', function(e) {
-            console.log('Service row clicked:', this); // Debug log
-            
-            // Don't trigger if clicking on favorite button
-            if (e.target.closest('.favorite-btn')) {
-                console.log('Clicked on favorite button, ignoring'); // Debug log
-                return;
-            }
-            
-            const serviceName = this.getAttribute('data-service');
-            const serviceCode = this.getAttribute('data-code');
-            const price = this.querySelector('.price .fw-medium').textContent;
-            
-            console.log('Service details:', { serviceName, serviceCode, price }); // Debug log
-            
-            // Get settings values
-            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
-            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
-            const phoneRaw = document.getElementById('phone').value.trim();
-            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null; // Remove any non-digit characters
-            
-            console.log('Settings values:', { areaCodes, carriers, phone }); // Debug log
-            
-            // Rent the service immediately without confirmation
-            console.log('Renting service immediately'); // Debug log
-            rentNumber(serviceCode, areaCodes, carriers, phone);
-        });
-    });
-
-    // Add real-time validation for input fields
-    const areaCodes = document.getElementById('areaCodes');
-    const carriers = document.getElementById('carriers');
-    const phone = document.getElementById('phone');
-    
-    // Area codes validation
-    areaCodes.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value && !/^[\d,\s]+$/.test(value)) {
-            this.classList.add('is-invalid');
-            showValidationTooltip(this, 'Only numbers and commas allowed (e.g., 503, 202, 404)');
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when area codes change
-        updateServicePrices();
-    });
-    
-    // Carriers validation
-    carriers.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value) {
-            const validCarriers = ['tmo', 'vz', 'att'];
-            const enteredCarriers = value.toLowerCase().split(',').map(c => c.trim());
-            const invalidCarriers = enteredCarriers.filter(c => c && !validCarriers.includes(c));
-            
-            if (invalidCarriers.length > 0) {
-                this.classList.add('is-invalid');
-                showValidationTooltip(this, `Invalid carriers: ${invalidCarriers.join(', ')}. Use: tmo, vz, att`);
-            } else {
-                this.classList.remove('is-invalid');
-                hideValidationTooltip(this);
-            }
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when carriers change
-        updateServicePrices();
-    });
-    
-    // Phone validation
-    phone.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value) {
-            // Remove any non-digit characters for validation
-            const digitsOnly = value.replace(/\D/g, '');
-            if (digitsOnly.length !== 10) {
-                this.classList.add('is-invalid');
-                showValidationTooltip(this, 'Enter 10-digit US phone number (e.g., 5551234567)');
-            } else {
-                // Use our validation function instead of inline regex
-                if (!validatePhoneNumber(digitsOnly)) {
-                    this.classList.add('is-invalid');
-                    showValidationTooltip(this, 'Invalid US phone number format');
-                } else {
-                    this.classList.remove('is-invalid');
-                    hideValidationTooltip(this);
-                    // Auto-format the phone number
-                    this.value = digitsOnly;
-                }
-            }
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when phone number changes
-        updateServicePrices();
-    });
-
-    // Load active rentals on page load
-    console.log('Loading active rentals on page load...'); // Debug log
-    loadActiveRentals();
-    
-    // Set up polling for SMS updates
-    setInterval(checkAllSMS, 5000); // Check every 5 seconds
-    
-    // Set up real-time wallet balance updates
-    updateUserBalance(); // Initial balance load
-    setInterval(updateUserBalance, 10000); // Update balance every 10 seconds
-
-    // Add real-time validation for settings inputs
-    const areaCodesInput = document.getElementById('areaCodes');
-    const carriersInput = document.getElementById('carriers');
-    const phoneInput = document.getElementById('phone');
-    
-    areaCodesInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        if (value && !validateAreaCodes(value)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-    
-    carriersInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        if (value && !validateCarriers(value)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid carriers. Use: tmo, vz, or att', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-    
-    phoneInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        const digitsOnly = value.replace(/\D/g, '');
-        if (value && !validatePhoneNumber(digitsOnly)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid phone number. Use 10 digits (e.g., 1112223333)', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-
-    // Countdown timer simulation
-    const countdownTimers = document.querySelectorAll('.countdown-timer');
-    
-    countdownTimers.forEach(timer => {
-        let timeLeft = 4 * 60 + 23; // 4:23 in seconds
-        
-        const updateTimer = () => {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timeLeft > 0) {
-                timeLeft--;
-            }
-        };
-        
-        updateTimer();
-        setInterval(updateTimer, 1000);
-    });
-});
-
-// Service pricing functions
-function updateServicePrices() {
-    const areaCodes = document.getElementById('areaCodes').value.trim();
-    const carriers = document.getElementById('carriers').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    
-    // Calculate price multiplier based on active filters
-    let priceMultiplier = 1.0;
-    
-    // Check if any premium filters are applied
-    if (areaCodes || carriers || phone) {
-        priceMultiplier = 1.2; // 20% increase
+        this.init();
     }
     
-    // Update all service prices
-    document.querySelectorAll('.service-row').forEach(row => {
-        const originalPrice = parseFloat(row.dataset.originalPrice || 0);
-        const priceDisplay = row.querySelector('.price-display');
-        
-        if (originalPrice && priceDisplay) {
-            const newPrice = originalPrice * priceMultiplier;
-            priceDisplay.textContent = formatNairaPrice(newPrice);
-        }
-    });
-}
-
-function formatNairaPrice(price) {
-    // Format price as Naira currency
-    const formatted = new Intl.NumberFormat('en-NG', {
-        style: 'currency',
-        currency: 'NGN',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price);
-    
-    // Replace NGN with ₦ symbol for consistency
-    return formatted.replace('NGN', '₦');
-}
-
-// Clear filter functions with price update
-function clearAreaCodes() {
-    document.getElementById('areaCodes').value = '';
-    document.getElementById('areaCodes').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Area codes cleared', 'success');
-}
-
-function clearCarriers() {
-    document.getElementById('carriers').value = '';
-    document.getElementById('carriers').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Carriers cleared', 'success');
-}
-
-function clearPhone() {
-    document.getElementById('phone').value = '';
-    document.getElementById('phone').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Phone number cleared', 'success');
-}
-
-function clearAllFilters() {
-    document.getElementById('areaCodes').value = '';
-    document.getElementById('carriers').value = '';
-    document.getElementById('phone').value = '';
-    
-    // Remove any validation classes
-    document.getElementById('areaCodes').classList.remove('is-invalid');
-    document.getElementById('carriers').classList.remove('is-invalid');
-    document.getElementById('phone').classList.remove('is-invalid');
-    
-    updateServicePrices();
-    showNotification('All filters cleared', 'success');
-}
-
-// Copy to clipboard function
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        // Create temporary notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--bs-success);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
-        notification.textContent = 'Code copied to clipboard!';
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 2000);
-    }).catch(function(err) {
-        console.error('Could not copy text: ', err);
-    });
-}
-
-// Rental management functions
-async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = null) {
-    console.log('Renting number with params:', { serviceCode, areaCodes, carriers, phone }); // Debug log
-    
-    // Validate inputs before making the request
-    let hasValidationErrors = false;
-    
-    if (areaCodes.length > 0) {
-        const areaCodesStr = areaCodes.join(',');
-        if (!validateAreaCodes(areaCodesStr)) {
-            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'error');
-            hasValidationErrors = true;
-        }
+    async init() {
+        await this.loadCountries();
+        await this.loadProducts();
+        this.bindEvents();
+        this.loadRecentOrders(); // Load orders on page load
     }
     
-    if (carriers.length > 0) {
-        const carriersStr = carriers.join(',');
-        if (!validateCarriers(carriersStr)) {
-            showNotification('Invalid carriers. Use: tmo (T-Mobile), vz (Verizon), or att (AT&T)', 'error');
-            hasValidationErrors = true;
-        }
-    }
-    
-    if (phone && phone.length > 0 && !validatePhoneNumber(phone)) {
-        console.log('Phone validation failed for:', phone, 'Type:', typeof phone, 'Length:', phone.length);
-        showNotification('Invalid phone number format. Use a valid 10-digit US number (e.g., 5551234567)', 'error');
-        hasValidationErrors = true;
-    }
-    
-    if (hasValidationErrors) {
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/rent/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                service_code: serviceCode,
-                area_codes: areaCodes,
-                carriers: carriers,
-                number: phone
-            })
-        });
-
-        const data = await response.json();
-        console.log('Rent API response:', data); // Debug log
-        
-        if (data.success) {
-            showNotification('Number rented successfully!', 'success');
-            loadActiveRentals(); // Refresh rentals table
-            updateUserBalance(); // Update balance display
-        } else {
-            // Provide better error messages with helpful suggestions
-            let errorMessage = data.error || 'Failed to rent number';
-            let errorType = 'error';
-            
-            console.log('API Error:', errorMessage); // Debug log
-            
-            // Check for specific error patterns and provide helpful suggestions
-            if (errorMessage.includes('service') && errorMessage.includes('not') && errorMessage.includes('support')) {
-                errorMessage = 'The "other" service code is not supported by DaisySMS. Contact DaisySMS support to add your requested service, or try a different service.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('service') && (errorMessage.includes('invalid') || errorMessage.includes('unknown'))) {
-                errorMessage = 'Service code not recognized by DaisySMS. This may mean "other" is not available. Try contacting DaisySMS support.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('area codes') && errorMessage.includes('not available')) {
-                errorMessage += ' Try removing area code filters or using common codes like 503, 202, or 404.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('carriers') && errorMessage.includes('not available')) {
-                errorMessage += ' Try removing carrier filters or use: tmo (T-Mobile), vz (Verizon), or att (AT&T).';
-                errorType = 'warning';
-            } else if (errorMessage.includes('phone number') && errorMessage.includes('not accepted')) {
-                errorMessage += ' Some numbers may not be available in the service pool. Try a different number or remove the phone filter.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('phone number') && errorMessage.includes('not available')) {
-                errorMessage += ' This number may be already rented by someone else or temporarily unavailable.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('Invalid phone number format')) {
-                errorMessage += ' Example: 5551234567 (10 digits, no spaces or dashes).';
-                errorType = 'warning';
-            } else if (errorMessage.includes('Invalid area codes')) {
-                errorMessage += ' Use 3-digit US area codes separated by commas (e.g., 503, 202, 404).';
-                errorType = 'warning';
-            } else if (errorMessage.includes('Invalid carriers')) {
-                errorMessage += ' Use carrier codes: tmo, vz, or att.';
-                errorType = 'warning';
-            } else if (errorMessage.includes('No numbers available')) {
-                if (document.getElementById('areaCodes').value.trim() || 
-                    document.getElementById('carriers').value.trim() || 
-                    document.getElementById('phone').value.trim()) {
-                    errorMessage += ' Try clearing your filters (area codes, carriers, or phone) and rent again.';
-                    errorType = 'warning';
-                }
-            }
-            
-            showNotification(errorMessage, errorType);
-        }
-    } catch (error) {
-        console.error('Error renting number:', error);
-        showNotification('Network error occurred', 'error');
-    }
-}
-
-async function loadActiveRentals() {
-    try {
-        const response = await fetch('/api/rentals/');
-        const data = await response.json();
-        
-        console.log('Rentals API response:', data); // Debug log
-        
-        if (data.success && data.rentals) {
-            updateRentalsTable(data.rentals);
-        } else if (data.rentals) {
-            // Handle case where success field might not be present
-            updateRentalsTable(data.rentals);
-        } else {
-            console.error('No rentals data in response:', data);
-        }
-    } catch (error) {
-        console.error('Error loading rentals:', error);
-    }
-}
-
-function updateRentalsTable(rentals) {
-    const tbody = document.querySelector('.table-responsive tbody');
-    const rentalCounter = document.getElementById('rentalCounter');
-    
-    console.log('Updating rentals table with:', rentals); // Debug log
-    
-    // Filter out cancelled and expired rentals to only show active ones
-    const activeRentals = rentals.filter(rental => {
-        const createdAt = new Date(rental.created_at);
-        const now = new Date();
-        const isExpired = (now - createdAt) > (5 * 60 * 1000); // 5 minutes
-        const isCancelled = rental.status === 'CANCELLED' || rental.status === 'EXPIRED';
-        
-        // Only show rentals that are still active (not cancelled/expired) or have received code
-        return !isCancelled && (!isExpired || rental.code);
-    });
-    
-    // Update counter with active rentals
-    if (rentalCounter) {
-        rentalCounter.textContent = `${activeRentals.length} / 20`;
-    }
-    
-    if (activeRentals.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-4">
-                    <div class="text-muted">
-                        <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
-                        <small>Click on a service to rent a number.</small>
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    tbody.innerHTML = activeRentals.map(rental => {
-        // Use the exact price that was charged and stored in the rental record
-        let priceDisplay = '₦0.00';
+    async loadCountries() {
         try {
-            if (rental.price_naira) {
-                // The price_naira from the API is already formatted, just ensure it has ₦ symbol
-                priceDisplay = rental.price_naira.startsWith('₦') ? rental.price_naira : `₦${rental.price_naira}`;
-            } else if (rental.price) {
-                // Fallback: format the raw price as NGN currency
-                const numericPrice = parseFloat(rental.price);
-                priceDisplay = `₦${formatCurrency(numericPrice)}`;
-            }
-        } catch (e) {
-            console.error('Error formatting price:', e);
-        }
-        
-        // Check if rental has received code
-        const hasCode = rental.code && rental.code.trim() !== '';
-        
-        return `
-        <tr data-rental-id="${rental.rental_id}" data-supports-multiple="${rental.supports_multiple}">
-            <td><span>${rental.rental_id.slice(-6)}</span></td>
-            <td>${rental.service_name}</td>
-            <td>
-                <span class="fw-medium">${rental.phone_number}</span>
-                <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.phone_number}')">
-                    <i class="fas fa-copy"></i>
-                </button>
-            </td>
-            <td class="sms-code" data-rental-id="${rental.rental_id}">
-                ${hasCode ? `
-                    <span class="text-success">${rental.code}</span>
-                    <button class="btn btn-sm ms-1" onclick="copyToClipboard('${rental.code}')">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                ` : '<span class="text-muted">Waiting...</span>'}
-            </td>
-            <td>${priceDisplay}</td>
-            <td class="countdown-timer" data-created="${rental.created_at}" data-has-code="${hasCode}">
-                ${hasCode ? '<span class="text-success">✅</span>' : '300s'}
-            </td>
-            <td>
-                ${rental.status === 'WAITING' && !hasCode ? `
-                    <button class="btn btn-sm btn-outline-danger" onclick="cancelRental('${rental.rental_id}')">
-                        <i class="fas fa-times"></i>
-                    </button>
-                ` : ''}
-                ${rental.supports_multiple && hasCode ? `
-                    <button class="btn btn-sm btn-outline-primary" onclick="checkSMS('${rental.rental_id}')">
-                        <i class="fas fa-sync"></i>
-                    </button>
-                ` : ''}
-            </td>
-        </tr>
-        `;
-    }).join('');
-    
-    // Start countdown timers
-    startCountdownTimers();
-}
-
-async function cancelRental(rentalId) {
-    try {
-        const response = await fetch('/api/cancel/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                id: rentalId
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            // Use the proper Naira refund amount from backend
-            let refundNaira;
-            if (data.refund_amount_naira) {
-                refundNaira = parseFloat(data.refund_amount_naira);
+            const response = await fetch('/api/5sim/countries/');
+            const data = await response.json();
+            
+            if (data.success && data.countries) {
+                this.countries = data.countries;
+                this.populateCountrySelect();
             } else {
-                // Fallback for backward compatibility
-                const refundUSD = parseFloat(data.refund_amount);
-                refundNaira = refundUSD * 1650;
+                this.countries = {};
+                this.populateCountrySelect();
+                this.showError(data.error || 'Failed to load countries');
             }
-            showNotification(`Rental cancelled. Refund: ₦${formatCurrency(refundNaira)}`, 'success');
-            
-            // Remove the rental row immediately from the table
-            const rentalRow = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
-            if (rentalRow) {
-                rentalRow.remove();
-            }
-            
-            // Update the rental counter
-            const rentalCounter = document.getElementById('rentalCounter');
-            if (rentalCounter) {
-                const currentCount = parseInt(rentalCounter.textContent.split(' / ')[0]);
-                rentalCounter.textContent = `${Math.max(0, currentCount - 1)} / 20`;
-            }
-            
-            // Check if table is now empty and show "No rented number yet" message
-            const tbody = document.querySelector('.table-responsive tbody');
-            if (tbody && tbody.children.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="text-muted">
-                                <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
-                                <small>Click on a service to rent a number.</small>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            updateUserBalance();
-        } else {
-            showNotification(data.error || 'Failed to cancel rental', 'error');
+        } catch (error) {
+            console.error('Failed to load countries:', error);
+            this.countries = {};
+            this.populateCountrySelect();
+            this.showError('Failed to load countries');
         }
-    } catch (error) {
-        console.error('Error cancelling rental:', error);
-        showNotification('Network error occurred', 'error');
     }
-}
-
-async function checkSMS(rentalId) {
-    try {
-        const response = await fetch(`/api/sms/${rentalId}/`);
-        const data = await response.json();
-        
-        if (data.messages && data.messages.length > 0) {
-            const latestMessage = data.messages[0];
-            updateSMSCode(rentalId, latestMessage.code);
-        }
-    } catch (error) {
-        console.error('Error checking SMS:', error);
-    }
-}
-
-async function checkAllSMS() {
-    const rentalRows = document.querySelectorAll('[data-rental-id]');
     
-    for (const row of rentalRows) {
-        const rentalId = row.getAttribute('data-rental-id');
-        const codeCell = row.querySelector('.sms-code');
-        const timer = row.querySelector('.countdown-timer');
-        
-        // Only check if waiting for code and not expired or cancelled
-        if (codeCell && codeCell.textContent.includes('Waiting') && timer && !timer.textContent.includes('✅')) {
-            await checkSMS(rentalId);
-        }
-    }
-}
-
-function updateSMSCode(rentalId, code) {
-    const codeCell = document.querySelector(`.sms-code[data-rental-id="${rentalId}"]`);
-    if (codeCell && code) {
-        const row = codeCell.closest('tr');
-        const timer = row.querySelector('.countdown-timer');
-        
-        // Update code cell with ✅ icon and green text
-        codeCell.innerHTML = `
-            <span class="text-success">${code}</span>
-            <button class="btn btn-sm ms-1" onclick="copyToClipboard('${code}')">
-                <i class="fas fa-copy"></i>
-            </button>
-        `;
-        
-        // Stop the timer and show "✅ Received"
-        if (timer) {
-            // Clear the interval if it exists
-            const intervalId = timer.getAttribute('data-interval-id');
-            if (intervalId) {
-                clearInterval(parseInt(intervalId));
-            }
+    async loadProducts() {
+        try {
+            const response = await fetch('/api/5sim/products-list/');
+            const data = await response.json();
             
-            timer.innerHTML = '<span class="text-success">✅</span>';
-            timer.setAttribute('data-has-code', 'true');
+            if (data.success && data.products) {
+                this.products = data.products;
+            } else {
+                this.products = {};
+                this.showError(data.error || 'Failed to load products');
+            }
+        } catch (error) {
+            console.error('Failed to load products:', error);
+            this.products = {};
+            this.showError('Failed to load products');
         }
-        
-        // Update the actions cell to remove cancel button and add sync button if supported
-        const actionsCell = row.querySelector('td:last-child');
-        if (actionsCell) {
-            // Get rental data to check if supports multiple SMS
-            const supportsMultiple = row.getAttribute('data-supports-multiple') === 'true';
-            actionsCell.innerHTML = supportsMultiple ? `
-                <button class="btn btn-sm btn-outline-primary" onclick="checkSMS('${rentalId}')">
-                    <i class="fas fa-sync"></i>
-                </button>
-            ` : '';
-        }
-        
-        showNotification('SMS code received!', 'success');
     }
-}
-
-function startCountdownTimers() {
-    const timers = document.querySelectorAll('.countdown-timer');
     
-    timers.forEach(timer => {
-        // Skip timers that already have codes or are already expired/cancelled
-        const hasCode = timer.getAttribute('data-has-code') === 'true';
-        if (hasCode || timer.textContent.includes('Cancelled') || timer.textContent.includes('Expired') || timer.textContent.includes('✅')) {
+    populateCountrySelect() {
+        const select = document.getElementById('countrySelect');
+        select.innerHTML = '<option value="">Select Country</option>';
+        
+        Object.entries(this.countries).forEach(([code, name]) => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+    
+    populateProductSelect(country) {
+        const select = document.getElementById('productSelect');
+        select.innerHTML = '<option value="">Select Product</option>';
+        
+        // Sort products alphabetically by name
+        const sortedProducts = Object.entries(this.products).sort(([codeA, nameA], [codeB, nameB]) => {
+            return nameA.localeCompare(nameB);
+        });
+        
+        sortedProducts.forEach(([code, name]) => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+    
+    async loadOperators(country, product) {
+        if (!country || !product) {
+            // Hide operators section when no selection
+            document.getElementById('operatorsTable').style.display = 'none';
+            this.selectedService = null;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/5sim/prices/${country}/${product}/`);
+            const data = await response.json();
+            
+            if (data.success && data.prices) {
+                this.currentPrices = data.prices;
+                // Auto-select cheapest operator instead of showing table
+                this.autoSelectCheapestOperator(country, product, data.prices);
+            } else {
+                this.showError('No pricing data available');
+            }
+        } catch (error) {
+            console.error('Failed to load operators:', error);
+            this.showError('Failed to load pricing data');
+        }
+    }
+    
+    autoSelectCheapestOperator(country, product, prices) {
+        if (!prices || Object.keys(prices).length === 0) {
+            this.showError('No operators available for this selection');
             return;
         }
         
-        const createdAt = new Date(timer.getAttribute('data-created'));
-        const endTime = new Date(createdAt.getTime() + 5 * 60 * 1000); // 5 minutes
+        // Find the cheapest operator with available numbers
+        let cheapestOperator = null;
+        let cheapestPrice = Infinity;
         
-        const updateTimer = () => {
-            // Check if timer has been updated to show code received
-            if (timer.textContent.includes('✅') || timer.getAttribute('data-has-code') === 'true') {
+        Object.entries(prices).forEach(([operator, data]) => {
+            if (data.count > 0 && data.cost < cheapestPrice) {
+                cheapestPrice = data.cost;
+                cheapestOperator = {
+                    name: operator,
+                    cost: data.cost,
+                    count: data.count
+                };
+            }
+        });
+        
+        if (cheapestOperator) {
+            // Auto-select the cheapest operator
+            this.selectOperator(cheapestOperator.name, cheapestOperator.cost, cheapestOperator.count);
+            
+            // Hide the operators table since we auto-selected
+            document.getElementById('operatorsTable').style.display = 'none';
+            
+            console.log(`🎯 Auto-selected operator: ${cheapestOperator.name} with price ₦${cheapestOperator.cost}`);
+        } else {
+            this.showError('No operators with available numbers for this selection');
+        }
+    }
+    
+    displayOperators(prices) {
+        const tbody = document.getElementById('operatorsTableBody');
+        tbody.innerHTML = '';
+        
+        if (!prices || Object.keys(prices).length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">
+                        No operators available for this selection
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        Object.entries(prices).forEach(([operator, data]) => {
+            const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            
+            // Disable button if count is 0
+            const isDisabled = data.count === 0;
+            const buttonClass = isDisabled ? 'btn btn-sm btn-outline-secondary disabled' : 'btn btn-sm btn-outline-success';
+            const onClick = isDisabled ? '' : `onclick="dashboard.selectOperator('${operator}', ${data.cost}, ${data.count})"`;
+            
+            row.innerHTML = `
+                <td class="fw-medium">${operator}</td>
+                <td class="text-end fw-bold text-success">₦${data.cost}</td>
+                <td class="text-center">
+                    <span class="badge ${data.count > 0 ? 'bg-light text-dark' : 'bg-danger text-white'}">${data.count}</span>
+                </td>
+                <td class="text-end" style="width: 80px;">
+                    <button class="${buttonClass}" ${onClick} style="width: 65px; padding: 0.25rem 0.5rem;">
+                        Select
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    selectOperator(operator, cost, count) {
+        const country = document.getElementById('countrySelect').value;
+        const product = document.getElementById('productSelect').value;
+        
+        this.selectedService = {
+            country: this.countries[country],
+            countryCode: country,
+            product: this.products[product],
+            productCode: product,
+            operator: operator,
+            cost: cost,
+            count: count
+        };
+        
+        this.updateServicePanel();
+    }
+    
+    updateServicePanel() {
+        document.getElementById('selectedCountry').textContent = this.selectedService.country;
+        document.getElementById('selectedProduct').textContent = this.selectedService.product;
+        document.getElementById('selectedOperator').textContent = `${this.selectedService.operator} 🎯`;
+        document.getElementById('selectedPrice').textContent = `₦${this.selectedService.cost}`;
+        
+        document.getElementById('serviceInfoPanel').style.display = 'block';
+        
+        this.updateTotalPrice();
+    }
+    
+    updateTotalPrice() {
+        const quantityInput = document.getElementById('quantityInput');
+        const totalPriceElement = document.getElementById('totalPrice');
+        
+        if (!quantityInput || !totalPriceElement) {
+            console.warn('⚠️ Quantity input or total price element not found');
+            return;
+        }
+        
+        const quantity = parseInt(quantityInput.value) || 1;
+        const total = this.selectedService.cost * quantity;
+        totalPriceElement.value = `₦${total}`;
+    }
+    
+    showError(message) {
+        // Show toast or alert
+        console.error(message);
+    }
+    
+    bindEvents() {
+        console.log('🔗 Binding events...');
+        
+        // Check if purchase button exists
+        const purchaseBtn = document.getElementById('purchaseBtn');
+        console.log('🔍 Purchase button found:', purchaseBtn);
+        
+        if (!purchaseBtn) {
+            console.error('❌ Purchase button not found in DOM!');
+            return;
+        }
+        
+        document.getElementById('countrySelect').addEventListener('change', (e) => {
+            const country = e.target.value;
+            if (country) {
+                this.populateProductSelect(country);
+                // Reset product selection
+                const productSelect = document.getElementById('productSelect');
+                if (productSelect) productSelect.value = '';
+                // Reset selected service
+                this.selectedService = null;
+            }
+        });
+        
+        const productSelect = document.getElementById('productSelect');
+        if (productSelect) {
+            productSelect.addEventListener('change', (e) => {
+                const product = e.target.value;
+                const countrySelect = document.getElementById('countrySelect');
+                const country = countrySelect ? countrySelect.value : null;
+                if (country && product) {
+                    this.loadOperators(country, product);
+                }
+            });
+        }
+        
+        const quantityInput = document.getElementById('quantityInput');
+        if (quantityInput) {
+            quantityInput.addEventListener('input', () => {
+                if (this.selectedService.cost) {
+                    this.updateTotalPrice();
+                }
+            });
+        }
+        
+        const refreshPricesBtn = document.getElementById('refreshPricesBtn');
+        if (refreshPricesBtn) {
+            refreshPricesBtn.addEventListener('click', () => {
+                const countrySelect = document.getElementById('countrySelect');
+                const productSelect = document.getElementById('productSelect');
+                const country = countrySelect ? countrySelect.value : null;
+                const product = productSelect ? productSelect.value : null;
+                if (country && product) {
+                    this.loadOperators(country, product);
+                }
+            });
+        }
+        
+        document.getElementById('purchaseBtn').addEventListener('click', () => {
+            console.log('🔵 Purchase button clicked!');
+            console.log('📊 Dashboard object:', this);
+            this.purchaseService();
+        });
+        
+        const refreshOrderBtn = document.getElementById('refreshOrderBtn');
+        if (refreshOrderBtn) {
+            refreshOrderBtn.addEventListener('click', () => {
+                // Refresh recent orders instead of checking individual order status
+                this.loadRecentOrders();
+                this.showToast('Refreshing orders...', 'info');
+            });
+        }
+    }
+    
+    async purchaseService() {
+        console.log('🚀 purchaseService called');
+        console.log('📱 selectedService:', this.selectedService);
+        
+        if (!this.selectedService || !this.selectedService.countryCode) {
+            console.log('❌ No service selected or missing countryCode');
+            this.showToast('Please select a service first', 'error');
+            return;
+        }
+
+        // Check for maximum of 3 active orders
+        const activeOrders = document.querySelectorAll('#ordersTableBody tr:not(#noOrdersRow)');
+        if (activeOrders.length >= 3) {
+            // No limit on active orders anymore
+            // this.showToast('You can only have 3 active orders at a time. Please cancel or wait for existing orders to expire.', 'error');
+            // return;
+        }
+
+        // Check if CSRF token exists
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            this.showToast('Security token missing. Please refresh the page.', 'error');
+            return;
+        }
+        
+        // Show loading state on button
+        const purchaseBtn = document.getElementById('purchaseBtn');
+        const originalText = purchaseBtn.innerHTML;
+        purchaseBtn.disabled = true;
+        purchaseBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        try {
+            const formData = new FormData();
+            formData.append('country', this.selectedService.countryCode);
+            formData.append('operator', this.selectedService.operator);
+            formData.append('product', this.selectedService.productCode);
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+            
+            console.log('📋 Form data being sent:');
+            console.log('  country:', this.selectedService.countryCode);
+            console.log('  operator:', this.selectedService.operator);
+            console.log('  product:', this.selectedService.productCode);
+            console.log('  csrf token:', csrfToken.value);
+            console.log('🚀 Making fetch request to /api/5sim/buy-activation/...');
+            
+            const response = await fetch('/api/5sim/buy-activation/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            
+            console.log('🌐 Network response received:', response.status, response.statusText);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Store order ID for refresh functionality
+                this.currentOrderId = result.order_id;
+                
+                // Load recent orders to show the new purchase
+                this.loadRecentOrders();
+                
+                // Refresh user balance
+                this.refreshUserBalance();
+                
+                // Show success notification with phone number
+                this.showToast('SMS number purchased successfully!', 'success');
+            } else {
+                this.showToast('Purchase failed: ' + (result.error || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Purchase error:', error);
+            this.showToast('Network error occurred. Please try again.', 'error');
+        } finally {
+            // Restore button state
+            const purchaseBtn = document.getElementById('purchaseBtn');
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Purchase SMS Number';
+        }
+    }
+    
+    async loadRecentOrders() {
+        try {
+            const response = await fetch('/api/5sim/orders/');
+            const result = await response.json();
+            
+            if (result.success && result.orders && result.orders.length > 0) {
+                this.displayOrdersTable(result.orders);
+            } else {
+                this.showNoOrders();
+            }
+        } catch (error) {
+            console.error('Error loading recent orders:', error);
+            this.showNoOrders();
+        }
+    }
+    
+    displayOrdersTable(orders) {
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const noOrdersRow = document.getElementById('noOrdersRow');
+        
+        if (!ordersTableBody) return;
+        
+        // Clear existing order rows but keep the no orders row
+        const orderRows = ordersTableBody.querySelectorAll('tr:not(#noOrdersRow)');
+        orderRows.forEach(row => row.remove());
+        
+        if (orders && orders.length > 0) {
+            // Filter out canceled orders
+            const activeOrders = orders.filter(order => order.status !== 'CANCELED');
+            
+            if (activeOrders.length > 0) {
+                // Hide the no orders row
+                if (noOrdersRow) noOrdersRow.style.display = 'none';
+                
+                // Add orders to table
+                activeOrders.forEach(order => {
+                    this.addOrderToTable(order);
+                });
+                
+                // No countdown timers needed for 5sim orders
+                // this.startOrderTimers();
+            } else {
+                // Show the no orders row if all orders are canceled
+                if (noOrdersRow) noOrdersRow.style.display = '';
+            }
+        } else {
+            // Show the no orders row
+            if (noOrdersRow) noOrdersRow.style.display = '';
+        }
+    }
+    
+    addOrderToTable(order) {
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const noOrdersRow = document.getElementById('noOrdersRow');
+        
+        if (!ordersTableBody) return;
+        
+        // Hide the no orders row when adding actual orders
+        if (noOrdersRow) noOrdersRow.style.display = 'none';
+        
+        const row = document.createElement('tr');
+        row.id = `order-${order.id}`;
+        row.dataset.orderId = order.id;
+        row.dataset.expiresAt = order.expires_at;
+        row.dataset.status = order.status;
+        
+        const serviceCell = `<td><span class="badge bg-primary">${order.product || 'Unknown'}</span></td>`;
+        const countryCell = `<td>${order.country || 'Unknown'}</td>`;
+        const numberCell = `<td><code>${order.phone_number || 'N/A'}</code></td>`;
+        const ttlCell = `<td id="ttl-${order.id}"><span class="badge bg-warning">--</span></td>`;
+        
+        let codeCell;
+        if (order.sms_code) {
+            codeCell = `<td id="code-${order.id}"><code class="text-success">${order.sms_code}</code></td>`;
+        } else {
+            codeCell = `<td id="code-${order.id}"><span class="text-muted">Waiting...</span></td>`;
+        }
+        
+        row.innerHTML = serviceCell + countryCell + numberCell + ttlCell + codeCell;
+        ordersTableBody.appendChild(row);
+    }
+    
+    showNoOrders() {
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const noOrdersRow = document.getElementById('noOrdersRow');
+        
+        if (!ordersTableBody) return;
+        
+        // Clear existing order rows but keep the no orders row
+        const orderRows = ordersTableBody.querySelectorAll('tr:not(#noOrdersRow)');
+        orderRows.forEach(row => row.remove());
+        
+        // Show the no orders row
+        if (noOrdersRow) noOrdersRow.style.display = '';
+    }
+    
+    startOrderTimers() {
+        // Clear existing timer if running
+        if (this.orderTimerInterval) {
+            clearInterval(this.orderTimerInterval);
+        }
+        
+        // Start new timer that updates every second
+        this.orderTimerInterval = setInterval(() => {
+            this.updateOrderTimers();
+        }, 1000);
+        
+        // Initial update
+        this.updateOrderTimers();
+        
+        // Start SMS checking timer (every 10 seconds)
+        if (this.smsCheckInterval) {
+            clearInterval(this.smsCheckInterval);
+        }
+        
+        this.smsCheckInterval = setInterval(() => {
+            this.checkOrdersForSMS();
+        }, 10000);
+    }
+    
+    updateOrderTimers() {
+        const orderRows = document.querySelectorAll('[data-order-id]');
+        
+        orderRows.forEach(row => {
+            const orderId = row.dataset.orderId;
+            const expiresAt = new Date(row.dataset.expiresAt);
+            const status = row.dataset.status;
+            const ttlElement = document.getElementById(`ttl-${orderId}`);
+            const codeElement = document.getElementById(`code-${orderId}`);
+            
+            if (!ttlElement) return;
+            
+            // Remove row if order is canceled
+            if (status === 'CANCELED') {
+                row.remove();
+                return;
+            }
+            
+            // Check if SMS code has been received (not just status)
+            const hasSmsCode = codeElement && codeElement.querySelector('code.text-success');
+            
+            // Only show checkmark if we actually have an SMS code
+            if (hasSmsCode) {
+                ttlElement.innerHTML = '<span class="text-success">✅</span>';
                 return;
             }
             
             const now = new Date();
-            const timeLeft = Math.max(0, endTime - now);
-            const totalSeconds = Math.floor(timeLeft / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
+            const timeLeft = Math.max(0, Math.floor((expiresAt - now) / 1000));
             
-            if (timeLeft <= 0) {
-                // Time expired - handle expiration
-                handleRentalExpiration(timer);
-            } else {
-                // Show countdown in seconds only
-                timer.textContent = `${totalSeconds}s`;
-                if (totalSeconds <= 120) { // Show warning when under 2 minutes
-                    timer.classList.add('text-warning');
-                }
-            }
-        };
-        
-        updateTimer();
-        const intervalId = setInterval(updateTimer, 1000);
-        
-        // Store interval ID on timer element so we can clear it if needed
-        timer.setAttribute('data-interval-id', intervalId);
-    });
-}
-
-async function handleRentalExpiration(timer) {
-    const row = timer.closest('tr');
-    const rentalId = row.getAttribute('data-rental-id');
-    
-    // Clear the timer interval
-    const intervalId = timer.getAttribute('data-interval-id');
-    if (intervalId) {
-        clearInterval(parseInt(intervalId));
-    }
-    
-    // Update timer display
-    timer.textContent = 'Expired';
-    timer.classList.add('text-danger');
-    
-    try {
-        // Call backend to handle expiration and refund
-        const response = await fetch('/api/expire/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                id: rentalId
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            // Refund amount is already in Naira from backend
-            const refundNaira = parseFloat(data.refund_amount || 0);
-            showNotification(`Rental expired after 5 minutes. Refund: ₦${formatCurrency(refundNaira)}`, 'info');
-            
-            // Remove the rental row from the table
-            if (row) {
-                row.remove();
-            }
-            
-            // Update the rental counter
-            const rentalCounter = document.getElementById('rentalCounter');
-            if (rentalCounter) {
-                const currentCount = parseInt(rentalCounter.textContent.split(' / ')[0]);
-                rentalCounter.textContent = `${Math.max(0, currentCount - 1)} / 20`;
-            }
-            
-            // Check if table is now empty and show "No rented number yet" message
-            const tbody = document.querySelector('.table-responsive tbody');
-            if (tbody && tbody.children.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="text-muted">
-                                <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
-                                <small>Click on a service to rent a number.</small>
-                            </div>
-                        </td>
-                    </tr>
+            if (timeLeft > 0) {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Color code based on time remaining
+                let badgeClass = 'bg-success';
+                if (timeLeft < 60) badgeClass = 'bg-light text-dark';
+                else if (timeLeft < 180) badgeClass = 'bg-warning';
+                
+                // Show countdown with cancel option
+                ttlElement.innerHTML = `
+                    <span class="badge ${badgeClass} countdown-timer">${timeString}</span>
+                    <button class="btn btn-sm btn-link text-danger p-0 ms-1" 
+                            onclick="dashboard.cancelOrder('${orderId}')" 
+                            title="Cancel order">❌</button>
                 `;
-            }
-            
-            updateUserBalance();
-        } else {
-            // If backend doesn't handle expiration, just mark as expired in UI
-            const codeCell = row.querySelector('.sms-code');
-            const actionsCell = row.querySelector('td:last-child');
-            
-            if (codeCell && codeCell.textContent.includes('Waiting')) {
-                codeCell.innerHTML = '<span class="text-danger">Expired</span>';
-            }
-            
-            if (actionsCell) {
-                actionsCell.innerHTML = ''; // Remove action buttons
-            }
-        }
-    } catch (error) {
-        console.error('Error handling rental expiration:', error);
-        // Fallback: just update UI to show expired state
-        const codeCell = row.querySelector('.sms-code');
-        const actionsCell = row.querySelector('td:last-child');
-        
-        if (codeCell && codeCell.textContent.includes('Waiting')) {
-            codeCell.innerHTML = '<span class="text-danger">Expired</span>';
-        }
-        
-        if (actionsCell) {
-            actionsCell.innerHTML = ''; // Remove action buttons
-        }
-    }
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    
-    // Map message types to Bootstrap alert classes
-    const alertClass = type === 'error' ? 'danger' : type === 'warning' ? 'warning' : type;
-    
-    notification.className = `alert alert-${alertClass} alert-dismissible fade show`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        max-width: 400px;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        border: none;
-    `;
-    
-    // Add appropriate icon based on type
-    let icon = '';
-    if (type === 'success') {
-        icon = '<i class="fas fa-check-circle me-2"></i>';
-    } else if (type === 'error') {
-        icon = '<i class="fas fa-exclamation-circle me-2"></i>';
-    } else if (type === 'warning') {
-        icon = '<i class="fas fa-exclamation-triangle me-2"></i>';
-    } else {
-        icon = '<i class="fas fa-info-circle me-2"></i>';
-    }
-    
-    notification.innerHTML = `
-        <div class="d-flex align-items-start">
-            <div class="flex-shrink-0">
-                ${icon}
-            </div>
-            <div class="flex-grow-1">
-                ${message}
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem;"></button>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-dismiss after longer time for warnings and errors
-    const dismissTime = (type === 'warning' || type === 'error') ? 8000 : 5000;
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, dismissTime);
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-function formatCurrency(amount) {
-    /**
-     * Format number with commas and 2 decimal places
-     */
-    try {
-        return parseFloat(amount).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    } catch (e) {
-        return '0.00';
-    }
-}
-
-// Real-time wallet balance update
-async function updateUserBalance() {
-    try {
-        const response = await fetch('/api/balance/', {
-            method: 'GET',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            console.error('Failed to fetch balance:', response.status);
-            return;
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.balance_naira) {
-            // Remove commas from the API response before parsing
-            const balanceValue = data.balance_naira.replace(/,/g, '');
-            const numericBalance = parseFloat(balanceValue);
-            
-            // Update desktop balance display
-            const desktopBalanceElement = document.querySelector('.navbar-right .balance-amount');
-            if (desktopBalanceElement) {
-                desktopBalanceElement.textContent = `₦${formatCurrency(numericBalance)}`;
-            }
-            
-            // Update mobile balance display
-            const mobileBalanceElement = document.querySelector('.mobile-user-info .user-balance');
-            if (mobileBalanceElement) {
-                mobileBalanceElement.textContent = `Balance: ₦${formatCurrency(numericBalance)}`;
-            }
-        }
-    } catch (error) {
-        console.error('Error updating balance:', error);
-    }
-}
-
-// Favorite services management
-function loadFavorites() {
-    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
-    
-    favorites.forEach(serviceCode => {
-        const row = document.querySelector(`[data-code="${serviceCode}"]`);
-        if (row) {
-            const favoriteBtn = row.querySelector('.favorite-btn');
-            const heartIcon = favoriteBtn.querySelector('span');
-            
-            favoriteBtn.setAttribute('data-favorite', 'true');
-            heartIcon.textContent = '♥';
-            heartIcon.className = 'text-danger';
-        }
-    });
-    
-    // Sort services after loading favorites
-    sortServicesByFavorites();
-}
-
-function addFavorite(serviceCode) {
-    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
-    if (!favorites.includes(serviceCode)) {
-        favorites.push(serviceCode);
-        localStorage.setItem('favoriteServices', JSON.stringify(favorites));
-    }
-}
-
-function removeFavorite(serviceCode) {
-    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
-    const index = favorites.indexOf(serviceCode);
-    if (index > -1) {
-        favorites.splice(index, 1);
-        localStorage.setItem('favoriteServices', JSON.stringify(favorites));
-    }
-}
-
-function sortServicesByFavorites() {
-    const tbody = document.querySelector('.table.table-hover.mb-0.table-sm tbody');
-    if (!tbody) return;
-    
-    const rows = Array.from(tbody.querySelectorAll('.service-row'));
-    
-    // Sort rows: favorites first, then alphabetically
-    rows.sort((a, b) => {
-        const aIsFavorite = a.querySelector('.favorite-btn').getAttribute('data-favorite') === 'true';
-        const bIsFavorite = b.querySelector('.favorite-btn').getAttribute('data-favorite') === 'true';
-        
-        // If both are favorites or both are not favorites, sort alphabetically
-        if (aIsFavorite === bIsFavorite) {
-            const aName = a.getAttribute('data-service').toLowerCase();
-            const bName = b.getAttribute('data-service').toLowerCase();
-            return aName.localeCompare(bName);
-        }
-        
-        // Favorites come first
-        return bIsFavorite - aIsFavorite;
-    });
-    
-    // Re-append rows in sorted order
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-// Validation tooltip functions
-function showValidationTooltip(element, message) {
-    hideValidationTooltip(element); // Remove any existing tooltip
-    
-    const tooltip = document.createElement('div');
-    tooltip.className = 'validation-tooltip';
-    tooltip.textContent = message;
-    tooltip.style.cssText = `
-        position: absolute;
-        background: #dc3545;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        z-index: 1000;
-        max-width: 200px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        top: 100%;
-        left: 0;
-        margin-top: 0.25rem;
-    `;
-    
-    const container = element.closest('.input-group');
-    container.style.position = 'relative';
-    container.appendChild(tooltip);
-    
-    // Store reference for cleanup
-    element._validationTooltip = tooltip;
-}
-
-function hideValidationTooltip(element) {
-    if (element._validationTooltip) {
-        element._validationTooltip.remove();
-        element._validationTooltip = null;
-    }
-}
-
-// Input validation for settings
-function validateAreaCodes(input) {
-    const areaCodes = input.split(',').map(code => code.trim()).filter(code => code);
-    const validCodes = areaCodes.filter(code => /^\d{3}$/.test(code));
-    
-    if (areaCodes.length !== validCodes.length) {
-        return false;
-    }
-    return true;
-}
-
-function validateCarriers(input) {
-    const carriers = input.split(',').map(carrier => carrier.trim().toLowerCase()).filter(carrier => carrier);
-    const validCarriers = ['tmo', 'vz', 'att'];
-    
-    return carriers.every(carrier => validCarriers.includes(carrier));
-}
-
-function validatePhoneNumber(input) {
-    console.log('Validating phone number input:', input, 'Type:', typeof input);
-    
-    if (!input) {
-        console.log('Phone validation: input is empty');
-        return true; // Empty is valid (optional field)
-    }
-    
-    const digitsOnly = input.replace(/\D/g, '');
-    console.log('Digits only:', digitsOnly, 'Length:', digitsOnly.length);
-    
-    // Must be exactly 10 digits
-    if (digitsOnly.length !== 10) {
-        console.log('Phone validation failed: length is not 10');
-        return false;
-    }
-    
-    // Basic validation: cannot start with 0 or 1, cannot be all same digits
-    if (digitsOnly.charAt(0) === '0' || digitsOnly.charAt(0) === '1') {
-        console.log('Phone validation failed: starts with 0 or 1');
-        return false;
-    }
-    
-    // Reject obviously invalid numbers (all same digit, etc.)
-    if (/^(\d)\1{9}$/.test(digitsOnly)) {
-        console.log('Phone validation failed: all same digits');
-        return false;
-    }
-    
-    console.log('Phone validation passed');
-    return true;
-}
-
-// Debug function for testing phone validation
-function testPhoneValidation(phoneNumber) {
-    console.log('Testing phone number:', phoneNumber);
-    const result = validatePhoneNumber(phoneNumber);
-    console.log('Validation result:', result);
-    return result;
-}
-
-// Handle "service not listed" option
-function handleServiceNotListed(searchTerm, hasVisibleServices) {
-    const tbody = document.querySelector('.table.table-hover.mb-0.table-sm tbody');
-    let serviceNotListedRow = document.getElementById('service-not-listed-row');
-    
-    // Remove existing "service not listed" row if it exists
-    if (serviceNotListedRow) {
-        serviceNotListedRow.remove();
-    }
-    
-    // Only show "service not listed" if there's a search term and no visible services
-    if (searchTerm.trim() && !hasVisibleServices) {
-        // Create "service not listed" row
-        serviceNotListedRow = document.createElement('tr');
-        serviceNotListedRow.id = 'service-not-listed-row';
-        serviceNotListedRow.className = 'service-row';
-        serviceNotListedRow.setAttribute('data-service', 'Service Not Listed');
-        serviceNotListedRow.setAttribute('data-code', 'service_not_listed');
-        
-        serviceNotListedRow.innerHTML = `
-            <td class="service-name">
-                <div class="fw-medium" style="font-size: 0.85rem;">
-                    <i class="fas fa-plus-circle me-2 text-primary"></i>Service Not Listed
-                </div>
-            </td>
-            <td class="price">
-                <div class="fw-medium" style="font-size: 0.85rem;" id="service-not-listed-price">Loading...</div>
-            </td>
-            <td class="text-center">
-                <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
-                    <span class="text-muted">♡</span>
-                </button>
-            </td>
-        `;
-        
-        // Add click handler for service not listed
-        serviceNotListedRow.addEventListener('click', function(e) {
-            if (e.target.closest('.favorite-btn')) {
-                return;
-            }
-            
-            const serviceName = 'Service Not Listed';
-            const serviceCode = 'service_not_listed';
-            
-            // Get settings values
-            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
-            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
-            const phoneRaw = document.getElementById('phone').value.trim();
-            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null;
-            
-            console.log('Renting service not listed:', { serviceCode, areaCodes, carriers, phone });
-            rentNumber(serviceCode, areaCodes, carriers, phone);
-        });
-        
-        // Insert at the beginning of tbody
-        tbody.insertBefore(serviceNotListedRow, tbody.firstChild);
-        
-        // Fetch and display the price for "service not listed"
-        fetchServiceNotListedPrice();
-    }
-}
-
-// Fetch price for "Service Not Listed" from backend
-async function fetchServiceNotListedPrice() {
-    try {
-        const response = await fetch('/api/services/');
-        const data = await response.json();
-        
-        console.log('Services API response:', data); // Debug log
-        
-        if (data.services) {
-            const serviceNotListed = data.services.find(service => 
-                service.name === 'Service Not Listed' || service.code === 'service_not_listed'
-            );
-            
-            console.log('Found Service Not Listed:', serviceNotListed); // Debug log
-            
-            if (serviceNotListed) {
-                const priceElement = document.getElementById('service-not-listed-price');
-                if (priceElement) {
-                    // The price_naira is already formatted, so use it directly
-                    priceElement.textContent = `₦${serviceNotListed.price_naira}`;
-                }
             } else {
-                console.warn('Service Not Listed not found in services list');
-                // Fallback: try to create the service
-                await createServiceNotListed();
-            }
-        } else {
-            console.error('No services data in API response');
-        }
-    } catch (error) {
-        console.error('Error fetching service not listed price:', error);
-        const priceElement = document.getElementById('service-not-listed-price');
-        if (priceElement) {
-            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
-            priceElement.style.color = '#dc3545'; // Error color
-        }
-    }
-}
-
-// Create Service Not Listed if it doesn't exist
-async function createServiceNotListed() {
-    try {
-        console.log('Attempting to create Service Not Listed...');
-        
-        const response = await fetch('/api/create-service-not-listed/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                // Time expired - remove the row
+                console.log(`Order ${orderId} expired, removing row`);
+                row.remove();
+                
+                // Check if table is empty (only has noOrdersRow)
+                const tbody = document.getElementById('ordersTableBody');
+                const noOrdersRow = document.getElementById('noOrdersRow');
+                const remainingOrders = tbody ? tbody.querySelectorAll('tr:not(#noOrdersRow)') : [];
+                
+                if (remainingOrders.length === 0 && noOrdersRow) {
+                    noOrdersRow.style.display = '';
+                }
             }
         });
+    }
+    
+    async checkOrdersForSMS() {
+        const orderRows = document.querySelectorAll('[data-order-id]');
         
-        const data = await response.json();
-        
-        if (data.success) {
-            console.log('Service Not Listed created/exists:', data.service);
+        for (const row of orderRows) {
+            const orderId = row.dataset.orderId;
+            const status = row.dataset.status;
+            const codeElement = document.getElementById(`code-${orderId}`);
             
-            // Update the price element
-            const priceElement = document.getElementById('service-not-listed-price');
-            if (priceElement && data.service) {
-                // The price_naira is already formatted, so use it directly
-                priceElement.textContent = `₦${data.service.price_naira}`;
-                priceElement.style.color = ''; // Remove warning color
-                priceElement.title = '';
+            // Skip if already has SMS code displayed
+            if (codeElement && codeElement.querySelector('code.text-success')) {
+                continue;
             }
             
-            if (data.message.includes('created')) {
-                showNotification('Service Not Listed has been set up successfully!', 'success');
-            }
-        } else {
-            console.error('Failed to create Service Not Listed:', data);
-            const priceElement = document.getElementById('service-not-listed-price');
-            if (priceElement) {
-                priceElement.textContent = 'Admin setup required'; // Show setup message instead of fallback
-                priceElement.style.color = '#ffc107'; // Warning color
-                priceElement.title = 'Service needs admin setup';
+            // Skip if order is already finished/cancelled
+            if (status === 'FINISHED' || status === 'CANCELLED') {
+                continue;
             }
             
-            showNotification('Please contact administrator to set up "Service Not Listed" in Django Admin.', 'warning');
-        }
-    } catch (error) {
-        console.error('Error creating service not listed:', error);
-        const priceElement = document.getElementById('service-not-listed-price');
-        if (priceElement) {
-            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
-            priceElement.style.color = '#dc3545'; // Error color
-            priceElement.title = 'Service needs admin setup';
+            try {
+                const response = await fetch(`/api/5sim/order/${orderId}/status/`);
+                const result = await response.json();
+                
+                if (result.success && result.sms_code) {
+                    // Update the code cell with the actual SMS code
+                    codeElement.innerHTML = `<code class="text-success">${result.sms_code}</code>`;
+                    
+                    // Update dataset status
+                    row.dataset.status = result.status || 'RECEIVED';
+                    
+                    // The TTL will be updated to show ✅ in the next timer update
+                    
+                    // Show success notification
+                    this.showToast(`SMS code received for ${result.phone_number || 'your number'}!`, 'success');
+                }
+            } catch (error) {
+                console.warn(`Failed to check SMS for order ${orderId}:`, error);
+            }
         }
     }
-}
-
-// Fetch real-time prices from DaisySMS API (optional feature)
-async function fetchRealtimePrices() {
-    try {
-        const response = await fetch('/api/realtime-prices/');
-        const data = await response.json();
-        
-        if (data.success && data.realtime_prices) {
-            console.log('Real-time prices from DaisySMS:', data.realtime_prices);
+    
+    async cancelOrder(orderId) {
+        try {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
             
-            // Update service availability based on real-time data
-            const serviceRows = document.querySelectorAll('.service-row');
-            serviceRows.forEach(row => {
-                const serviceCode = row.getAttribute('data-code');
-                if (serviceCode && data.realtime_prices[serviceCode]) {
-                    const realtimeData = data.realtime_prices[serviceCode];
-                    const availabilityElement = row.querySelector('.availability-count');
-                    if (availabilityElement) {
-                        availabilityElement.textContent = `${realtimeData.count} available`;
-                    }
+            const response = await fetch(`/api/5sim/order/${orderId}/cancel/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
                 }
             });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Show refund message
+                const refundMessage = result.message || 'Order cancelled successfully';
+                this.showToast(refundMessage, 'success');
+                
+                // Refresh user balance
+                this.refreshUserBalance();
+                
+                // Remove the row from table immediately
+                const row = document.getElementById(`order-${orderId}`);
+                if (row) {
+                    row.remove();
+                    console.log(`Order ${orderId} cancelled and row removed`);
+                    
+                    // Check if table is empty and show "no orders" message if needed
+                    const tbody = document.getElementById('ordersTableBody');
+                    const noOrdersRow = document.getElementById('noOrdersRow');
+                    const remainingOrders = tbody ? tbody.querySelectorAll('tr:not(#noOrdersRow)') : [];
+                    
+                    if (remainingOrders.length === 0 && noOrdersRow) {
+                        noOrdersRow.style.display = '';
+                        console.log('No more orders - showing no orders message');
+                    }
+                } else {
+                    console.warn(`Row with ID order-${orderId} not found for removal`);
+                    // Fallback: reload the entire orders table
+                    this.loadRecentOrders();
+                }
+            } else {
+                this.showToast('Failed to cancel order: ' + (result.error || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Error cancelling order:', error);
+            this.showToast('Network error occurred while cancelling order', 'error');
         }
+    }
+    
+    async refreshUserBalance() {
+        try {
+            const response = await fetch('/api/balance/');
+            if (response.ok) {
+                const data = await response.json();
+                const navbarBalanceElement = document.getElementById('navbar-balance');
+                if (navbarBalanceElement && data.balance_naira) {
+                    navbarBalanceElement.textContent = `₦${data.balance_naira}`;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh balance:', error);
+        }
+    }
+    
+    showToast(message, type = 'info') {
+        const alertClass = type === 'error' ? 'danger' : type;
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${alertClass} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = `
+            top: 20px; 
+            right: 20px; 
+            left: 20px;
+            z-index: 9999; 
+            max-width: 350px;
+            font-size: 0.875rem;
+            word-wrap: break-word;
+        `;
+        
+        // Make it responsive for mobile
+        if (window.innerWidth <= 768) {
+            toast.style.cssText = `
+                top: 20px; 
+                left: 10px; 
+                right: 10px;
+                z-index: 9999; 
+                font-size: 0.8rem;
+                word-wrap: break-word;
+            `;
+        }
+        
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 4000); // Reduced from 5000 to 4000ms
+    }
+}
+
+// Global function to refresh balance from anywhere
+window.refreshUserBalance = async function() {
+    if (window.dashboard && window.dashboard.refreshUserBalance) {
+        await window.dashboard.refreshUserBalance();
+    } else {
+        // Fallback if dashboard is not available
+        try {
+            const response = await fetch('/api/balance/');
+            if (response.ok) {
+                const data = await response.json();
+                const navbarBalanceElement = document.getElementById('navbar-balance');
+                if (navbarBalanceElement && data.balance_naira) {
+                    navbarBalanceElement.textContent = `₦${data.balance_naira}`;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh balance:', error);
+        }
+    }
+};
+
+// Initialize dashboard when page loads
+let dashboard;
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOM Content Loaded - initializing dashboard...');
+    
+    // Add a simple test event listener to verify button works
+    const testBtn = document.getElementById('purchaseBtn');
+    if (testBtn) {
+        console.log('🔍 Adding test event listener to purchase button...');
+        testBtn.addEventListener('click', (e) => {
+            console.log('🔥 BUTTON CLICKED! Event:', e);
+            console.log('🔥 Button element:', e.target);
+        });
+    } else {
+        console.error('❌ Purchase button not found for test listener!');
+    }
+    
+    try {
+        dashboard = new SMSDashboard();
+        console.log('✅ Dashboard instance created:', dashboard);
     } catch (error) {
-        console.error('Error fetching real-time prices:', error);
+        console.error('❌ Error creating dashboard:', error);
     }
-}
-
-// Auto-sync prices every 30 seconds (optional)
-function enableAutoSync() {
-    // Fetch real-time data on page load
-    fetchRealtimePrices();
-    
-    // Set up periodic sync every 30 seconds
-    setInterval(() => {
-        fetchRealtimePrices();
-    }, 30000);
-}
-
-enableAutoSync();
+});
 </script>
-
-<style>
-/* Mobile optimization for services table */
-@media screen and (max-width: 767px) {
-    .services-table-container {
-        height: 320px !important; /* Increased height to show at least 4 service rows on mobile */
-    }
-    
-    /* Optimize table row spacing on mobile */
-    .services-table-container .table-sm > tbody > tr > td {
-        padding: 0.5rem 0.25rem;
-        vertical-align: middle;
-    }
-    
-    .services-table-container .table-sm > thead > tr > th {
-        padding: 0.5rem 0.25rem;
-        vertical-align: middle;
-    }
-}
-
-/* Tablet optimization */
-@media screen and (min-width: 768px) and (max-width: 991px) {
-    .services-table-container {
-        height: 300px !important; /* Slightly increased for tablets */
-    }
-}
-</style>
 
 {% endblock %}

@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - 5sim.net{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list"></i> My 5sim Orders</h5>
+                    <div>
+                        <span class="badge bg-info me-2">{{ active_orders }} Active</span>
+                        <a href="{% url 'purchase' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> New Purchase
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Phone Number</th>
+                                        <th>Service</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                        <th>SMS Count</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                        <tr>
+                                            <td>
+                                                <small class="font-monospace">{{ order.order_id }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ order.phone_number }}</strong>
+                                                {% if order.country %}
+                                                    <br><small class="text-muted">{{ order.country }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ order.product }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if order.order_type == 'ACTIVATION' %}primary{% else %}success{% endif %}">
+                                                    {{ order.order_type }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if order.status == 'FINISHED' %}success{% elif order.status == 'PENDING' %}warning{% elif order.status == 'RECEIVED' %}info{% elif order.status == 'CANCELLED' %}secondary{% else %}dark{% endif %}">
+                                                    {{ order.status }}
+                                                </span>
+                                            </td>
+                                            <td>₦{{ order.price_naira|floatformat:0 }}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">{{ order.sms_messages.count }}</span>
+                                            </td>
+                                            <td>
+                                                <small>{{ order.created_at|date:"M d, Y H:i" }}</small>
+                                                {% if order.expires_at and order.status in 'PENDING,RECEIVED' %}
+                                                    <br><small class="text-{% if order.get_time_left_minutes < 5 %}danger{% elif order.get_time_left_minutes < 15 %}warning{% else %}muted{% endif %}">
+                                                        Expires: {{ order.get_time_left }}
+                                                    </small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'order_detail' order.order_id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if order.status in 'PENDING,RECEIVED' %}
+                                                        <button class="btn btn-sm btn-outline-info refresh-order" data-order-id="{{ order.order_id }}">
+                                                            <i class="fas fa-refresh"></i>
+                                                        </button>
+                                                        {% if order.status == 'RECEIVED' %}
+                                                            <button class="btn btn-sm btn-outline-success finish-order" data-order-id="{{ order.order_id }}">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        {% endif %}
+                                                        {% if order.status == 'PENDING' %}
+                                                            <button class="btn btn-sm btn-outline-danger cancel-order" data-order-id="{{ order.order_id }}">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if orders.has_other_pages %}
+                            <nav aria-label="Orders pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if orders.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in orders.paginator.page_range %}
+                                        {% if orders.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if orders.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.next_page_number }}">Next</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No orders yet</h5>
+                            <p class="text-muted">Start by purchasing your first SMS number</p>
+                            <a href="{% url 'purchase' %}" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart"></i> Purchase Now
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Auto-refresh active orders every 30 seconds
+    setInterval(function() {
+        $('.refresh-order').each(function() {
+            const orderId = $(this).data('order-id');
+            refreshOrder(orderId, false); // Silent refresh
+        });
+    }, 30000);
+    
+    // Manual refresh button click
+    $('.refresh-order').click(function() {
+        const orderId = $(this).data('order-id');
+        refreshOrder(orderId, true);
+    });
+    
+    // Finish order button click
+    $('.finish-order').click(function() {
+        const orderId = $(this).data('order-id');
+        if (confirm('Are you sure you want to mark this order as finished?')) {
+            finishOrder(orderId);
+        }
+    });
+    
+    // Cancel order button click
+    $('.cancel-order').click(function() {
+        const orderId = $(this).data('order-id');
+        if (confirm('Are you sure you want to cancel this order?')) {
+            cancelOrder(orderId);
+        }
+    });
+    
+    function refreshOrder(orderId, showFeedback = false) {
+        const button = $(`.refresh-order[data-order-id="${orderId}"]`);
+        
+        if (showFeedback) {
+            button.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        }
+        
+        $.get(`/api/5sim/order/${orderId}/status/`)
+            .done(function(response) {
+                if (response.success) {
+                    // Update the row
+                    updateOrderRow(orderId, response);
+                    
+                    if (showFeedback) {
+                        showToast('Order status updated', 'success');
+                    }
+                } else if (showFeedback) {
+                    showToast('Failed to refresh order: ' + response.error, 'error');
+                }
+            })
+            .fail(function() {
+                if (showFeedback) {
+                    showToast('Network error while refreshing order', 'error');
+                }
+            })
+            .always(function() {
+                if (showFeedback) {
+                    button.html('<i class="fas fa-refresh"></i>').prop('disabled', false);
+                }
+            });
+    }
+    
+    function finishOrder(orderId) {
+        const button = $(`.finish-order[data-order-id="${orderId}"]`);
+        button.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        
+        $.post(`/api/5sim/order/${orderId}/finish/`, {
+            csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+        })
+            .done(function(response) {
+                if (response.success) {
+                    showToast('Order marked as finished', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Failed to finish order: ' + response.error, 'error');
+                }
+            })
+            .fail(function() {
+                showToast('Network error while finishing order', 'error');
+            })
+            .always(function() {
+                button.html('<i class="fas fa-check"></i>').prop('disabled', false);
+            });
+    }
+    
+    function cancelOrder(orderId) {
+        const button = $(`.cancel-order[data-order-id="${orderId}"]`);
+        button.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        
+        $.post(`/api/5sim/order/${orderId}/cancel/`, {
+            csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+        })
+            .done(function(response) {
+                if (response.success) {
+                    showToast('Order cancelled', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Failed to cancel order: ' + response.error, 'error');
+                }
+            })
+            .fail(function() {
+                showToast('Network error while cancelling order', 'error');
+            })
+            .always(function() {
+                button.html('<i class="fas fa-times"></i>').prop('disabled', false);
+            });
+    }
+    
+    function updateOrderRow(orderId, data) {
+        // This function would update the specific row in the table
+        // For simplicity, we'll just reload the page for now
+        // In a real app, you'd update the specific row elements
+    }
+    
+    function showToast(message, type = 'info') {
+        const alertClass = type === 'error' ? 'danger' : type;
+        const toast = $(`
+            <div class="alert alert-${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+        
+        $('body').append(toast);
+        setTimeout(() => toast.alert('close'), 5000);
+    }
+});
+</script>
+{% endblock %}

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wii#$5*70*0-)hdw%_hb^6(j%l*@4r^($4#zx-#@_ej972nu&t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.youngpgvirtual.com','youngpgvirtual.com', '127.0.0.1']
 
 
 # Application definition
@@ -63,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.global_context',
             ],
         },
     },
@@ -138,12 +139,12 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # Password Reset Settings
-PASSWORD_RESET_TIMEOUT = 3600 
+PASSWORD_RESET_TIMEOUT = 3600
 
 # Authentication Configuration
 AUTHENTICATION_BACKENDS = [
-    'app.auth_backends.EmailOrUsernameModelBackend', 
-    'django.contrib.auth.backends.ModelBackend',     
+    'app.auth_backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 LOGIN_URL = '/login/'
@@ -196,5 +197,14 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
-
-
+# Cache Configuration for API responses
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}

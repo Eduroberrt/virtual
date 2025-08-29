@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.order_id }} - 5sim.net{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-receipt"></i> Order Details</h5>
+                    <div>
+                        {% if order.status in 'PENDING,RECEIVED' %}
+                            <button class="btn btn-sm btn-outline-info me-2" id="refreshOrder">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                            {% if order.status == 'RECEIVED' %}
+                                <button class="btn btn-sm btn-success me-2" id="finishOrder">
+                                    <i class="fas fa-check"></i> Finish
+                                </button>
+                            {% endif %}
+                            {% if order.status == 'PENDING' %}
+                                <button class="btn btn-sm btn-danger me-2" id="cancelOrder">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                        <a href="{% url 'orders' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Orders
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Order Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Order ID:</strong></td>
+                                    <td><span class="font-monospace">{{ order.order_id }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phone Number:</strong></td>
+                                    <td>
+                                        <strong class="text-primary">{{ order.phone_number }}</strong>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ order.phone_number }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Service:</strong></td>
+                                    <td>{{ order.product }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Type:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if order.order_type == 'ACTIVATION' %}primary{% else %}success{% endif %}">
+                                            {{ order.order_type }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span id="orderStatus" class="badge bg-{% if order.status == 'FINISHED' %}success{% elif order.status == 'PENDING' %}warning{% elif order.status == 'RECEIVED' %}info{% elif order.status == 'CANCELLED' %}secondary{% else %}dark{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                {% if order.country %}
+                                <tr>
+                                    <td><strong>Country:</strong></td>
+                                    <td>{{ order.country }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if order.operator %}
+                                <tr>
+                                    <td><strong>Operator:</strong></td>
+                                    <td>{{ order.operator }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>Price:</strong></td>
+                                    <td>₦{{ order.price_naira|floatformat:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% if order.expires_at %}
+                                <tr>
+                                    <td><strong>Expires:</strong></td>
+                                    <td id="expiresAt">
+                                        {{ order.expires_at|date:"M d, Y H:i" }}
+                                        {% if order.status in 'PENDING,RECEIVED' %}
+                                            <br><small class="text-{% if order.get_time_left_minutes < 5 %}danger{% elif order.get_time_left_minutes < 15 %}warning{% else %}muted{% endif %}">
+                                                <span id="timeLeft">{{ order.get_time_left }}</span>
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Options -->
+                    {% if order.forwarding or order.reuse_enabled or order.voice_enabled %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-cog"></i> Additional Options:</h6>
+                            <ul class="mb-0">
+                                {% if order.forwarding %}
+                                    <li>Forwarding enabled{% if order.forwarding_number %} to {{ order.forwarding_number }}{% endif %}</li>
+                                {% endif %}
+                                {% if order.reuse_enabled %}
+                                    <li>Number reuse enabled</li>
+                                {% endif %}
+                                {% if order.voice_enabled %}
+                                    <li>Voice messages enabled</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- SMS Messages -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6><i class="fas fa-sms"></i> SMS Messages</h6>
+                    <span class="badge bg-primary" id="smsCount">{{ sms_messages.count }}</span>
+                </div>
+                <div class="card-body">
+                    <div id="smsContainer">
+                        {% if sms_messages %}
+                            {% for sms in sms_messages %}
+                                <div class="sms-message mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong class="text-primary">{{ sms.sender|default:"Unknown" }}</strong>
+                                        <small class="text-muted">{{ sms.date|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <div class="sms-text mb-2">{{ sms.text }}</div>
+                                    {% if sms.code %}
+                                        <div class="sms-code">
+                                            <strong>Verification Code:</strong>
+                                            <span class="badge bg-success font-monospace">{{ sms.code }}</span>
+                                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('{{ sms.code }}')">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4" id="noSmsMessage">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <p>No SMS messages yet</p>
+                                {% if order.status == 'PENDING' %}
+                                    <small>Waiting for messages...</small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Actions -->
+            {% if order.status in 'PENDING,RECEIVED' %}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="fas fa-tools"></i> Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if order.status == 'PENDING' %}
+                            <p class="small text-muted">
+                                This order is waiting for SMS messages. You can cancel it if you no longer need it.
+                            </p>
+                        {% elif order.status == 'RECEIVED' %}
+                            <p class="small text-muted">
+                                SMS messages have been received. Mark as finished when you're done.
+                            </p>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-info btn-sm" onclick="refreshOrder()">
+                                <i class="fas fa-refresh"></i> Check for New Messages
+                            </button>
+                            {% if order.status == 'RECEIVED' %}
+                                <button class="btn btn-success btn-sm" onclick="finishOrder()">
+                                    <i class="fas fa-check"></i> Mark as Finished
+                                </button>
+                            {% endif %}
+                            {% if order.status == 'PENDING' %}
+                                <button class="btn btn-danger btn-sm" onclick="cancelOrder()">
+                                    <i class="fas fa-times"></i> Cancel Order
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+const orderId = '{{ order.order_id }}';
+let autoRefreshInterval;
+
+$(document).ready(function() {
+    // Auto-refresh if order is active
+    {% if order.status in 'PENDING,RECEIVED' %}
+        autoRefreshInterval = setInterval(refreshOrder, 15000); // Every 15 seconds
+    {% endif %}
+    
+    // Update countdown timer every second
+    {% if order.expires_at and order.status in 'PENDING,RECEIVED' %}
+        setInterval(updateCountdown, 1000);
+    {% endif %}
+});
+
+function refreshOrder() {
+    const button = $('#refreshOrder, button[onclick="refreshOrder()"]');
+    button.html('<i class="fas fa-spinner fa-spin"></i> Refreshing...').prop('disabled', true);
+    
+    $.get(`/api/5sim/order/${orderId}/status/`)
+        .done(function(response) {
+            if (response.success) {
+                // Update status
+                const statusBadge = $('#orderStatus');
+                statusBadge.removeClass().addClass('badge');
+                
+                if (response.status === 'FINISHED') {
+                    statusBadge.addClass('bg-success');
+                    clearInterval(autoRefreshInterval);
+                } else if (response.status === 'PENDING') {
+                    statusBadge.addClass('bg-warning');
+                } else if (response.status === 'RECEIVED') {
+                    statusBadge.addClass('bg-info');
+                } else if (response.status === 'CANCELLED') {
+                    statusBadge.addClass('bg-secondary');
+                    clearInterval(autoRefreshInterval);
+                } else {
+                    statusBadge.addClass('bg-dark');
+                }
+                statusBadge.text(response.status);
+                
+                // Update SMS messages
+                updateSmsMessages(response.sms_messages);
+                
+                // Update time left
+                if (response.time_left) {
+                    $('#timeLeft').text(response.time_left);
+                }
+                
+                showToast('Order status updated', 'success');
+            } else {
+                showToast('Failed to refresh: ' + response.error, 'error');
+            }
+        })
+        .fail(function() {
+            showToast('Network error while refreshing', 'error');
+        })
+        .always(function() {
+            button.html('<i class="fas fa-refresh"></i> Refresh').prop('disabled', false);
+            $('button[onclick="refreshOrder()"]').html('<i class="fas fa-refresh"></i> Check for New Messages');
+        });
+}
+
+function finishOrder() {
+    if (!confirm('Are you sure you want to mark this order as finished?')) {
+        return;
+    }
+    
+    const button = $('#finishOrder, button[onclick="finishOrder()"]');
+    button.html('<i class="fas fa-spinner fa-spin"></i> Finishing...').prop('disabled', true);
+    
+    $.post(`/api/5sim/order/${orderId}/finish/`, {
+        csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+    })
+        .done(function(response) {
+            if (response.success) {
+                showToast('Order marked as finished', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('Failed to finish order: ' + response.error, 'error');
+            }
+        })
+        .fail(function() {
+            showToast('Network error while finishing order', 'error');
+        })
+        .always(function() {
+            button.html('<i class="fas fa-check"></i> Finish').prop('disabled', false);
+            $('button[onclick="finishOrder()"]').html('<i class="fas fa-check"></i> Mark as Finished');
+        });
+}
+
+function cancelOrder() {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+        return;
+    }
+    
+    const button = $('#cancelOrder, button[onclick="cancelOrder()"]');
+    button.html('<i class="fas fa-spinner fa-spin"></i> Cancelling...').prop('disabled', true);
+    
+    $.post(`/api/5sim/order/${orderId}/cancel/`, {
+        csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+    })
+        .done(function(response) {
+            if (response.success) {
+                showToast('Order cancelled', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('Failed to cancel order: ' + response.error, 'error');
+            }
+        })
+        .fail(function() {
+            showToast('Network error while cancelling order', 'error');
+        })
+        .always(function() {
+            button.html('<i class="fas fa-times"></i> Cancel').prop('disabled', false);
+            $('button[onclick="cancelOrder()"]').html('<i class="fas fa-times"></i> Cancel Order');
+        });
+}
+
+function updateSmsMessages(smsMessages) {
+    const container = $('#smsContainer');
+    const countBadge = $('#smsCount');
+    
+    if (smsMessages && smsMessages.length > 0) {
+        let html = '';
+        smsMessages.forEach(function(sms) {
+            const date = new Date(sms.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += `
+                <div class="sms-message mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong class="text-primary">${sms.sender || 'Unknown'}</strong>
+                        <small class="text-muted">${date}</small>
+                    </div>
+                    <div class="sms-text mb-2">${sms.text}</div>
+            `;
+            
+            if (sms.code) {
+                html += `
+                    <div class="sms-code">
+                        <strong>Verification Code:</strong>
+                        <span class="badge bg-success font-monospace">${sms.code}</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('${sms.code}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+        });
+        
+        container.html(html);
+        countBadge.text(smsMessages.length);
+    } else {
+        container.html(`
+            <div class="text-center text-muted py-4" id="noSmsMessage">
+                <i class="fas fa-inbox fa-2x mb-2"></i>
+                <p>No SMS messages yet</p>
+                <small>Waiting for messages...</small>
+            </div>
+        `);
+        countBadge.text('0');
+    }
+}
+
+function updateCountdown() {
+    const expiresAt = new Date('{{ order.expires_at|date:"c" }}');
+    const now = new Date();
+    const diff = expiresAt - now;
+    
+    if (diff <= 0) {
+        $('#timeLeft').text('Expired').removeClass().addClass('text-danger');
+        clearInterval(autoRefreshInterval);
+        return;
+    }
+    
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    let timeText = '';
+    if (minutes > 0) {
+        timeText = `${minutes}m ${seconds}s`;
+    } else {
+        timeText = `${seconds}s`;
+    }
+    
+    const timeElement = $('#timeLeft');
+    timeElement.text(timeText);
+    
+    // Update color based on time left
+    timeElement.removeClass('text-danger text-warning text-muted');
+    if (minutes < 5) {
+        timeElement.addClass('text-danger');
+    } else if (minutes < 15) {
+        timeElement.addClass('text-warning');
+    } else {
+        timeElement.addClass('text-muted');
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        showToast('Copied to clipboard', 'success');
+    }).catch(function() {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('Copied to clipboard', 'success');
+    });
+}
+
+function showToast(message, type = 'info') {
+    const alertClass = type === 'error' ? 'danger' : type;
+    const toast = $(`
+        <div class="alert alert-${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    setTimeout(() => toast.alert('close'), 5000);
+}
+</script>
+{% endblock %}

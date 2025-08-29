@@ -1,60 +1,444 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Young PG Virtual - Instant SMS Verification Numbers & 2FA Services Nigeria{% endblock %}
+{% block title %}Virtual Numbers for Receiving SMS - Young PG Virtual{% endblock %}
 
-{% block meta_description %}Get instant SMS verification numbers for WhatsApp, Telegram, Facebook, and 200+ services. Secure virtual phone numbers starting from ₦825 only on Young PG Virtual.{% endblock %}
+{% block meta_description %}Get virtual phone numbers from 180+ countries. Over 500,000 numbers available for SMS verification. Starting from just ₦825. Instant delivery, 24/7 support.{% endblock %}
 
-{% block meta_keywords %}SMS verification Nigeria, virtual phone number, 2FA authentication, temporary phone number, verification code, OTP SMS, WhatsApp verification, Telegram verification, Facebook verification, Instagram verification, secure phone verification{% endblock %}
+{% block meta_keywords %}virtual phone numbers, SMS verification, virtual numbers, receive SMS online, temporary phone numbers, 180 countries, instant SMS, verification codes{% endblock %}
 
-{% block og_title %}Young PG Virtual - Instant SMS Verification Numbers Nigeria{% endblock %}
-{% block og_description %}Get instant SMS verification numbers for all major services. Secure, private virtual phone numbers starting from ₦825 only on Young PG Virtual.{% endblock %}
+{% block og_title %}Virtual Numbers for Receiving SMS - Young PG Virtual{% endblock %}
+{% block og_description %}Over 500,000 virtual numbers from 180+ countries. Get instant SMS verification for any service. Starting from ₦825 only.{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Homepage specific styles */
+.homepage-hero {
+    background: #ffffff;
+    padding: 60px 0 80px;
+    border-bottom: 1px solid #e8ecef;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: left;
+}
+
+.hero-image {
+    position: relative;
+    z-index: 1;
+    margin-top: 40px;
+}
+
+.phone-mockup {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    animation: bounceFloat 3s ease-in-out infinite;
+    filter: drop-shadow(0 20px 40px rgba(0, 123, 255, 0.15));
+}
+
+@keyframes bounceFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* Desktop only animation - disable on mobile */
+@media (max-width: 991px) {
+    .hero-image {
+        display: none;
+    }
+    
+    .hero-content {
+        text-align: left;
+    }
+    
+    .hero-badge {
+        text-align: left;
+    }
+    
+    .hero-cta {
+        text-align: left;
+    }
+}
+
+.hero-badge {
+    display: inline-block;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #6c757d;
+    font-weight: 400;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+.hero-cta {
+    background: #198754;
+    color: white;
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    display: inline-block;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.hero-cta:hover {
+    background: #146c43;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.features-section {
+    padding: 80px 0;
+    background: #ffffff;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #212529;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 60px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.feature-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 40px 30px;
+    text-align: center;
+    height: 100%;
+    /* Removed transition and hover effects */
+}
+
+/* .feature-card:hover {
+    border-color: #007bff;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 123, 255, 0.1);
+} */
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    background: #e3f2fd;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 24px;
+    color: #007bff;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 16px;
+}
+
+.feature-description {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.how-it-works {
+    background: #f8f9fa;
+    padding: 80px 0;
+}
+
+.step-card {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    height: 100%;
+    position: relative;
+}
+
+.step-number {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.step-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 12px;
+    margin-top: 20px;
+}
+
+.step-description {
+    color: #6c757d;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.who-benefits {
+    background: #ffffff;
+    padding: 80px 0;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.benefit-item:hover {
+    background: #e3f2fd;
+}
+
+.benefit-icon {
+    width: 40px;
+    height: 40px;
+    background: #007bff;
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 16px;
+}
+
+.benefit-text {
+    font-weight: 500;
+    color: #495057;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .homepage-hero {
+        padding: 40px 0 60px;
+        margin-top: 75px; /* Account for 70px navbar + 5px spacing */
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .feature-title {
+        font-size: 1.1rem;
+    }
+    
+    .feature-text {
+        font-size: 0.875rem;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+    }
+    
+    .btn-primary, .btn-outline-primary {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .homepage-hero {
+        padding: 30px 0 50px;
+        margin-top: 80px; /* Account for 70px navbar + 10px spacing */
+    }
+    
+    .hero-title {
+        font-size: 1.9rem;
+        line-height: 1.1;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .section-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .feature-title {
+        font-size: 1rem;
+    }
+    
+    .feature-text {
+        font-size: 0.8rem;
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
+    
+    .btn-primary, .btn-outline-primary {
+        font-size: 0.85rem;
+        padding: 0.65rem 1.1rem;
+    }
+}
+
+/* Additional Global Button Theme */
+.btn-success {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-success:hover {
+    background-color: #146c43 !important;
+    border-color: #146c43 !important;
+}
+
+.btn-outline-success {
+    color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #fff !important;
+}
+</style>
+{% endblock %}
 
 {% block content %}
     <!-- Hero Section -->
-    <section id="home" class="hero-section">
+    <section class="homepage-hero">
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center hero-content">
-                    <h1 class="hero-title">SMS delivered right to your browser.</h1>
-                    <p class="hero-description text-white">
-                        Reclaim your privacy. Get 2FA codes without giving your personal information to any service.
-                    </p>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn hero-btn">
-                            Order Now <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    {% else %}
-                        <a href="{% url 'signup' %}" class="btn hero-btn">
-                            Get Started Today <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    {% endif %}
+            <div class="row align-items-center">
+                <div class="col-lg-7 col-md-8">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-globe me-2"></i>Trusted by 10,000+ users worldwide
+                        </div>
+                        <h1 class="hero-title">Virtual Numbers for<br>Receiving SMS</h1>
+                        <p class="hero-subtitle">
+                            Over 500,000 numbers originating from around 180 countries online. Get instant SMS verification for any service with our reliable virtual phone numbers.
+                        </p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard' %}" class="hero-cta">
+                                <i class="fas fa-mobile-alt me-2"></i>Get Virtual Number Now
+                            </a>
+                        {% else %}
+                            <a href="{% url 'signup' %}" class="hero-cta">
+                                <i class="fas fa-user-plus me-2"></i>Start for Free Today
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-4 d-none d-lg-block">
+                    <div class="hero-image text-center">
+                        <img src="{% static 'youngpgvirtual-hero.png' %}" 
+                             alt="Young PG Virtual Dashboard" 
+                             class="phone-mockup">
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features-section">
+    <section class="features-section" id="features">
         <div class="container">
-            <!-- Section Header -->
             <div class="row">
                 <div class="col-12">
-                    <h2 class="section-title">Why Choose Us?</h2>
+                    <h2 class="section-title">Why Choose Our Virtual Numbers?</h2>
+                    <p class="section-subtitle">
+                        Get virtual numbers from more than 180 countries including UK, Sweden, Germany, France, India, Indonesia, Malaysia, Canada, Thailand, Netherlands, Spain and more.
+                    </p>
                 </div>
             </div>
             
-            <!-- Feature Cards -->
             <div class="row g-4">
                 <!-- Feature 1 -->
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-plus-circle"></i>
                         </div>
-                        <h3 class="feature-title">Works with every service</h3>
+                        <h3 class="feature-title">New Virtual Numbers Added Daily</h3>
                         <p class="feature-description">
-                            You get a real local wireless number that works immediately. You can choose area code and carrier.
+                            Fresh numbers added every day. Pricing starts at just one coin for a single number with no monthly SIM plan requirements.
                         </p>
                     </div>
                 </div>
@@ -63,11 +447,11 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-flag-usa"></i>
+                            <i class="fas fa-mobile-alt"></i>
                         </div>
-                        <h3 class="feature-title">Non-VoIP USA numbers 🇺🇸</h3>
+                        <h3 class="feature-title">Single-Use & Multiple SMS Deliveries</h3>
                         <p class="feature-description">
-                            Many services check whether you have a VoIP number. We have non-VoIP USA numbers that will work with any service.
+                            Get a phone number whenever you want. Our automated process ensures you receive SMS instantly with reliable delivery.
                         </p>
                     </div>
                 </div>
@@ -76,12 +460,156 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-dollar-sign"></i>
+                            <i class="fas fa-code"></i>
                         </div>
-                        <h3 class="feature-title">Lowest prices guarantee</h3>
+                        <h3 class="feature-title">API for Developers & Regular Users</h3>
                         <p class="feature-description">
-                            We monitor the competition and we'll give you the best price. Even if you have a custom deal with a different service.
+                            Seamless integration with our SMS delivery service. Perfect for developers and businesses requiring automated SMS verification.
                         </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h3 class="feature-title">Low Commission Fees</h3>
+                        <p class="feature-description">
+                            Add funds to your balance while spending as little as possible on commission fees. Transparent pricing with no hidden costs.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3 class="feature-title">Support Available 24/7</h3>
+                        <p class="feature-description">
+                            Find and purchase the most fitting numbers with help from our support agents available anytime, anywhere.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Privacy & Security</h3>
+                        <p class="feature-description">
+                            Your phone and SIM card are no longer required. All you need is internet access for complete privacy protection.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="section-title">How to Receive SMS using Virtual Numbers</h2>
+                    <p class="section-subtitle">
+                        Simple 4-step process to get your virtual number and receive SMS instantly
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Login or Sign up</h3>
+                        <p class="step-description">Create your free account or login to get started with our platform</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Choose Country & Service</h3>
+                        <p class="step-description">Select your preferred country and the service you need verification for</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Get Virtual Phone Number</h3>
+                        <p class="step-description">Instantly receive your virtual phone number and use it for verification</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3 class="step-title">Receive SMS & Complete</h3>
+                        <p class="step-description">Get your SMS code delivered instantly and complete your verification process</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who Benefits Section -->
+    <section class="who-benefits">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h2 class="section-title text-start">Who Can Benefit from Virtual SMS Numbers?</h2>
+                    <p class="section-subtitle text-start">
+                        Our virtual numbers serve various professionals and individuals who need reliable SMS verification
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <p class="benefit-text">Webmasters managing multiple websites</p>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <p class="benefit-text">SMM specialists running campaigns</p>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <p class="benefit-text">Entrepreneurs building businesses</p>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <p class="benefit-text">SERM and ORM specialists</p>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <p class="benefit-text">Anyone who wants to get discounts</p>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <p class="benefit-text">Privacy-conscious individuals</p>
                     </div>
                 </div>
             </div>
@@ -90,20 +618,35 @@
 {% endblock %}
 
 {% block extra_js %}
-    <!-- Smooth scrolling for navigation links -->
-    <script>
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const offsetTop = target.offsetTop - 80; // Account for fixed navbar
-                    window.scrollTo({
-                        top: offsetTop,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+<script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                const offsetTop = target.offsetTop - 80;
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
         });
-    </script>
+    });
+
+    // Add loading animation to hero CTA buttons
+    document.querySelectorAll('.hero-cta').forEach(button => {
+        button.addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+            this.style.pointerEvents = 'none';
+            
+            // Restore button after a short delay (in case of same-page navigation)
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.style.pointerEvents = 'auto';
+            }, 3000);
+        });
+    });
+</script>
 {% endblock %}

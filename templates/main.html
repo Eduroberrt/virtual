@@ -1,306 +1,1371 @@
-{% load static %}
 {% load currency_filters %}
+{% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="modern-dashboard-body">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Young PG Virtual</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Young PG Virtual Dashboard{% endblock %}</title>
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicons/site.webmanifest">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-    
-    <!-- Footer Styling -->
+    {% block extra_css %}
+    {% endblock %}
+
+    <!-- Modern Navigation Styles -->
     <style>
-        /* Prevent horizontal overflow */
-        html, body {
-            overflow-x: hidden;
-            max-width: 100%;
-        }
+    /* Modern Dashboard Variables */
+    :root {
+        --navbar-height: 70px;
+        --primary-color: #198754;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --info-color: #17a2b8;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --white: #ffffff;
+        --border-radius: 12px;
+        --border-radius-sm: 8px;
+        --border-radius-lg: 16px;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
         
-        * {
-            box-sizing: border-box;
-        }
+        /* Theme Colors - Light Mode (Default) */
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-tertiary: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #212529;
+        --text-muted: #212529;
+        --border-color: #dee2e6;
+        --navbar-bg: rgba(255, 255, 255, 0.95);
+        --card-bg: #ffffff;
+        --input-bg: #ffffff;
+        --dropdown-bg: #ffffff;
+        --hover-bg: #f8f9fa;
         
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+        /* Additional Variables */
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    }
+
+    /* Dark Mode Variables */
+    [data-theme="dark"] {
+        --bg-primary: #000000;
+        --bg-secondary: #000000;
+        --bg-tertiary: #1a1a1a;
+        --text-primary: #ffffff;
+        --text-secondary: #b3b3b3;
+        --text-muted: #6c757d;
+        --border-color: #404040;
+        --navbar-bg: rgba(0, 0, 0, 0.95);
+        --card-bg: #000000;
+        --input-bg: #1a1a1a;
+        --dropdown-bg: #000000;
+        --hover-bg: #1a1a1a;
         
-        .dashboard-main {
-            flex: 1;
-        }
-        
-        .dashboard-footer {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-top: 3px solid #17a2b8;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-            margin-top: auto;
-            position: relative;
-        }
-        
-        .dashboard-footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #17a2b8, transparent);
-        }
-        
-        .footer-border {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #17a2b8, transparent);
-            border-radius: 2px;
-            width: 80px;
-            margin: 0 auto;
-        }
-        
-        .footer-link {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-link:hover {
-            color: #17a2b8;
-            text-decoration: none;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-footer {
-                margin-top: 2rem;
-            }
-            
-            .footer-links {
-                margin-top: 1rem !important;
-            }
-            
-            .footer-link {
-                display: block;
-                margin: 0.25rem 0 !important;
-            }
-        }
-        
-        /* Mobile navbar improvements */
-        @media (max-width: 991.98px) {
-            .container-fluid {
-                padding-left: 0.5rem !important;
-                padding-right: 0.5rem !important;
-            }
-            
-            .sidebar-toggle {
-                order: -1;
-                margin-right: 0.5rem;
-                margin-left: 0;
-                padding: 0.375rem 0.5rem;
-                flex-shrink: 0;
-            }
-            
-            .navbar-brand {
-                font-size: 0.9rem !important;
-                margin-right: 0.5rem;
-                flex: 1;
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            
-            .navbar-brand i {
-                margin-right: 0.25rem !important;
-                flex-shrink: 0;
-            }
-            
-            .navbar-right {
-                margin-left: auto;
-                gap: 0.25rem;
-                flex-shrink: 0;
-            }
-            
-            .wallet-balance {
-                margin-right: 0.25rem !important;
-            }
-            
-            .balance-card {
-                padding: 0.25rem 0.5rem !important;
-                font-size: 0.8rem;
-                white-space: nowrap;
-            }
-            
-            .dropdown img {
-                width: 32px !important;
-                height: 32px !important;
-            }
-        }
-        
-        /* Extra small screens */
-        @media (max-width: 575.98px) {
-            .navbar-brand {
-                font-size: 0.8rem !important;
-            }
-            
-            .balance-card {
-                font-size: 0.75rem !important;
-                padding: 0.2rem 0.4rem !important;
-            }
-            
-            .dropdown img {
-                width: 28px !important;
-                height: 28px !important;
-            }
-        }
-        
-        /* Prevent zoom on input focus for iOS devices */
-        @media screen and (max-width: 991px) {
-            input[type="text"],
-            input[type="email"], 
-            input[type="password"],
-            input[type="number"],
-            input[type="search"],
-            input[type="tel"],
-            input[type="url"],
-            select,
-            textarea {
-                font-size: 16px !important;
-                transform: none !important;
-            }
-            
-            .form-control,
-            .form-select {
-                font-size: 16px !important;
-            }
-            
-            /* Specifically target Bootstrap input groups */
-            .input-group .form-control {
-                font-size: 16px !important;
-            }
-            
-            /* Target service filter and other search inputs */
-            #serviceFilter,
-            #serviceSearch,
-            #areaCodes,
-            #carriers,
-            #phone,
-            #maxPrice,
-            #specificNumber {
-                font-size: 16px !important;
-            }
-            
-            /* Override any inline styles on mobile */
-            input[style*="font-size"] {
-                font-size: 16px !important;
-            }
-            
-            .form-control[style*="font-size"] {
-                font-size: 16px !important;
-            }
-            
-            /* Target input groups with small classes */
-            .input-group-sm .form-control {
-                font-size: 16px !important;
-            }
-        }
-        
-        /* Enhanced alert styling for better visibility */
-        .alert {
-            border-radius: 8px !important;
-            border-width: 2px !important;
-            font-weight: 500 !important;
-            margin-bottom: 1rem !important;
-        }
-        
-        .alert-danger {
-            background-color: #fee !important;
-            border-color: #f87171 !important;
-            color: #dc2626 !important;
-        }
-        
-        .alert-success {
-            background-color: #f0fdf4 !important;
-            border-color: #4ade80 !important;
-            color: #16a34a !important;
-        }
-        
-        .alert-warning {
-            background-color: #fefce8 !important;
-            border-color: #facc15 !important;
-            color: #ca8a04 !important;
-        }
-        
-        .alert-info {
-            background-color: #eff6ff !important;
-            border-color: #60a5fa !important;
-            color: #2563eb !important;
-        }
-        
-        /* Make error messages more prominent */
-        .alert-danger {
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15) !important;
-        }
-        
-        .alert-success {
-            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15) !important;
-        }
-    </style>
+        /* Additional Variables */
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        --text-color: #2d3436;
+    }
+
+    /* Scroll Performance Optimization */
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Theme-aware styling for common elements */
+    .card, .glass-card {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
     
-    {% block extra_css %}{% endblock %}
+    .form-control, .form-select {
+        background-color: var(--input-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    .dropdown-menu {
+        background-color: var(--dropdown-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    .dropdown-item {
+        color: var(--text-primary) !important;
+    }
+    
+    .dropdown-item:hover {
+        background-color: var(--hover-bg) !important;
+    }
+    
+    .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    /* Dark mode logo styling */
+    [data-theme="dark"] .brand-logo {
+        color: #ffffff !important;
+    }
+    
+    [data-theme="dark"] .brand-logo:hover {
+        color: var(--primary-color) !important;
+    }
+
+    /* Dark mode navbar and menu items */
+    [data-theme="dark"] .nav-item {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .nav-item:hover {
+        color: var(--primary-color) !important;
+    }
+
+    [data-theme="dark"] .brand-name {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .brand-subtitle {
+        color: #b3b3b3 !important;
+    }
+
+    [data-theme="dark"] .mobile-nav-item {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .mobile-nav-item:hover {
+        color: var(--primary-color) !important;
+    }
+
+    /* Dark mode card styling for payment, wallet, history, dashboard, and change_password pages */
+    [data-theme="dark"] body[data-page="payment"] .card,
+    [data-theme="dark"] body[data-page="payment"] .payments-card,
+    [data-theme="dark"] body[data-page="wallet"] .card,
+    [data-theme="dark"] body[data-page="wallet"] .wallet-card,
+    [data-theme="dark"] body[data-page="history"] .card,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card,
+    [data-theme="dark"] body[data-page="change_password"] .card {
+        background-color: #000000 !important;
+        border: 1px solid var(--success-color) !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .card-body,
+    [data-theme="dark"] body[data-page="payment"] .payments-card-body,
+    [data-theme="dark"] body[data-page="wallet"] .card-body,
+    [data-theme="dark"] body[data-page="wallet"] .wallet-card-body,
+    [data-theme="dark"] body[data-page="history"] .card-body,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card .card-body,
+    [data-theme="dark"] body[data-page="change_password"] .card-body {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .card-header,
+    [data-theme="dark"] body[data-page="payment"] .payments-card-header,
+    [data-theme="dark"] body[data-page="wallet"] .card-header,
+    [data-theme="dark"] body[data-page="wallet"] .wallet-card-header,
+    [data-theme="dark"] body[data-page="history"] .card-header,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card .card-header,
+    [data-theme="dark"] body[data-page="change_password"] .card-header {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-bottom: 1px solid var(--success-color) !important;
+    }
+
+    /* Card titles and subtitles */
+    [data-theme="dark"] body[data-page="payment"] .card-title,
+    [data-theme="dark"] body[data-page="payment"] .payments-card-title,
+    [data-theme="dark"] body[data-page="wallet"] .card-title,
+    [data-theme="dark"] body[data-page="wallet"] .wallet-card-title,
+    [data-theme="dark"] body[data-page="history"] .card-title,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card .card-title,
+    [data-theme="dark"] body[data-page="change_password"] .card-title {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .payments-card-subtitle,
+    [data-theme="dark"] body[data-page="wallet"] .wallet-card-subtitle,
+    [data-theme="dark"] body[data-page="change_password"] .card-subtitle {
+        color: #b3b3b3 !important;
+    }
+
+    /* Dark text to white in dark mode (excluding green and red) */
+    [data-theme="dark"] body[data-page="payment"] .text-dark,
+    [data-theme="dark"] body[data-page="wallet"] .text-dark,
+    [data-theme="dark"] body[data-page="history"] .text-dark,
+    [data-theme="dark"] body[data-page="dashboard"] .text-dark,
+    [data-theme="dark"] body[data-page="change_password"] .text-dark {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-secondary,
+    [data-theme="dark"] body[data-page="wallet"] .text-secondary,
+    [data-theme="dark"] body[data-page="history"] .text-secondary,
+    [data-theme="dark"] body[data-page="dashboard"] .text-secondary,
+    [data-theme="dark"] body[data-page="change_password"] .text-secondary {
+        color: #b3b3b3 !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-muted,
+    [data-theme="dark"] body[data-page="wallet"] .text-muted,
+    [data-theme="dark"] body[data-page="history"] .text-muted,
+    [data-theme="dark"] body[data-page="dashboard"] .text-muted,
+    [data-theme="dark"] body[data-page="change_password"] .text-muted {
+        color: #b3b3b3 !important;
+    }
+
+    /* Form inputs and placeholders for change_password page */
+    [data-theme="dark"] body[data-page="change_password"] .form-control::placeholder {
+        color: #ffffff !important;
+        opacity: 0.8 !important;
+    }
+
+    [data-theme="dark"] body[data-page="change_password"] .form-control {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border-color: #404040 !important;
+    }
+
+    [data-theme="dark"] body[data-page="change_password"] .form-control:focus {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border-color: var(--success-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+    }
+
+    [data-theme="dark"] body[data-page="change_password"] .form-label {
+        color: #ffffff !important;
+    }
+
+    /* Dashboard specific text elements */
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card p,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card .small {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card .text-muted.small,
+    [data-theme="dark"] body[data-page="dashboard"] .glass-card p.text-muted {
+        color: #b3b3b3 !important;
+    }
+
+    /* Dashboard form controls */
+    [data-theme="dark"] body[data-page="dashboard"] .modern-label {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-select {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #404040 !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-select option {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .select-arrow {
+        color: #ffffff !important;
+    }
+
+    /* Dashboard table styles */
+    [data-theme="dark"] body[data-page="dashboard"] .modern-table {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-table th {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #404040 !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-table td {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #404040 !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-table tbody tr:hover {
+        background-color: #1a1a1a !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .modern-table-wrapper {
+        background-color: #000000 !important;
+    }
+
+    /* Dashboard empty state */
+    [data-theme="dark"] body[data-page="dashboard"] .empty-state {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .empty-state h6 {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .empty-state p {
+        color: #b3b3b3 !important;
+    }
+
+    [data-theme="dark"] body[data-page="dashboard"] .empty-state i {
+        color: #b3b3b3 !important;
+    }
+
+    /* Preserve green and red text colors */
+    [data-theme="dark"] body[data-page="payment"] .text-success,
+    [data-theme="dark"] body[data-page="wallet"] .text-success,
+    [data-theme="dark"] body[data-page="history"] .text-success {
+        color: var(--success-color) !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-danger,
+    [data-theme="dark"] body[data-page="wallet"] .text-danger,
+    [data-theme="dark"] body[data-page="history"] .text-danger {
+        color: var(--danger-color) !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-primary,
+    [data-theme="dark"] body[data-page="wallet"] .text-primary,
+    [data-theme="dark"] body[data-page="history"] .text-primary {
+        color: var(--primary-color) !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-info,
+    [data-theme="dark"] body[data-page="wallet"] .text-info,
+    [data-theme="dark"] body[data-page="history"] .text-info {
+        color: var(--info-color) !important;
+    }
+
+    [data-theme="dark"] body[data-page="payment"] .text-warning,
+    [data-theme="dark"] body[data-page="wallet"] .text-warning,
+    [data-theme="dark"] body[data-page="history"] .text-warning {
+        color: var(--warning-color) !important;
+    }
+
+    /* Dark mode copyright section */
+    [data-theme="dark"] .copyright-section {
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+        border-top-color: var(--primary-color) !important;
+    }
+
+    [data-theme="dark"] .copyright-text {
+        color: #ffffff !important;
+    }
+
+    /* Prevent layout shifts and improve scroll performance */
+    .modern-navbar,
+    .mobile-sidebar,
+    .mobile-overlay {
+        will-change: transform;
+        transform: translateZ(0);
+    }
+
+    /* Prevent zoom on input focus (mobile) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+
+    @media (min-width: 992px) {
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="search"],
+        textarea,
+        select {
+            font-size: inherit !important;
+        }
+    }
+
+    /* Dark mode profile dropdown text */
+    [data-theme="dark"] .user-title {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .user-subtitle {
+        color: #ffffff !important;
+    }
+
+    /* Ensure profile dropdown appears above all content */
+    .dropdown-menu.modern-dropdown {
+        z-index: 9999 !important;
+        position: absolute !important;
+    }
+
+    /* Override Bootstrap dropdown z-index specifically */
+    .dropdown-menu {
+        z-index: 9999 !important;
+    }
+
+    /* Mobile-specific dropdown fixes */
+    @media (max-width: 768px) {
+        .dropdown-menu.modern-dropdown {
+            z-index: 9999 !important;
+            position: absolute !important;
+            right: 0 !important;
+            left: auto !important;
+            top: 100% !important;
+            transform: none !important;
+            margin-top: 0.5rem !important;
+            min-width: 280px !important;
+        }
+        
+        .user-profile.dropdown {
+            position: relative !important;
+        }
+        
+        .navbar-right {
+            position: relative;
+            z-index: 10000 !important;
+        }
+
+        /* Ensure dashboard cards don't interfere */
+        body[data-page="dashboard"] .glass-card {
+            z-index: 1 !important;
+        }
+
+        /* Disable Bootstrap dropdown positioning animations on mobile */
+        .dropdown-menu.modern-dropdown.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+            right: 0 !important;
+            left: auto !important;
+        }
+
+        /* Override any Bootstrap positioning classes */
+        .dropdown-menu[data-bs-popper] {
+            right: 0 !important;
+            left: auto !important;
+            transform: none !important;
+        }
+    }
+
+    /* Mobile navbar padding fix - remove left/right padding to prevent logo wrapping */
+    @media (max-width: 576px) {
+        .navbar-container {
+            padding: 0 0.5rem !important;
+        }
+        
+        .navbar-right {
+            gap: 0.5rem;
+        }
+        
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            padding: 0.375rem;
+        }
+        
+        .wallet-display-always .balance-container {
+            padding: 0.375rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-container {
+            padding: 0 0.25rem !important;
+        }
+        
+        .brand-text {
+            margin-left: 0.25rem;
+        }
+        
+        .navbar-right {
+            gap: 0.25rem;
+        }
+    }
+
+    /* Body and Layout */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Explicit dark mode body styling */
+    [data-theme="dark"] body {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    /* Dashboard page specific dark mode */
+    [data-theme="dark"] body[data-page="dashboard"] {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    /* Ensure main content area is also dark */
+    [data-theme="dark"] .main-content {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .content-wrapper {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    /* Modern Top Navigation */
+    .modern-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--navbar-height);
+        background: var(--navbar-bg);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1200;
+        transition: var(--transition);
+    }
+
+    .navbar-container {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Brand Logo */
+    .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--dark-color);
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: var(--border-radius-sm);
+        transition: var(--transition);
+    }
+
+    .mobile-menu-toggle:hover {
+        background: var(--light-color);
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--dark-color);
+        transition: var(--transition);
+    }
+
+    .brand-logo:hover {
+        color: var(--primary-color);
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--gradient-primary);
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .brand-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .brand-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--dark-color);
+    }
+
+    .brand-subtitle {
+        font-weight: 500;
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+    }
+
+    /* Center Navigation */
+    .navbar-center {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        max-width: 800px;
+        margin: 0 2rem;
+    }
+
+    .main-nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(25, 135, 84, 0.05);
+        padding: 0.5rem;
+        border-radius: var(--border-radius-lg);
+        backdrop-filter: blur(10px);
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        color: var(--secondary-color);
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: -1;
+    }
+
+    .nav-item:hover {
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    .nav-item.active {
+        background: var(--gradient-primary) !important;
+        color: white !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Ensure active nav-item has proper styling in both light and dark modes */
+    [data-theme="light"] .nav-item.active,
+    [data-theme="dark"] .nav-item.active,
+    :root .nav-item.active,
+    body .nav-item.active {
+        background: var(--gradient-primary) !important;
+        color: white !important;
+    }
+
+    .nav-item.active::before {
+        opacity: 1;
+    }
+
+    .nav-item i {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Dropdown Styles */
+    .nav-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-toggle {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .dropdown-toggle::before {
+        display: none !important;
+    }
+
+    .dropdown-toggle .dropdown-icon {
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    .dropdown-toggle.active .dropdown-icon {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: rgba(33, 37, 41, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        min-width: 200px;
+        padding: 0.5rem 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(15px);
+    }
+
+    .dropdown-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: var(--text-color);
+        text-decoration: none;
+        transition: var(--transition);
+        font-size: 0.875rem;
+    }
+
+    .dropdown-item:hover {
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--primary-color);
+    }
+
+    .dropdown-item.active {
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .dropdown-item i {
+        font-size: 0.875rem;
+        width: 16px;
+        text-align: center;
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0.5rem 0;
+    }
+
+    /* Right Side - Wallet & Profile */
+    .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-secondary);
+        background-color: var(--hover-bg);
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+    }
+
+    .theme-toggle:hover {
+        color: var(--text-primary);
+        background-color: var(--bg-tertiary);
+        transform: scale(1.1);
+    }
+
+    .theme-toggle i {
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover i {
+        transform: rotate(180deg);
+    }
+
+    /* Wallet Display */
+    .wallet-display {
+        display: none;
+    }
+
+    /* Wallet Display Always Visible */
+    .wallet-display-always {
+        display: block;
+    }
+
+    .balance-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .balance-container {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.5rem;
+        background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+        border-radius: var(--border-radius);
+        border: 1px solid rgba(25, 135, 84, 0.2);
+        transition: var(--transition);
+    }
+
+    .balance-container:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .balance-icon {
+        width: 18px;
+        height: 18px;
+        background: var(--gradient-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.6rem;
+    }
+
+    .balance-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .balance-label {
+        font-size: 0.75rem;
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+
+    .balance-amount {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    /* User Profile */
+    .user-profile {
+        position: relative;
+    }
+
+    .profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 0.5rem;
+        transition: var(--transition);
+        cursor: pointer;
+        color: var(--text-primary);
+    }
+
+    .profile-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--primary-color);
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+        text-align: left;
+    }
+
+    .user-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .user-email {
+        font-size: 0.75rem;
+        color: var(--secondary-color);
+    }
+
+    .dropdown-arrow {
+        color: var(--secondary-color);
+        font-size: 0.8rem;
+        transition: var(--transition);
+    }
+
+    .profile-btn[aria-expanded="true"] .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    /* Modern Dropdown */
+    .modern-dropdown {
+        background: var(--dropdown-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        padding: 1rem;
+        min-width: 280px;
+        margin-top: 0.5rem;
+        backdrop-filter: blur(20px);
+    }
+
+    .dropdown-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--light-color);
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--primary-color);
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-details {
+        flex: 1;
+    }
+
+    .user-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    .user-subtitle {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+        margin: 0;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        text-decoration: none;
+        color: var(--dark-color);
+        font-weight: 500;
+        transition: var(--transition);
+        margin-bottom: 0.25rem;
+    }
+
+    .dropdown-item:hover {
+        background: var(--light-color);
+        color: var(--dark-color);
+    }
+
+    .dropdown-item.text-danger:hover {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+    }
+
+    .dropdown-item i {
+        width: 20px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    /* Mobile Sidebar */
+    .mobile-sidebar {
+        position: fixed;
+        top: var(--navbar-height);
+        left: -300px;
+        width: 300px;
+        height: calc(100vh - var(--navbar-height));
+        background: var(--bg-primary);
+        box-shadow: var(--shadow-lg);
+        z-index: 1100;
+        transition: var(--transition);
+        overflow-y: auto;
+    }
+
+    .mobile-sidebar.active {
+        left: 0;
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+        padding: 1.5rem 1rem 1rem 1rem;
+    }
+
+    .mobile-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        color: var(--dark-color);
+        font-weight: 500;
+        transition: var(--transition);
+        margin-bottom: 0.5rem;
+    }
+
+    .mobile-nav-item:hover {
+        background: var(--light-color);
+        color: var(--dark-color);
+    }
+
+    .mobile-nav-item.active {
+        background: var(--gradient-primary);
+        color: white;
+    }
+
+    .mobile-nav-item.text-danger:hover {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+    }
+
+    .mobile-nav-item i {
+        width: 20px;
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    .mobile-nav-divider {
+        height: 1px;
+        background: var(--light-color);
+        margin: 1rem 0;
+    }
+
+    /* Mobile Overlay */
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+    }
+
+    .mobile-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Main Content */
+    .main-content {
+        margin-top: var(--navbar-height);
+        min-height: calc(100vh - var(--navbar-height) - 60px); /* Account for fixed footer */
+        position: relative;
+        padding-bottom: 10px; /* Minimal padding to prevent content overlap with fixed footer */
+    }
+
+    /* Mobile override - remove padding on small screens */
+    @media (max-width: 768px) {
+        .main-content {
+            min-height: calc(100vh - var(--navbar-height) - 100px);
+            padding-bottom: 0;
+        }
+    }
+
+    .content-wrapper {
+        padding: 0;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1199px) {
+        .navbar-center {
+            display: none !important;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .brand-text {
+            display: flex;
+        }
+        
+        .brand-name {
+            font-size: 0.9rem;
+        }
+        
+        .brand-subtitle {
+            font-size: 0.75rem;
+        }
+        
+        .navbar-container {
+            padding: 0 1rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .wallet-display-always .balance-label {
+            display: none;
+        }
+        
+        .wallet-display-always .balance-container {
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .navbar-container {
+            padding: 0 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+        
+        .profile-btn {
+            padding: 0.375rem;
+        }
+        
+        .avatar {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
+    /* Animation for smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Loading states */
+    .loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    /* Focus styles for accessibility */
+    .nav-item:focus,
+    .mobile-nav-item:focus,
+    .dropdown-item:focus,
+    .profile-btn:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    /* Copyright Section */
+    .copyright-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-top: 4px solid var(--primary-color);
+        padding: 1rem 0;
+        text-align: center;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+    }
+
+    /* Mobile override - normal positioning on small screens */
+    @media (max-width: 768px) {
+        .copyright-section {
+            position: static;
+            padding: 2rem 0;
+        }
+    }
+
+    .copyright-text {
+        color: var(--secondary-color);
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin: 0;
+    }
+    </style>
 </head>
-<body class="dashboard-body">
-    <!-- Dashboard Navigation -->
-    <nav class="dashboard-navbar navbar navbar-expand-lg fixed-top">
-        <div class="container-fluid d-flex">
-            <!-- Mobile Menu Toggle -->
-            <button class="sidebar-toggle d-lg-none" type="button" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            
-            <!-- Logo -->
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="fas fa-rocket me-2"></i>Young PG Virtual
-            </a>
-            
-            <!-- Right Side - Wallet Balance & User -->
-            <div class="navbar-right d-flex align-items-center ms-auto">
-                <!-- Desktop Wallet Balance -->
-                <div class="wallet-balance me-lg-3 d-flex">
-                    <div class="balance-card">
-                        <a href="{% url 'wallet' %}" class="text-decoration-none" style="color: inherit;">
-                            <span class="balance-amount">{{ user.userprofile.get_naira_balance|format_naira }}</span>
-                        </a>
+<body data-page="{% if 'payment' in request.path %}payment{% elif 'wallet' in request.path %}wallet{% elif 'history' in request.path %}history{% elif 'dashboard' in request.path or 'dashboard-1' in request.path or 'dashboard-2' in request.path %}dashboard{% else %}other{% endif %}">
+    <!-- Modern Top Navigation -->
+    <nav class="modern-navbar">
+        <div class="navbar-container">
+            <!-- Left Side - Mobile Toggle & Brand -->
+            <div class="navbar-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="{% url 'dashboard' %}" class="brand-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-rocket"></i>
                     </div>
-                </div>
-                
-                <!-- User Dropdown -->
-                <div class="dropdown">
-                    <a href="#" class="btn btn-link p-0" id="profileDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="outline:none;">
-                        <img src="https://www.acctplugs.com/assets/images/user/profile/avatar-1.jpg" alt="profile" class="rounded-circle" style="width:38px; height:38px; object-fit:cover; border:2px solid #17a2b8;">
+                    <div class="brand-text">
+                        <span class="brand-name">Young PG</span>
+                        <span class="brand-subtitle">Virtual</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Center Navigation (Desktop) -->
+            <div class="navbar-center d-none d-xl-flex">
+                <nav class="main-nav">
+                    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_1' or request.resolver_match.url_name == 'dashboard_2' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown" style="min-width: min(280px, 90vw); border-radius: 18px; padding: 32px 28px 32px 28px; margin-top: 12px;">
-                        <div class="text-center pb-3">
-                            <img src="https://www.acctplugs.com/assets/images/user/profile/avatar-1.jpg" alt="profile" class="rounded-circle mb-2" style="width:60px; height:60px; object-fit:cover; border:2px solid #17a2b8;">
-                            <div class="mb-1 fw-bold" style="font-size:0.8rem;">{{ user.username|default:"User" }}</div>
-                            <div class="mb-2" style="font-size:0.77rem; color: #17a2b8;">{{ user.email|default:"user@example.com" }}</div>
+                    <a href="{% url 'payment' %}" class="nav-item {% if request.resolver_match.url_name == 'payment' %}active{% endif %}">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                    <a href="{% url 'wallet' %}" class="nav-item {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+                        <i class="fas fa-wallet"></i>
+                        <span>Fund Wallet</span>
+                    </a>
+                    <a href="{% url 'history' %}" class="nav-item {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                    </a>
+                    
+                    <!-- More Dropdown -->
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-item dropdown-toggle" id="moreDropdown">
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <div class="dropdown-menu" id="moreDropdownMenu">
+                            <a href="https://www.youngpgmedia.com/" target="_blank" class="dropdown-item">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Buy Socials</span>
+                            </a>
+                            <a href="https://t.me/storemarketplacepg" target="_blank" class="dropdown-item">
+                                <i class="fas fa-newspaper"></i>
+                                <span>News</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Right Side - Balance & User -->
+            <div class="navbar-right">
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                
+                <!-- Wallet Balance - Always Visible -->
+                <div class="wallet-display-always">
+                    <a href="{% url 'wallet' %}" class="balance-link">
+                        <div class="balance-container">
+                            <div class="balance-info">
+                                <span class="balance-amount" id="navbar-balance">{{ user.userprofile.get_naira_balance|format_naira }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- User Profile - Image Only -->
+                <div class="user-profile dropdown">
+                    <button class="profile-btn" id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar">
+                            <img src="{% static 'profile-thumbnail.webp' %}" alt="Profile">
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </button>
+                    
+                    <div class="dropdown-menu modern-dropdown" aria-labelledby="userProfileDropdown">
+                        <div class="dropdown-header">
+                            <div class="user-avatar">
+                                <img src="{% static 'profile-thumbnail.webp' %}" alt="Profile">
+                            </div>
+                            <div class="user-details">
+                                <h6 class="user-title">{{ user.username|default:"User" }}</h6>
+                                <p class="user-subtitle">{{ user.email|default:"user@example.com" }}</p>
+                            </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="{% url 'change_password' %}" class="dropdown-item d-flex align-items-center mb-2">
-                            <i class="fa fa-key me-2 text-warning"></i> Change Password
+                        <a href="{% url 'change_password' %}" class="dropdown-item">
+                            <i class="fas fa-key"></i>
+                            <span>Change Password</span>
                         </a>
-                        <a href="{% url 'logout' %}" class="dropdown-item d-flex align-items-center">
-                            <i class="fa fa-sign-out-alt me-2 text-danger"></i> Logout
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'logout' %}" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
                         </a>
                     </div>
                 </div>
@@ -308,211 +1373,288 @@
         </div>
     </nav>
 
-    <!-- Desktop Sidebar -->
-    <aside class="desktop-sidebar">
-        <div class="sidebar-content">
-            <!-- Navigation Menu -->
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'history' %}" class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
-                            <i class="fas fa-history"></i>
-                            <span>History</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'stats' %}" class="nav-link {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Stats</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'payment' %}" class="nav-link {% if request.resolver_match.url_name == 'payment' %}active{% endif %}">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Payments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'wallet' %}" class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
-                            <i class="fas fa-wallet"></i>
-                            <span>Fund Wallet</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'service' %}" class="nav-link {% if request.resolver_match.url_name == 'service' %}active{% endif %}">
-                            <i class="fas fa-cogs"></i>
-                            <span>Services</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Buy Socials</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://t.me/storemarketplacepg" class="nav-link">
-                            <i class="fas fa-newspaper"></i>
-                            <span>News</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </aside>
+    <!-- Mobile Navigation Sidebar -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <nav class="mobile-nav">
+            <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_1' or request.resolver_match.url_name == 'dashboard_2' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'payment' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'payment' %}active{% endif %}">
+                <i class="fas fa-credit-card"></i>
+                <span>Payments</span>
+            </a>
+            <a href="{% url 'wallet' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+                <i class="fas fa-wallet"></i>
+                <span>Fund Wallet</span>
+            </a>
+            <a href="{% url 'history' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="{% url 'change_password' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
+                <i class="fas fa-key"></i>
+                <span>Change Password</span>
+            </a>
+            <a href="https://www.youngpgmedia.com/" target="_blank" class="mobile-nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Buy Socials</span>
+            </a>
+            <a href="https://t.me/storemarketplacepg" target="_blank" class="mobile-nav-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <div class="mobile-nav-divider"></div>
+            <a href="{% url 'logout' %}" class="mobile-nav-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
 
-    <!-- Mobile Sidebar Overlay -->
-    <div class="mobile-sidebar-overlay" id="mobileOverlay"></div>
-    
-    <!-- Mobile Sidebar -->
-    <aside class="mobile-sidebar" id="mobileSidebar">
-        <div class="mobile-sidebar-header">
-            <div class="sidebar-brand">
-                <i class="fas fa-rocket me-2"></i>
-                <span>Young PG Virtual</span>
-            </div>
-            <button class="sidebar-close" id="sidebarClose">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="mobile-sidebar-content">
-            
-            <!-- Navigation Menu -->
-            <nav class="mobile-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'history' %}" class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
-                            <i class="fas fa-history"></i>
-                            <span>History</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'stats' %}" class="nav-link {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Stats</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'payment' %}" class="nav-link {% if request.resolver_match.url_name == 'payment' %}active{% endif %}">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Payments</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'wallet' %}" class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
-                            <i class="fas fa-wallet"></i>
-                            <span>Fund Wallet</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'service' %}" class="nav-link {% if request.resolver_match.url_name == 'service' %}active{% endif %}">
-                            <i class="fas fa-cogs"></i>
-                            <span>Services</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://www.youngpgmedia.com" target="_blank" class="nav-link">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Buy Socials</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="https://t.me/storemarketplacepg" class="nav-link">
-                            <i class="fas fa-newspaper"></i>
-                            <span>News</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'change_password' %}" class="nav-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
-                            <i class="fas fa-key"></i>
-                            <span>Change Password</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'logout' %}" class="nav-link">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </aside>
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Main Content Area -->
-    <main class="dashboard-main">
-        <div class="dashboard-content">
+    <main class="main-content">
+        <div class="content-wrapper">
             {% block content %}
-            <!-- Dashboard content goes here -->
             {% endblock %}
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="dashboard-footer">
-        <div class="container-fluid">
-            <div class="footer-content text-center py-4">
-                <div class="footer-border mb-1"></div>
-                <p class="mb-0 text-muted" style="font-size: 0.8rem;">
-                    &copy; 2025 Young PG Virtual. All rights reserved.
-                </p>
-            </div>
+    <!-- Copyright Section -->
+    <footer class="copyright-section">
+        <div class="container">
+            <p class="copyright-text">
+                © {{ current_year|default:"2025" }} Young PG Virtual. All rights reserved.
+            </p>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap and JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Dashboard JavaScript -->
+    <!-- Modern Navigation JavaScript -->
     <script>
-        // Mobile sidebar toggle
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('mobileSidebar').classList.add('open');
-            document.getElementById('mobileOverlay').classList.add('show');
-            document.body.classList.add('sidebar-open');
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile Navigation Toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const toggleIcon = mobileMenuToggle ? mobileMenuToggle.querySelector('i') : null;
 
-        // Close mobile sidebar
-        document.getElementById('sidebarClose').addEventListener('click', closeMobileSidebar);
-        document.getElementById('mobileOverlay').addEventListener('click', closeMobileSidebar);
-
-        function closeMobileSidebar() {
-            document.getElementById('mobileSidebar').classList.remove('open');
-            document.getElementById('mobileOverlay').classList.remove('show');
-            document.body.classList.remove('sidebar-open');
+        function openMobileSidebar() {
+            mobileSidebar.classList.add('active');
+            mobileOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            // Change hamburger to X
+            if (toggleIcon) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-times');
+            }
         }
 
-        // Active nav link handling
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Remove active class from all links
-                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                // Add active class to clicked link
-                this.classList.add('active');
-            });
-        });
+        function closeMobileSidebar() {
+            mobileSidebar.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            // Change X back to hamburger
+            if (toggleIcon) {
+                toggleIcon.classList.remove('fa-times');
+                toggleIcon.classList.add('fa-bars');
+            }
+        }
 
-        // Auto-close mobile sidebar on larger screens
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 992) {
+        function toggleMobileSidebar() {
+            if (mobileSidebar.classList.contains('active')) {
+                closeMobileSidebar();
+            } else {
+                openMobileSidebar();
+            }
+        }
+
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', toggleMobileSidebar);
+        }
+
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', closeMobileSidebar);
+        }
+
+        // Close mobile sidebar on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mobileSidebar.classList.contains('active')) {
                 closeMobileSidebar();
             }
         });
-    </script>
+
+        // Handle navigation item clicks
+        const navItems = document.querySelectorAll('.nav-item, .mobile-nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Add loading state
+                this.classList.add('loading');
+                
+                // Remove loading state after navigation (in case of slow page loads)
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                }, 3000);
+            });
+        });
+
+        // Update active navigation based on current page
+        function updateActiveNavigation() {
+            const currentPath = window.location.pathname;
+            const navItems = document.querySelectorAll('.nav-item, .mobile-nav-item');
+            
+            navItems.forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && currentPath.includes(href)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        updateActiveNavigation();
+
+        // Handle dropdown toggles
+        const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener('shown.bs.dropdown', function() {
+                this.setAttribute('aria-expanded', 'true');
+            });
+            
+            toggle.addEventListener('hidden.bs.dropdown', function() {
+                this.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // More Dropdown Functionality
+        const moreDropdown = document.getElementById('moreDropdown');
+        const moreDropdownMenu = document.getElementById('moreDropdownMenu');
+
+        if (moreDropdown && moreDropdownMenu) {
+            moreDropdown.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isOpen = moreDropdownMenu.classList.contains('show');
+                
+                if (isOpen) {
+                    closeMoreDropdown();
+                } else {
+                    openMoreDropdown();
+                }
+            });
+
+            function openMoreDropdown() {
+                moreDropdownMenu.classList.add('show');
+                moreDropdown.classList.add('active');
+                moreDropdown.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeMoreDropdown() {
+                moreDropdownMenu.classList.remove('show');
+                moreDropdown.classList.remove('active');
+                moreDropdown.setAttribute('aria-expanded', 'false');
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!moreDropdown.contains(e.target) && !moreDropdownMenu.contains(e.target)) {
+                    closeMoreDropdown();
+                }
+            });
+
+            // Close dropdown on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && moreDropdownMenu.classList.contains('show')) {
+                    closeMoreDropdown();
+                }
+            });
+        }
+    });
+
+    // Add CSS for ripple effect
+    const rippleCSS = `
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple-animation 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple-animation {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .nav-item, .mobile-nav-item, .profile-btn {
+            position: relative;
+            overflow: hidden;
+        }
+    `;
     
-    {% block extra_js %}{% endblock %}
+    const rippleStyle = document.createElement('style');
+    rippleStyle.textContent = rippleCSS;
+    document.head.appendChild(rippleStyle);
+
+    // Theme Toggle Functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const body = document.body;
+
+    // Load saved theme preference or default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    function setTheme(theme) {
+        if (theme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+            themeIcon.className = 'fas fa-sun';
+            themeToggle.title = 'Switch to light mode';
+        } else {
+            body.removeAttribute('data-theme');
+            themeIcon.className = 'fas fa-moon';
+            themeToggle.title = 'Switch to dark mode';
+        }
+        localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() {
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+    }
+
+    // Event listener for theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Optional: Auto-detect system preference on first visit
+    if (!localStorage.getItem('theme')) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        }
+    }
+
+    // Listen for system theme changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+    </script>
+
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>

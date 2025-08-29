@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase SMS Numbers - 5sim.net{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart"></i> Purchase SMS Numbers</h5>
+                    {% if api_key_configured %}
+                        <small class="text-muted">Balance: {{ user_balance }} | Rating: {{ user_rating }}%</small>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if not api_key_configured %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Please <a href="{% url 'api_key_settings' %}">configure your 5sim API key</a> to start purchasing numbers.
+                        </div>
+                    {% else %}
+                        <!-- Purchase Form -->
+                        <form id="purchaseForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="country" required>
+                                        <option value="">Select Country</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="operator" class="form-label">Operator <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="operator" required disabled>
+                                        <option value="">Select Country First</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="product" class="form-label">Service <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="product" required disabled>
+                                        <option value="">Select Operator First</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Display -->
+                            <div id="priceDisplay" class="alert alert-info" style="display: none;">
+                                <strong>Price:</strong> <span id="priceValue">--</span> NGN
+                            </div>
+                            
+                            <!-- Advanced Options -->
+                            <div class="accordion mb-3" id="advancedOptions">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOptions">
+                                            Advanced Options
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="forwarding">
+                                                        <label class="form-check-label" for="forwarding">
+                                                            Enable Forwarding
+                                                        </label>
+                                                    </div>
+                                                    <input type="tel" class="form-control mt-2" id="forwardingNumber" placeholder="Forwarding Number" style="display: none;">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="reuse">
+                                                        <label class="form-check-label" for="reuse">
+                                                            Enable Number Reuse
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="voice">
+                                                        <label class="form-check-label" for="voice">
+                                                            Enable Voice Messages
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="maxPrice" class="form-label">Max Price (NGN)</label>
+                                                    <input type="number" class="form-control" id="maxPrice" placeholder="Optional">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="ref" class="form-label">Referral Code</label>
+                                                <input type="text" class="form-control" id="ref" placeholder="Optional">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Purchase Type Buttons -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <button type="button" class="btn btn-primary w-100" id="buyActivation" disabled>
+                                        <i class="fas fa-mobile-alt"></i> Buy Activation Number
+                                    </button>
+                                    <small class="text-muted">Single use for verification codes</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <button type="button" class="btn btn-success w-100" id="buyHosting" disabled>
+                                        <i class="fas fa-server"></i> Buy Hosting Number
+                                    </button>
+                                    <small class="text-muted">Receive multiple SMS messages</small>
+                                </div>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Recent Orders -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-history"></i> Recent Orders</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                            <div class="mb-2 p-2 border rounded">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ order.phone_number }}</strong>
+                                    <span class="badge bg-{% if order.status == 'FINISHED' %}success{% elif order.status == 'PENDING' %}warning{% elif order.status == 'RECEIVED' %}info{% else %}secondary{% endif %}">
+                                        {{ order.status }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">{{ order.product }} - {{ order.created_at|date:"M d, H:i" }}</small>
+                            </div>
+                        {% endfor %}
+                        <a href="{% url 'orders' %}" class="btn btn-sm btn-outline-primary w-100 mt-2">View All Orders</a>
+                    {% else %}
+                        <p class="text-muted text-center">No orders yet</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Help Card -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-question-circle"></i> Need Help?</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        <strong>Activation Numbers:</strong> Best for single verification codes (social media, messaging apps).
+                    </p>
+                    <p class="small">
+                        <strong>Hosting Numbers:</strong> Can receive multiple SMS messages over time. Good for services that send multiple codes.
+                    </p>
+                    <p class="small">
+                        <strong>Number Reuse:</strong> Allows you to reuse the same number for the same service later.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal fade" id="purchaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="purchaseModalTitle">Processing Purchase...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="purchaseLoading" class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Please wait while we process your purchase...</p>
+                </div>
+                <div id="purchaseSuccess" style="display: none;">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Purchase Successful!</strong>
+                    </div>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Phone Number:</strong></td>
+                            <td id="resultPhoneNumber">--</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Order ID:</strong></td>
+                            <td id="resultOrderId">--</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><span id="resultStatus" class="badge">--</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Expires:</strong></td>
+                            <td id="resultExpires">--</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Price:</strong></td>
+                            <td id="resultPrice">-- NGN</td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="purchaseError" style="display: none;">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Purchase Failed!</strong>
+                        <p id="errorMessage">An error occurred</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="viewOrderBtn" style="display: none;">View Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    let currentOrderId = null;
+    
+    // Load countries on page load
+    loadCountries();
+    
+    // Country change handler
+    $('#country').change(function() {
+        const country = $(this).val();
+        if (country) {
+            loadOperators(country);
+            $('#operator').prop('disabled', false);
+        } else {
+            $('#operator').html('<option value="">Select Country First</option>').prop('disabled', true);
+            $('#product').html('<option value="">Select Operator First</option>').prop('disabled', true);
+            updatePrice();
+        }
+    });
+    
+    // Operator change handler
+    $('#operator').change(function() {
+        const country = $('#country').val();
+        const operator = $(this).val();
+        if (country && operator) {
+            loadProducts(country, operator);
+            $('#product').prop('disabled', false);
+        } else {
+            $('#product').html('<option value="">Select Operator First</option>').prop('disabled', true);
+            updatePrice();
+        }
+    });
+    
+    // Product change handler
+    $('#product').change(function() {
+        updatePrice();
+    });
+    
+    // Forwarding checkbox handler
+    $('#forwarding').change(function() {
+        if ($(this).is(':checked')) {
+            $('#forwardingNumber').show();
+        } else {
+            $('#forwardingNumber').hide();
+        }
+    });
+    
+    // Purchase button handlers
+    $('#buyActivation').click(function() {
+        purchaseNumber('activation');
+    });
+    
+    $('#buyHosting').click(function() {
+        purchaseNumber('hosting');
+    });
+    
+    // View order button handler
+    $('#viewOrderBtn').click(function() {
+        if (currentOrderId) {
+            window.location.href = `/order/${currentOrderId}/`;
+        }
+    });
+    
+    function loadCountries() {
+        $.get('/api/5sim/countries/')
+            .done(function(data) {
+                const countrySelect = $('#country');
+                countrySelect.html('<option value="">Select Country</option>');
+                
+                // Sort countries alphabetically
+                const sortedCountries = Object.entries(data).sort((a, b) => a[1].localeCompare(b[1]));
+                
+                sortedCountries.forEach(([code, name]) => {
+                    countrySelect.append(`<option value="${code}">${name}</option>`);
+                });
+            })
+            .fail(function() {
+                showToast('Failed to load countries', 'error');
+            });
+    }
+    
+    function loadOperators(country) {
+        $.get('/api/5sim/operators/')
+            .done(function(data) {
+                const operatorSelect = $('#operator');
+                operatorSelect.html('<option value="">Select Operator</option>');
+                
+                if (data[country]) {
+                    Object.entries(data[country]).forEach(([code, name]) => {
+                        operatorSelect.append(`<option value="${code}">${name}</option>`);
+                    });
+                }
+            })
+            .fail(function() {
+                showToast('Failed to load operators', 'error');
+            });
+    }
+    
+    function loadProducts(country, operator) {
+        $.get(`/api/5sim/products/${country}/${operator}/`)
+            .done(function(data) {
+                const productSelect = $('#product');
+                productSelect.html('<option value="">Select Service</option>');
+                
+                Object.entries(data).forEach(([code, details]) => {
+                    productSelect.append(`<option value="${code}">${details.name}</option>`);
+                });
+            })
+            .fail(function() {
+                showToast('Failed to load products', 'error');
+            });
+    }
+    
+    function updatePrice() {
+        const country = $('#country').val();
+        const product = $('#product').val();
+        
+        if (country && product) {
+            $.get(`/api/5sim/prices/${country}/${product}/`)
+                .done(function(data) {
+                    const priceDisplay = $('#priceDisplay');
+                    const priceValue = $('#priceValue');
+                    
+                    if (data && Object.keys(data).length > 0) {
+                        // Get the lowest price
+                        const prices = Object.values(data);
+                        const minPrice = Math.min(...prices.map(p => parseFloat(p.cost)));
+                        const priceNGN = Math.ceil(minPrice * 1650); // Convert to NGN
+                        
+                        priceValue.text(priceNGN.toLocaleString());
+                        priceDisplay.show();
+                        
+                        // Enable purchase buttons
+                        $('#buyActivation, #buyHosting').prop('disabled', false);
+                    } else {
+                        priceDisplay.hide();
+                        $('#buyActivation, #buyHosting').prop('disabled', true);
+                    }
+                })
+                .fail(function() {
+                    $('#priceDisplay').hide();
+                    $('#buyActivation, #buyHosting').prop('disabled', true);
+                });
+        } else {
+            $('#priceDisplay').hide();
+            $('#buyActivation, #buyHosting').prop('disabled', true);
+        }
+    }
+    
+    function purchaseNumber(type) {
+        const formData = {
+            country: $('#country').val(),
+            operator: $('#operator').val(),
+            product: $('#product').val(),
+            forwarding: $('#forwarding').is(':checked') ? '1' : '0',
+            forwarding_number: $('#forwardingNumber').val(),
+            reuse: $('#reuse').is(':checked') ? '1' : '0',
+            voice: $('#voice').is(':checked') ? '1' : '0',
+            ref: $('#ref').val(),
+            max_price: $('#maxPrice').val(),
+        };
+        
+        // Validate required fields
+        if (!formData.country || !formData.operator || !formData.product) {
+            showToast('Please select country, operator, and service', 'error');
+            return;
+        }
+        
+        // Show modal
+        currentOrderId = null;
+        $('#purchaseModalTitle').text(`Purchasing ${type} number...`);
+        $('#purchaseLoading').show();
+        $('#purchaseSuccess, #purchaseError').hide();
+        $('#viewOrderBtn').hide();
+        $('#purchaseModal').modal('show');
+        
+        // Make purchase request
+        const endpoint = type === 'activation' ? '/api/5sim/buy-activation/' : '/api/5sim/buy-hosting/';
+        
+        $.post(endpoint, formData)
+            .done(function(response) {
+                if (response.success) {
+                    currentOrderId = response.order_id;
+                    
+                    // Update success display
+                    $('#resultPhoneNumber').text(response.phone_number);
+                    $('#resultOrderId').text(response.order_id);
+                    $('#resultStatus').text(response.status).removeClass().addClass('badge bg-warning');
+                    $('#resultExpires').text(new Date(response.expires_at).toLocaleString());
+                    $('#resultPrice').text(`${response.price} NGN`);
+                    
+                    // Show success
+                    $('#purchaseLoading').hide();
+                    $('#purchaseSuccess').show();
+                    $('#viewOrderBtn').show();
+                    
+                    showToast('Purchase successful!', 'success');
+                } else {
+                    showPurchaseError(response.error);
+                }
+            })
+            .fail(function(xhr) {
+                const error = xhr.responseJSON?.error || 'Network error occurred';
+                showPurchaseError(error);
+            });
+    }
+    
+    function showPurchaseError(message) {
+        $('#errorMessage').text(message);
+        $('#purchaseLoading').hide();
+        $('#purchaseError').show();
+        showToast('Purchase failed: ' + message, 'error');
+    }
+    
+    function showToast(message, type = 'info') {
+        // Simple toast notification
+        const alertClass = type === 'error' ? 'danger' : type;
+        const toast = $(`
+            <div class="alert alert-${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+        
+        $('body').append(toast);
+        setTimeout(() => toast.alert('close'), 5000);
+    }
+});
+</script>
+{% endblock %}
