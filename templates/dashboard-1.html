@@ -498,7 +498,127 @@ div[style*="position: relative"]:has(#serviceDropdownContainer),
     .glass-card.dropdown-space {
         margin-bottom: 20rem !important; /* Extra space for dropdown */
     }
-    
+}
+
+/* Dark Mode Styles for Dashboard */
+[data-theme="dark"] body[data-page="dashboard"] {
+    background: #000000 !important;
+}
+
+[data-theme="dark"] .modern-dashboard {
+    background: #000000 !important;
+}
+
+/* Dark mode - SMS Verification and Recent Orders cards with thin green border */
+[data-theme="dark"] .service-panel.glass-card,
+[data-theme="dark"] .orders-panel.glass-card {
+    background-color: #000000 !important;
+    border: 1px solid #198754 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .service-panel.glass-card .card-body,
+[data-theme="dark"] .orders-panel.glass-card .card-body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode - Tables with black background */
+[data-theme="dark"] #recentOrdersTable,
+[data-theme="dark"] .table {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #recentOrdersTable th,
+[data-theme="dark"] #recentOrdersTable td,
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] #recentOrdersTable tbody tr:hover,
+[data-theme="dark"] .table tbody tr:hover {
+    background-color: #1a1a1a !important;
+}
+
+/* Dark mode - Descriptive text styling */
+[data-theme="dark"] .service-panel.glass-card .text-muted {
+    color: #ffffff !important;
+}
+
+/* Dark mode - Form labels styling */
+[data-theme="dark"] .modern-label {
+    color: #ffffff !important;
+}
+
+/* Dark mode - Dropdown fields styling */
+[data-theme="dark"] .intelligent-dropdown .dropdown-selected {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-search {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-search::placeholder {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+/* Dark mode - Dropdown container and options */
+[data-theme="dark"] .intelligent-dropdown .dropdown-container {
+    background-color: #000000 !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-option:hover {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode - Dropdown containers with IDs */
+[data-theme="dark"] #countryDropdownContainer,
+[data-theme="dark"] #serviceDropdownContainer {
+    background-color: #000000 !important;
+    border-color: #404040 !important;
+}
+
+/* Dark mode - Specific dropdown selected elements */
+[data-theme="dark"] #countryDropdownSelected,
+[data-theme="dark"] #serviceDropdownSelected {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+/* Dark mode - Search input fields */
+[data-theme="dark"] #countrySearch,
+[data-theme="dark"] #serviceSearch {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] #countrySearch::placeholder,
+[data-theme="dark"] #serviceSearch::placeholder {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+/* Desktop dropdown fixes */
+@media (min-width: 769px) {
     /* Ensure form containers have proper stacking */
     .form-group {
         position: relative;
