@@ -1,0 +1,660 @@
+<!-- Hidden operators table -->
+<table class="d-none" id="operatorsTable">
+    <tbody id="operatorsTableBody"></tbody>
+</table>
+
+<!-- Modern CSS Styles -->
+<style>
+:root {
+    --primary-color: #198754;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 16px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    --gradient-secondary: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+}
+
+/* Modern Dashboard Layout */
+.modern-dashboard {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    padding: 1rem 0 0.1rem 0;
+}
+
+.hero-section {
+    margin-bottom: 2rem;
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(25, 135, 84, 0.15);
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(25, 135, 84, 0.25);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.glass-card .card-header {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(32, 201, 151, 0.08) 100%);
+    border-bottom: 1px solid rgba(25, 135, 84, 0.1);
+    border-radius: calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px) 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+.glass-card .card-body {
+    border-radius: 0 0 calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px);
+}
+
+/* Override glass card for specific panels */
+.orders-panel.glass-card .card-body,
+.service-panel.glass-card .card-body {
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    overflow: visible;
+}
+
+/* Panel Layout */
+.service-panel,
+.orders-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.service-panel .card-body,
+.orders-panel .card-body {
+    flex: 1;
+}
+
+.orders-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-table-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-table {
+    flex: 1;
+}
+
+.no-orders-row {
+    height: 200px;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: var(--gradient-primary);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+.welcome-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.hero-icon {
+    font-size: 3rem;
+    opacity: 0.3;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.feature-pills {
+    gap: 0.5rem;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+.pill-primary { background: rgba(255, 255, 255, 0.2); }
+.pill-success { background: rgba(255, 255, 255, 0.15); }
+.pill-info { background: rgba(255, 255, 255, 0.1); }
+
+/* Balance Card */
+.balance-card {
+    text-align: center;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid rgba(25, 135, 84, 0.1);
+}
+
+.balance-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.balance-card .balance-amount {
+    font-size: 1.8rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Service Panel */
+.service-panel .card-header {
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+/* Modern Form Controls */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    position: relative;
+}
+
+.modern-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.modern-select-wrapper {
+    position: relative;
+}
+
+.modern-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: var(--border-radius-sm);
+    background: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+}
+
+.modern-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+.modern-select:hover {
+    border-color: #ced4da;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.modern-select:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Custom Dropdown Styles */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-selected {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    display: block;
+}
+
+.dropdown-selected:hover {
+    border-color: #999;
+}
+
+.dropdown-selected.active {
+    border-color: #007bff;
+}
+
+.dropdown-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    pointer-events: none;
+}
+
+.dropdown-selected.active .dropdown-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.custom-dropdown .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-top: none !important;
+    border-radius: 0 0 4px 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    z-index: 9999 !important;
+    display: none !important;
+    max-height: 250px !important;
+    overflow-y: auto !important;
+}
+
+.custom-dropdown .dropdown-menu.active {
+    display: block !important;
+}
+
+.custom-dropdown .dropdown-option {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+    font-size: 13px !important;
+    background: white !important;
+    color: #333 !important;
+}
+
+.custom-dropdown .dropdown-option:last-child {
+    border-bottom: none !important;
+}
+
+.custom-dropdown .dropdown-option:hover {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
+}
+
+.custom-dropdown .dropdown-option.selected {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Dark mode styles for custom dropdowns */
+[data-theme="dark"] .dropdown-selected,
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .search-input {
+    background: var(--dark-surface);
+    border-color: #495057;
+    color: var(--dark-text);
+}
+
+[data-theme="dark"] .dropdown-selected:hover {
+    border-color: #6c757d;
+}
+
+[data-theme="dark"] .dropdown-option {
+    border-color: #495057;
+}
+
+[data-theme="dark"] .dropdown-option:hover {
+    background-color: #495057;
+}
+
+[data-theme="dark"] .search-input::placeholder {
+    color: #adb5bd;
+}
+
+/* Service Info Panel */
+.service-info-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--border-radius);
+    border: 1px solid #dee2e6;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* Purchase Button */
+.purchase-btn {
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 0.875rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.purchase-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.purchase-btn:hover::before {
+    left: 100%;
+}
+
+.purchase-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Orders Panel */
+.orders-panel .card-header {
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+.orders-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Modern Table */
+.modern-table-wrapper {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--dark-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modern-table tbody td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.modern-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: rgba(25, 135, 84, 0.02);
+}
+
+/* Ensure last row respects border radius */
+.modern-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--border-radius);
+}
+
+.modern-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--border-radius);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--secondary-color);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Badges and Pills */
+.badge {
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Gradient Button */
+.btn-gradient {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    color: white;
+}
+
+/* Custom Scrollbar */
+.orders-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.orders-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.orders-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+.orders-container::-webkit-scrollbar-thumb:hover {
+    background: #157347;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modern-dashboard {
+        padding: 1rem 0;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-icon {
+        display: none;
+    }
+    
+    .feature-pills {
+        justify-content: center;
+    }
+    
+    .balance-card .balance-amount {
+        font-size: 1.5rem;
+    }
+    
+    /* Keep cancel button inline with TTL countdown on mobile */
+    .countdown-timer {
+        display: inline-block;
+        margin-right: 0.25rem;
+    }
+    
+    .btn-link.text-danger {
+        display: inline-block;
+        margin-left: 0.25rem;
+        vertical-align: middle;
+    }
+}
+
+/* Animation Classes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Loading States */
+.btn:disabled {
+    opacity: 0.7;
+    transform: none !important;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Toast Improvements */
+.toast {
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
+}
+
+/* Status Indicators */
+.status-active { color: var(--success-color); }
+.status-pending { color: var(--warning-color); }
+.status-cancelled { color: var(--secondary-color); }
+.status-completed { color: var(--info-color); }
+
+/* Action Buttons */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+.action-btn-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+}
+
+.action-btn-danger:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Cancel Button in TTL Column */
+.btn-link.text-danger {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.btn-link.text-danger:hover {
+    background: rgba(220, 53, 69, 0.15);
+    transform: scale(1.05);
+    text-decoration: none;
+}
+</style>

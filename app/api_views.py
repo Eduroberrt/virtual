@@ -123,14 +123,6 @@ def rent_number(request):
                 if user_balance_naira < service_price_naira:
                     return error_response("Insufficient balance")
                 
-                # Check active rental limit (max 3 active rentals per user)
-                active_rentals_count = Rental.objects.filter(
-                    user=request.user,
-                    status='WAITING'
-                ).count()
-                if active_rentals_count >= 3:
-                    return error_response("Maximum limit reached. You can only have 3 active rentals at a time.")
-                
                 # Call DaisySMS API while holding the lock (this ensures no other request can interfere)
                 client = get_daisysms_client()
                 try:
@@ -372,19 +364,25 @@ def get_rentals(request):
         
         # Get rentals that should be shown in the dashboard:
         # 1. Active waiting rentals (not expired, not cancelled)
-        # 2. Rentals that have received SMS (regardless of status)
+        # 2. Rentals that have received SMS (regardless of age - these should always show)
+        # 3. Recent successful rentals (within last 24 hours) even if they expired
         expiry_threshold = timezone.now() - timezone.timedelta(minutes=5)
+        recent_threshold = timezone.now() - timezone.timedelta(hours=24)
         
         rentals = Rental.objects.filter(
             user=request.user
         ).filter(
             # Include rentals that:
-            Q(messages__isnull=False) |  # Have received SMS messages
+            Q(messages__isnull=False) |  # Have received SMS messages (always show these)
             Q(
-                status__in=['WAITING', 'RECEIVED'],  # Are active
+                status__in=['WAITING', 'RECEIVED'],  # Are currently active
                 created_at__gt=expiry_threshold  # And not expired
+            ) |
+            Q(
+                status='RECEIVED',  # Or recently successful
+                created_at__gt=recent_threshold  # Within last 24 hours
             )
-        ).select_related('service').distinct()
+        ).select_related('service').distinct().order_by('-created_at')
         
         # Pagination
         page = request.GET.get('page', 1)

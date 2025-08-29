@@ -1,33 +1,18 @@
 @echo off
-REM Setup script to create Windows Task Scheduler job for auto-cancelling expired rentals
+REM DEPRECATED: Setup script to create Windows Task Scheduler job for auto-cancelling expired rentals
+REM This functionality is no longer needed since we now sync with DaisySMS API
 
-echo Setting up automatic rental cancellation service...
 echo.
-
-REM Create the scheduled task
-schtasks /create ^
-    /tn "VirtualSMS_AutoCancel" ^
-    /tr "python.exe \"c:\Users\WDN\Desktop\virtual\manage.py\" auto_cancel_expired" ^
-    /sc minute ^
-    /mo 1 ^
-    /st 00:00 ^
-    /sd %date% ^
-    /ru "SYSTEM" ^
-    /f
-
-if %errorlevel% equ 0 (
-    echo.
-    echo ✅ SUCCESS! Auto-cancel service has been set up.
-    echo.
-    echo The system will now automatically:
-    echo - Run every 1 minute
-    echo - Cancel rentals older than 5 minutes
-    echo - Refund users automatically
-    echo.
-    echo To manage the task:
-    echo - View: schtasks /query /tn "VirtualSMS_AutoCancel"
-    echo - Stop:  schtasks /end /tn "VirtualSMS_AutoCancel"
-    echo - Delete: schtasks /delete /tn "VirtualSMS_AutoCancel" /f
+echo ⚠️  DEPRECATED SCRIPT ⚠️
+echo.
+echo This auto-cancel setup script is no longer needed.
+echo We now sync expiration status with DaisySMS API instead of time-based expiration.
+echo.
+echo If you already have the VirtualSMS_AutoCancel task installed, you can remove it with:
+echo schtasks /delete /tn "VirtualSMS_AutoCancel" /f
+echo.
+pause
+exit /b 0
     echo.
     echo The service is now ACTIVE and running!
 ) else (

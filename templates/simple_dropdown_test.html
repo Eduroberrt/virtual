@@ -1,0 +1,602 @@
+{% extends "main.html" %}
+
+{% block content %}
+    <style>
+        .intelligent-dropdown {
+            position: relative;
+        }
+        
+        .intelligent-dropdown .dropdown-container {
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .intelligent-dropdown .dropdown-container.open {
+            max-height: 300px;
+            opacity: 1;
+        }
+        
+        .intelligent-dropdown .dropdown-selected {
+            border: 1px solid #ccc;
+            padding: 8px;
+            cursor: pointer;
+            background: white;
+            border-radius: 4px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .intelligent-dropdown .dropdown-selected.open {
+            border-radius: 4px 4px 0 0;
+            border-color: #007bff;
+        }
+        
+        .intelligent-dropdown .dropdown-search {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-bottom: 1px solid #eee;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .intelligent-dropdown .dropdown-options {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .intelligent-dropdown .dropdown-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
+        
+        .intelligent-dropdown .dropdown-option:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+    
+    <div style="padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px;">
+            <h2>Intelligent Dropdown Test with Search</h2>
+            
+            <!-- Country Dropdown with Search -->
+            <div style="margin: 20px 0;">
+                <label>Country (with Search):</label>
+                <div class="intelligent-dropdown" style="margin-top: 5px;">
+                    <div id="countryDropdownSelected" class="dropdown-selected">
+                        Choose a country...
+                    </div>
+                    <div id="countryDropdownContainer" class="dropdown-container">
+                        <input type="text" id="countrySearch" class="dropdown-search" placeholder="Search countries...">
+                        <div id="countryOptions" class="dropdown-options">
+                            <!-- Options will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Service Dropdown with Search -->
+            <div style="margin: 20px 0;">
+                <label>Service (with Search):</label>
+                <div class="intelligent-dropdown" style="margin-top: 5px;">
+                    <div id="serviceDropdownSelected" class="dropdown-selected" style="color: #999;">
+                        Select country first...
+                    </div>
+                    <div id="serviceDropdownContainer" class="dropdown-container">
+                        <input type="text" id="serviceSearch" class="dropdown-search" placeholder="Search services...">
+                        <div id="serviceOptions" class="dropdown-options">
+                            <!-- Options will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Regular Select Dropdowns for Comparison -->
+            <div style="margin: 20px 0; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="font-size: 16px; margin-bottom: 10px;">Regular Select Dropdowns (No Search)</h3>
+                
+                <div style="margin: 10px 0;">
+                    <label for="countrySelect">Country:</label>
+                    <select id="countrySelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                        <option value="">Loading countries...</option>
+                    </select>
+                </div>
+                
+                <div style="margin: 10px 0;">
+                    <label for="serviceSelect">Service:</label>
+                    <select id="serviceSelect" style="width: 100%; padding: 8px; margin-top: 5px;" disabled>
+                        <option value="">Select country first...</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Selection Display -->
+            <div id="selectionDisplay" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                <strong>Selected:</strong><br>
+                Country: <span id="selectedCountryDisplay">None</span><br>
+                Service: <span id="selectedServiceDisplay">None</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let countries = {};
+        let services = {};
+        let selectedCountry = null;
+        let selectedService = null;
+        
+        // Country flag mapping
+        const countryFlags = {
+            'afghanistan': '🇦🇫',
+            'albania': '🇦🇱',
+            'algeria': '🇩🇿',
+            'angola': '🇦🇴',
+            'antiguaandbarbuda': '🇦🇬',
+            'argentina': '🇦🇷',
+            'armenia': '🇦🇲',
+            'aruba': '🇦🇼',
+            'australia': '🇦🇺',
+            'austria': '🇦🇹',
+            'azerbaijan': '🇦🇿',
+            'bahamas': '🇧🇸',
+            'bahrain': '🇧🇭',
+            'bangladesh': '🇧🇩',
+            'barbados': '🇧🇧',
+            'belarus': '🇧🇾',
+            'belgium': '🇧🇪',
+            'belize': '🇧🇿',
+            'benin': '🇧🇯',
+            'bhutane': '🇧🇹',
+            'bih': '🇧🇦',
+            'bolivia': '🇧🇴',
+            'botswana': '🇧🇼',
+            'brazil': '🇧🇷',
+            'bulgaria': '🇧🇬',
+            'burkinafaso': '🇧🇫',
+            'burundi': '🇧🇮',
+            'cambodia': '🇰🇭',
+            'cameroon': '🇨🇲',
+            'canada': '🇨🇦',
+            'capeverde': '🇨🇻',
+            'chad': '🇹🇩',
+            'chile': '🇨🇱',
+            'colombia': '🇨🇴',
+            'comoros': '🇰🇲',
+            'congo': '🇨🇬',
+            'costarica': '🇨🇷',
+            'croatia': '🇭🇷',
+            'cyprus': '🇨🇾',
+            'czech': '🇨🇿',
+            'denmark': '🇩🇰',
+            'djibouti': '🇩🇯',
+            'dominicana': '🇩🇴',
+            'easttimor': '🇹🇱',
+            'ecuador': '🇪🇨',
+            'egypt': '🇪🇬',
+            'england': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+            'equatorialguinea': '🇬🇶',
+            'estonia': '🇪🇪',
+            'ethiopia': '🇪🇹',
+            'finland': '🇫🇮',
+            'france': '🇫🇷',
+            'frenchguiana': '🇬🇫',
+            'gabon': '🇬🇦',
+            'gambia': '🇬🇲',
+            'georgia': '🇬🇪',
+            'germany': '🇩🇪',
+            'ghana': '🇬🇭',
+            'gibraltar': '🇬🇮',
+            'greece': '🇬🇷',
+            'guadeloupe': '🇬🇵',
+            'guatemala': '🇬🇹',
+            'guinea': '🇬🇳',
+            'guineabissau': '🇬🇼',
+            'guyana': '🇬🇾',
+            'haiti': '🇭🇹',
+            'honduras': '🇭🇳',
+            'hongkong': '🇭🇰',
+            'hungary': '🇭🇺',
+            'india': '🇮🇳',
+            'indonesia': '🇮🇩',
+            'ireland': '🇮🇪',
+            'israel': '🇮🇱',
+            'italy': '🇮🇹',
+            'ivorycoast': '🇨🇮',
+            'jamaica': '🇯🇲',
+            'jordan': '🇯🇴',
+            'kazakhstan': '🇰🇿',
+            'kenya': '🇰🇪',
+            'kuwait': '🇰🇼',
+            'kyrgyzstan': '🇰🇬',
+            'laos': '🇱🇦',
+            'latvia': '🇱🇻',
+            'lebanon': '🇱🇧',
+            'lesotho': '🇱🇸',
+            'liberia': '🇱🇷',
+            'lithuania': '🇱🇹',
+            'luxembourg': '🇱🇺',
+            'macau': '🇲🇴',
+            'madagascar': '🇲🇬',
+            'malawi': '🇲🇼',
+            'malaysia': '🇲🇾',
+            'maldives': '🇲🇻',
+            'mauritania': '🇲🇷',
+            'mauritius': '🇲🇺',
+            'mexico': '🇲🇽',
+            'moldova': '🇲🇩',
+            'mongolia': '🇲🇳',
+            'montenegro': '🇲🇪',
+            'morocco': '🇲🇦',
+            'mozambique': '🇲🇿',
+            'namibia': '🇳🇦',
+            'nepal': '🇳🇵',
+            'netherlands': '🇳🇱',
+            'newcaledonia': '🇳🇨',
+            'newzealand': '🇳🇿',
+            'nicaragua': '🇳🇮',
+            'nigeria': '🇳🇬',
+            'northmacedonia': '🇲🇰',
+            'norway': '🇳🇴',
+            'oman': '🇴🇲',
+            'pakistan': '🇵🇰',
+            'panama': '🇵🇦',
+            'papuanewguinea': '🇵🇬',
+            'paraguay': '🇵🇾',
+            'peru': '🇵🇪',
+            'philippines': '🇵🇭',
+            'poland': '🇵🇱',
+            'portugal': '🇵🇹',
+            'puertorico': '🇵🇷',
+            'reunion': '🇷🇪',
+            'romania': '🇷🇴',
+            'russia': '🇷🇺',
+            'rwanda': '🇷🇼',
+            'saintkittsandnevis': '🇰🇳',
+            'saintlucia': '🇱🇨',
+            'saintvincentandgrenadines': '🇻🇨',
+            'salvador': '🇸🇻',
+            'samoa': '🇼🇸',
+            'saudiarabia': '🇸🇦',
+            'senegal': '🇸🇳',
+            'serbia': '🇷🇸',
+            'seychelles': '🇸🇨',
+            'sierraleone': '🇸🇱',
+            'singapore': '🇸🇬',
+            'slovakia': '🇸🇰',
+            'slovenia': '🇸🇮',
+            'solomonislands': '🇸🇧',
+            'southafrica': '🇿🇦',
+            'spain': '🇪🇸',
+            'srilanka': '🇱🇰',
+            'suriname': '🇸🇷',
+            'swaziland': '🇸🇿',
+            'sweden': '🇸🇪',
+            'taiwan': '🇹🇼',
+            'tajikistan': '🇹🇯',
+            'tanzania': '🇹🇿',
+            'thailand': '🇹🇭',
+            'tit': '🇹🇹',  // Assuming this is Trinidad and Tobago
+            'togo': '🇹🇬',
+            'tunisia': '🇹🇳',
+            'turkmenistan': '🇹🇲',
+            'uganda': '🇺🇬',
+            'ukraine': '🇺🇦',
+            'uruguay': '🇺🇾',
+            'usa': '🇺🇸',
+            'uzbekistan': '🇺🇿',
+            'venezuela': '🇻🇪',
+            'vietnam': '🇻🇳',
+            'zambia': '🇿🇲'
+        };
+        
+        // Function to get country flag
+        function getCountryFlag(countryCode) {
+            return countryFlags[countryCode.toLowerCase()] || '🏳️';
+        }
+        
+        // Load countries from API
+        async function loadCountries() {
+            try {
+                const response = await fetch('/api/5sim/countries/');
+                const data = await response.json();
+                
+                if (data.success && data.countries) {
+                    countries = data.countries;
+                    populateCountryDropdowns();
+                    console.log('Countries loaded:', Object.keys(countries).length);
+                } else {
+                    console.error('Failed to load countries:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading countries:', error);
+            }
+        }
+        
+        // Load services from API
+        async function loadServices() {
+            try {
+                const response = await fetch('/api/5sim/products-list/');
+                const data = await response.json();
+                
+                if (data.success && data.products) {
+                    services = data.products;
+                    console.log('Services loaded:', Object.keys(services).length);
+                } else {
+                    console.error('Failed to load services:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading services:', error);
+            }
+        }
+        
+        // Populate country dropdowns
+        function populateCountryDropdowns() {
+            // Populate regular select
+            const select = document.getElementById('countrySelect');
+            select.innerHTML = '<option value="">Choose a country...</option>';
+            
+            Object.entries(countries).forEach(([code, name]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                const flag = getCountryFlag(code);
+                option.textContent = `${flag} ${name}`;
+                select.appendChild(option);
+            });
+            
+            // Populate custom dropdown
+            populateCustomDropdown('country', countries, '');
+        }
+        
+        // Populate service dropdowns (when country is selected)
+        function populateServiceDropdowns() {
+            if (!selectedCountry) return;
+            
+            // Populate regular select
+            const select = document.getElementById('serviceSelect');
+            select.innerHTML = '<option value="">Choose a service...</option>';
+            select.disabled = false;
+            
+            Object.entries(services).forEach(([code, name]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+            
+            // Populate custom dropdown
+            populateCustomDropdown('service', services, '');
+            
+            // Enable service dropdown
+            const serviceSelected = document.getElementById('serviceDropdownSelected');
+            serviceSelected.textContent = 'Choose a service...';
+            serviceSelected.style.color = '#333';
+        }
+        
+        // Generic function to populate custom dropdown with search
+        function populateCustomDropdown(type, data, searchTerm) {
+            const container = document.getElementById(`${type}Options`);
+            container.innerHTML = '';
+            
+            // Filter data based on search term
+            const filteredData = Object.entries(data).filter(([code, name]) => 
+                name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            if (filteredData.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.className = 'dropdown-option';
+                noResults.style.color = '#999';
+                noResults.style.textAlign = 'center';
+                noResults.textContent = 'No results found';
+                container.appendChild(noResults);
+                return;
+            }
+            
+            filteredData.forEach(([code, name]) => {
+                const option = document.createElement('div');
+                option.className = 'dropdown-option';
+                option.style.display = 'flex';
+                option.style.alignItems = 'center';
+                
+                // Add flag for countries
+                if (type === 'country') {
+                    const flag = getCountryFlag(code);
+                    option.innerHTML = `<span style="margin-right: 8px; font-size: 14px;">${flag}</span> ${name}`;
+                } else {
+                    option.textContent = name;
+                }
+                
+                option.dataset.value = code;
+                option.dataset.name = name;
+                
+                option.addEventListener('click', () => {
+                    if (type === 'country') {
+                        selectCountry(code, name);
+                    } else {
+                        selectService(code, name);
+                    }
+                });
+                
+                container.appendChild(option);
+            });
+        }
+                });
+                
+                option.addEventListener('click', () => {
+                    if (type === 'country') {
+                        selectCountry(code, name);
+                    } else {
+                        selectService(code, name);
+                    }
+                });
+                
+                container.appendChild(option);
+            });
+        }
+        
+        // Handle country selection
+        function selectCountry(code, name) {
+            selectedCountry = { code, name };
+            const flag = getCountryFlag(code);
+            
+            // Update custom dropdown
+            document.getElementById('countryDropdownSelected').innerHTML = `<span style="margin-right: 8px;">${flag}</span> ${name}`;
+            document.getElementById('countryDropdownContainer').classList.remove('open');
+            document.getElementById('countryDropdownSelected').classList.remove('open');
+            document.getElementById('countrySearch').value = '';
+            
+            // Update regular select
+            document.getElementById('countrySelect').value = code;
+            
+            // Update display
+            document.getElementById('selectedCountryDisplay').innerHTML = `<span style="margin-right: 5px;">${flag}</span> ${name} (${code})`;
+            
+            // Reset service selection
+            selectedService = null;
+            document.getElementById('selectedServiceDisplay').textContent = 'None';
+            
+            // Enable and populate service dropdown
+            populateServiceDropdowns();
+            
+            console.log('Country selected:', name);
+        }
+        
+        // Handle service selection
+        function selectService(code, name) {
+            selectedService = { code, name };
+            
+            // Update custom dropdown
+            document.getElementById('serviceDropdownSelected').textContent = name;
+            document.getElementById('serviceDropdownContainer').classList.remove('open');
+            document.getElementById('serviceDropdownSelected').classList.remove('open');
+            document.getElementById('serviceSearch').value = '';
+            
+            // Update regular select
+            document.getElementById('serviceSelect').value = code;
+            
+            // Update display
+            document.getElementById('selectedServiceDisplay').textContent = `${name} (${code})`;
+            
+            console.log('Service selected:', name);
+        }
+        
+        // Setup dropdown toggle functionality with intelligent behavior
+        function setupDropdownToggle(type) {
+            const selected = document.getElementById(`${type}DropdownSelected`);
+            const container = document.getElementById(`${type}DropdownContainer`);
+            const search = document.getElementById(`${type}Search`);
+            
+            // Toggle dropdown
+            selected.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Close other dropdowns
+                ['country', 'service'].forEach(otherType => {
+                    if (otherType !== type) {
+                        const otherContainer = document.getElementById(`${otherType}DropdownContainer`);
+                        const otherSelected = document.getElementById(`${otherType}DropdownSelected`);
+                        otherContainer.classList.remove('open');
+                        otherSelected.classList.remove('open');
+                    }
+                });
+                
+                // Toggle current dropdown
+                const isOpen = container.classList.contains('open');
+                
+                if (isOpen) {
+                    container.classList.remove('open');
+                    selected.classList.remove('open');
+                } else {
+                    container.classList.add('open');
+                    selected.classList.add('open');
+                    // Focus search input when opened
+                    setTimeout(() => search.focus(), 300);
+                }
+            });
+            
+            // Search functionality
+            search.addEventListener('input', (e) => {
+                const searchTerm = e.target.value;
+                const data = type === 'country' ? countries : services;
+                populateCustomDropdown(type, data, searchTerm);
+            });
+            
+            // Prevent search input clicks from closing dropdown
+            search.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            ['country', 'service'].forEach(type => {
+                const container = document.getElementById(`${type}DropdownContainer`);
+                const selected = document.getElementById(`${type}DropdownSelected`);
+                
+                if (!selected.contains(e.target) && !container.contains(e.target)) {
+                    container.classList.remove('open');
+                    selected.classList.remove('open');
+                }
+            });
+        });
+        
+        // Handle regular select changes
+        document.getElementById('countrySelect').addEventListener('change', (e) => {
+            const code = e.target.value;
+            const name = countries[code];
+            if (code && name) {
+                selectCountry(code, name);
+            } else {
+                selectedCountry = null;
+                document.getElementById('selectedCountryDisplay').textContent = 'None';
+                document.getElementById('selectedServiceDisplay').textContent = 'None';
+                
+                // Reset custom dropdown
+                document.getElementById('countryDropdownSelected').textContent = 'Choose a country...';
+                
+                // Reset service dropdown
+                const serviceSelect = document.getElementById('serviceSelect');
+                serviceSelect.innerHTML = '<option value="">Select country first...</option>';
+                serviceSelect.disabled = true;
+                
+                const serviceSelected = document.getElementById('serviceDropdownSelected');
+                serviceSelected.textContent = 'Select country first...';
+                serviceSelected.style.color = '#999';
+            }
+        });
+        
+        document.getElementById('serviceSelect').addEventListener('change', (e) => {
+            const code = e.target.value;
+            const name = services[code];
+            if (code && name) {
+                selectService(code, name);
+            } else {
+                selectedService = null;
+                document.getElementById('selectedServiceDisplay').textContent = 'None';
+            }
+        });
+        
+        // Initialize everything when page loads
+        async function initialize() {
+            await loadCountries();
+            await loadServices();
+            
+            // Setup dropdown functionality
+            setupDropdownToggle('country');
+            setupDropdownToggle('service');
+            
+            console.log('Initialization complete');
+        }
+        
+        // Start initialization
+        initialize();
+    </script>
+    </div>
+{% endblock %}

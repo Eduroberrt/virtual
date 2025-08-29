@@ -4,13 +4,13 @@
 {% block title %}Wallet - Young PG Virtual{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="margin-bottom: 120px;">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 fw-bold mb-2">Wallet Management</h1>
-                    <p class="text-muted mb-0">Fund your wallet and manage your balance for seamless rentals.</p>
+                    <h1 class="h4 fw-bold mb-2">Wallet Management</h1>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Fund your wallet and manage your balance for seamless rentals.</p>
                 </div>
                 <div>
                     <a href="/dashboard/" class="btn btn-outline-primary">
@@ -53,6 +53,7 @@
                                         <button type="button" class="quick-amount-btn" data-amount="5000">₦5,000</button>
                                         <button type="button" class="quick-amount-btn" data-amount="10000">₦10,000</button>
                                         <button type="button" class="quick-amount-btn" data-amount="25000">₦25,000</button>
+                                        <button type="button" class="quick-amount-btn" data-amount="50000">₦50,000</button>
                                     </div>
                                 </div>
                                 
@@ -267,21 +268,21 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .wallet-card-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #333;
     margin: 1rem 0 0.5rem 0;
 }
 
 .wallet-card-subtitle {
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: #666;
     margin: 0;
     line-height: 1.5;
 }
 
 .wallet-card-body {
-    padding: 2.5rem;
+    padding: 2rem;
 }
 
 /* Form styles */
@@ -290,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .form-label {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #333;
     margin-bottom: 0.75rem;
@@ -306,18 +307,18 @@ document.addEventListener('DOMContentLoaded', function() {
 .input-prefix {
     position: absolute;
     left: 1rem;
-    color: #17a2b8;
+    color: #198754;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
     z-index: 10;
 }
 
 .form-control-custom {
     width: 100%;
-    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
     border: 2px solid #e9ecef;
     border-radius: 12px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 500;
     transition: all 0.3s ease;
     background: #fff;
@@ -325,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .form-control-custom:focus {
     outline: none;
-    border-color: #17a2b8;
-    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
 }
 
 .form-help {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: #666;
     margin-top: 0.5rem;
 }
@@ -343,51 +344,51 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .quick-amount-btn {
-    padding: 0.75rem 1rem;
+    padding: 0.7rem 0.9rem;
     border: 2px solid #e9ecef;
     background: #fff;
     color: #333;
     border-radius: 12px;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     transition: all 0.3s ease;
     cursor: pointer;
     text-align: center;
 }
 
 .quick-amount-btn:hover {
-    border-color: #17a2b8;
-    color: #17a2b8;
+    border-color: #198754;
+    color: #198754;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.2);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
 }
 
 .quick-amount-btn.active {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-    border-color: #17a2b8;
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+    border-color: #198754;
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
 }
 
 /* Primary button */
 .btn-primary-custom {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
     border: none;
     border-radius: 12px;
-    padding: 1rem 2rem;
+    padding: 0.9rem 1.8rem;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
     cursor: pointer;
     text-transform: none;
     letter-spacing: 0.5px;
 }
 
 .btn-primary-custom:hover:not(:disabled) {
-    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+    background: linear-gradient(135deg, #146c43 0%, #0f5132 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
     color: white;
@@ -484,6 +485,59 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 40px;
         font-size: 1rem;
     }
+}
+
+/* Dark mode overrides for wallet page */
+[data-theme="dark"] .wallet-card {
+    background: #000000 !important;
+    border: 1px solid var(--success-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .wallet-card-header {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid var(--success-color) !important;
+}
+
+[data-theme="dark"] .wallet-card-body {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .wallet-card-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .wallet-card-subtitle {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .balance-display-card {
+    background: #000000 !important;
+    border: 1px solid var(--success-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .balance-amount {
+    color: #ffffff !important;
+}
+
+/* Dark mode form labels */
+[data-theme="dark"] .form-label {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] label {
+    color: #ffffff !important;
 }
 </style>
 {% endblock %}

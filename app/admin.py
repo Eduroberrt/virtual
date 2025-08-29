@@ -1,6 +1,12 @@
 from django.contrib import admin
 from django.core.cache import cache
-from .models import UserProfile, Service, Rental, SMSMessage, Transaction, APILog, PasswordResetToken
+from django.utils.html import format_html
+from django.urls import reverse
+from django.contrib import messages
+from django.utils import timezone
+from .models import (
+    UserProfile, Service, Rental, SMSMessage, Transaction, FiveSimOrder, FiveSimSMS
+)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -155,21 +161,47 @@ class TransactionAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'transaction_id', 'description']
     readonly_fields = ['transaction_id', 'created_at']
 
-@admin.register(APILog)
-class APILogAdmin(admin.ModelAdmin):
-    list_display = ['endpoint', 'user', 'status_code', 'execution_time', 'created_at']
-    list_filter = ['endpoint', 'status_code', 'created_at']
-    search_fields = ['endpoint', 'user__username', 'error_message']
-    readonly_fields = ['created_at']
+# 5sim Purchase System Admin Classes
 
-@admin.register(PasswordResetToken)
-class PasswordResetTokenAdmin(admin.ModelAdmin):
-    list_display = ['user', 'token', 'created_at', 'used', 'is_valid_status']
-    list_filter = ['used', 'created_at']
-    search_fields = ['user__username', 'user__email', 'token']
-    readonly_fields = ['token', 'created_at']
+@admin.register(FiveSimOrder)
+class FiveSimOrderAdmin(admin.ModelAdmin):
+    list_display = [
+        'order_id', 'user', 'phone_number', 'product', 'order_type', 
+        'status', 'display_price_naira', 'created_at', 'expires_at'
+    ]
+    list_filter = ['order_type', 'status', 'created_at', 'country', 'product']
+    search_fields = ['order_id', 'phone_number', 'user__username', 'product']
+    readonly_fields = ['order_id', 'created_at', 'updated_at']
     
-    def is_valid_status(self, obj):
-        return obj.is_valid()
-    is_valid_status.boolean = True
-    is_valid_status.short_description = 'Valid'
+    fieldsets = (
+        ('Order Information', {
+            'fields': ('order_id', 'user', 'order_type', 'status', 'product')
+        }),
+        ('Phone Details', {
+            'fields': ('phone_number', 'country', 'operator')
+        }),
+        ('Pricing', {
+            'fields': ('price', 'price_naira')
+        }),
+        ('Options', {
+            'fields': ('forwarding', 'forwarding_number', 'reuse_enabled', 'voice_enabled', 'max_price', 'referral_key')
+        }),
+        ('Timing', {
+            'fields': ('created_at', 'updated_at', 'expires_at')
+        }),
+    )
+    
+    def display_price_naira(self, obj):
+        return f"₦{obj.price_naira:,.2f}"
+    display_price_naira.short_description = 'Price (NGN)'
+
+@admin.register(FiveSimSMS)
+class FiveSimSMSAdmin(admin.ModelAdmin):
+    list_display = ['order', 'sender', 'text_preview', 'code', 'date']
+    list_filter = ['date', 'order__product']
+    search_fields = ['sender', 'text', 'code', 'order__phone_number']
+    readonly_fields = ['sms_id', 'date']
+    
+    def text_preview(self, obj):
+        return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
+    text_preview.short_description = 'Message Preview'

@@ -1,0 +1,328 @@
+{% extends 'main.html' %}
+
+{% block title %}Products - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold text-success mb-2">Available Products</h1>
+                    <p class="text-muted mb-0">Browse all services and products supported by 5sim.net SMS verification</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success" id="refreshProductsBtn">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-success">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-3 text-center">
+                            <div class="h4 mb-1 text-success" id="totalProducts">-</div>
+                            <div class="small text-muted">Total Products</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-3 text-center">
+                            <div class="h4 mb-1 text-warning">Popular</div>
+                            <div class="small text-muted">Services</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-3 text-center">
+                            <div class="h4 mb-1 text-primary">Instant</div>
+                            <div class="small text-muted">Delivery</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-3 text-center">
+                            <div class="h4 mb-1 text-info">5sim.net</div>
+                            <div class="small text-muted">Powered by</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchProducts" placeholder="Search products...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="sortProducts">
+                                <option value="name">Sort by Name</option>
+                                <option value="code">Sort by Code</option>
+                                <option value="popular">Most Popular</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterCategory">
+                                <option value="">All Categories</option>
+                                <option value="social">Social Media</option>
+                                <option value="messaging">Messaging</option>
+                                <option value="email">Email Services</option>
+                                <option value="commerce">E-commerce</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary w-100" id="clearSearchBtn">
+                                <i class="fas fa-times me-1"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Count -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="small text-muted" id="resultsCount">
+                    Showing all products
+                </div>
+            </div>
+
+            <!-- Products List -->
+            <div id="productsListContainer">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-layer-group me-2"></i>Products Directory
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width: 60px;">#</th>
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="noProductsFound" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="fas fa-search text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                </div>
+                <h6 class="text-muted mb-2">No products found</h6>
+                <p class="small text-muted">Try adjusting your search criteria</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: rgba(25, 135, 84, 0.05);
+}
+
+.table th {
+    border-bottom: 2px solid #198754;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+
+<script>
+class ProductsPage {
+    constructor() {
+        this.products = {};
+        this.filteredProducts = {};
+        this.categories = {
+            'social': ['facebook', 'instagram', 'twitter', 'tiktok', 'snapchat', 'linkedin'],
+            'messaging': ['whatsapp', 'telegram', 'viber', 'signal', 'wechat', 'discord'],
+            'email': ['google', 'gmail', 'yahoo', 'microsoft', 'outlook'],
+            'commerce': ['amazon', 'paypal', 'uber', 'lyft', 'airbnb'],
+            'other': []
+        };
+        this.init();
+    }
+    
+    async init() {
+        await this.loadProducts();
+        this.bindEvents();
+        this.updateStats();
+    }
+    
+    async loadProducts() {
+        try {
+            const response = await fetch('/api/5sim/products-list/');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.products = data.products || {};
+                this.filteredProducts = { ...this.products };
+                this.renderProducts();
+            } else {
+                throw new Error(data.error || 'Failed to load products');
+            }
+        } catch (error) {
+            console.error('Failed to load products:', error);
+            this.showError('Failed to load products');
+        }
+    }
+    
+    renderProducts() {
+        this.renderProductsList();
+        
+        const count = Object.keys(this.filteredProducts).length;
+        document.getElementById('resultsCount').textContent = `Showing ${count} product${count !== 1 ? 's' : ''}`;
+    }
+    
+    renderProductsList() {
+        const tbody = document.getElementById('productsTableBody');
+        tbody.innerHTML = '';
+        
+        const products = Object.entries(this.filteredProducts);
+        
+        if (products.length === 0) {
+            this.showEmptyState();
+            return;
+        }
+        
+        products.forEach(([code, name], index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-muted fw-medium">${index + 1}</td>
+                <td>
+                    <code class="bg-light px-2 py-1 rounded">${code}</code>
+                </td>
+                <td class="fw-medium">${name}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('productsListContainer').style.display = 'block';
+        document.getElementById('noProductsFound').style.display = 'none';
+    }
+    
+    showEmptyState() {
+        document.getElementById('productsListContainer').style.display = 'none';
+        document.getElementById('noProductsFound').style.display = 'block';
+    }
+    
+    getProductCategory(code) {
+        for (const [category, products] of Object.entries(this.categories)) {
+            if (products.includes(code.toLowerCase())) {
+                return category;
+            }
+        }
+        return 'other';
+    }
+    
+    filterProducts(searchTerm) {
+        if (!searchTerm) {
+            this.filteredProducts = { ...this.products };
+        } else {
+            this.filteredProducts = {};
+            const term = searchTerm.toLowerCase();
+            
+            Object.entries(this.products).forEach(([code, name]) => {
+                if (code.toLowerCase().includes(term) || name.toLowerCase().includes(term)) {
+                    this.filteredProducts[code] = name;
+                }
+            });
+        }
+        
+        this.renderProducts();
+        this.updateStats();
+    }
+    
+    filterByCategory(category) {
+        if (!category) {
+            this.filteredProducts = { ...this.products };
+        } else {
+            this.filteredProducts = {};
+            Object.entries(this.products).forEach(([code, name]) => {
+                if (this.getProductCategory(code) === category) {
+                    this.filteredProducts[code] = name;
+                }
+            });
+        }
+        
+        this.renderProducts();
+        this.updateStats();
+    }
+    
+    updateStats() {
+        document.getElementById('totalProducts').textContent = Object.keys(this.filteredProducts).length;
+    }
+    
+    bindEvents() {
+        document.getElementById('searchProducts').addEventListener('input', (e) => {
+            this.filterProducts(e.target.value);
+        });
+        
+        document.getElementById('filterCategory').addEventListener('change', (e) => {
+            this.filterByCategory(e.target.value);
+        });
+        
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            document.getElementById('searchProducts').value = '';
+            document.getElementById('filterCategory').value = '';
+            this.filterProducts('');
+            this.filterByCategory('');
+        });
+        
+        document.getElementById('refreshProductsBtn').addEventListener('click', () => {
+            this.loadProducts();
+        });
+    }
+    
+    showError(message) {
+        console.error(message);
+    }
+}
+
+// Initialize page
+let productsPage;
+document.addEventListener('DOMContentLoaded', () => {
+    productsPage = new ProductsPage();
+});
+</script>
+
+{% endblock %}

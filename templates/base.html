@@ -58,6 +58,48 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}">
     
+    <!-- Critical Button Overrides - MUST be after Bootstrap -->
+    <style>
+        /* CRITICAL: Override Bootstrap button styles */
+        .btn-primary,
+        .btn-primary:visited,
+        .btn-primary:link,
+        button.btn-primary,
+        input[type="submit"].btn-primary,
+        a.btn-primary,
+        .btn-primary:not(:disabled):not(.disabled) {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active,
+        .btn-primary.active,
+        .btn-primary.focus,
+        .btn-primary:not(:disabled):not(.disabled):hover,
+        .btn-primary:not(:disabled):not(.disabled):focus,
+        .btn-primary:not(:disabled):not(.disabled):active,
+        .btn-primary:not(:disabled):not(.disabled).active {
+            background-color: #146c43 !important;
+            border-color: #146c43 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5) !important;
+        }
+
+        /* Override Bootstrap CSS custom properties */
+        .btn-primary {
+            --bs-btn-bg: #198754 !important;
+            --bs-btn-border-color: #198754 !important;
+            --bs-btn-hover-bg: #146c43 !important;
+            --bs-btn-hover-border-color: #146c43 !important;
+            --bs-btn-focus-shadow-rgb: 25, 135, 84 !important;
+            --bs-btn-active-bg: #146c43 !important;
+            --bs-btn-active-border-color: #146c43 !important;
+        }
+    </style>
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -201,6 +243,498 @@
         }
     </style>
     
+    <!-- Modern Navbar & Footer Styles -->
+    <style>
+        /* Modern Navbar Styles */
+        .modern-navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .modern-navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .brand-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .modern-navbar .nav-link {
+            color: #495057 !important;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            margin: 0 0.25rem;
+        }
+
+        .modern-navbar .nav-link:hover {
+            color: #007bff !important;
+            background: rgba(0, 123, 255, 0.08);
+        }
+
+        .modern-navbar .nav-link i {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .navbar-toggler {
+            border: none !important;
+            padding: 4px 8px;
+            width: 40px;
+            height: 40px;
+            position: relative;
+            background: transparent !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none !important;
+        }
+
+        .navbar-toggler span {
+            display: block;
+            width: 25px;
+            height: 2px;
+            background: #495057;
+            margin: 5px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        .navbar-toggler[aria-expanded="true"] span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-menu .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        /* Global Green Button Theme */
+        .btn-primary {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #146c43 !important;
+            border-color: #146c43 !important;
+        }
+
+        .btn-primary:focus,
+        .btn-primary.focus {
+            background-color: #146c43 !important;
+            border-color: #0f5132 !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5) !important;
+        }
+
+        .btn-primary:active,
+        .btn-primary.active {
+            background-color: #146c43 !important;
+            border-color: #0f5132 !important;
+        }
+
+        /* Force override all button variations */
+        .btn-primary,
+        .btn-primary:visited,
+        .btn-primary:link,
+        button.btn-primary,
+        input[type="submit"].btn-primary,
+        a.btn-primary {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:visited:hover,
+        .btn-primary:link:hover,
+        button.btn-primary:hover,
+        input[type="submit"].btn-primary:hover,
+        a.btn-primary:hover {
+            background-color: #146c43 !important;
+            border-color: #146c43 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-primary:focus,
+        .btn-primary:active,
+        .btn-primary.active,
+        .btn-primary.focus,
+        button.btn-primary:focus,
+        button.btn-primary:active,
+        input[type="submit"].btn-primary:focus,
+        input[type="submit"].btn-primary:active,
+        a.btn-primary:focus,
+        a.btn-primary:active {
+            background-color: #146c43 !important;
+            border-color: #146c43 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5) !important;
+        }
+
+        .btn-outline-primary {
+            color: #198754 !important;
+            border-color: #198754 !important;
+            background-color: transparent !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #fff !important;
+        }
+
+        .btn-outline-primary:focus,
+        .btn-outline-primary.focus {
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5) !important;
+            background-color: transparent !important;
+            border-color: #198754 !important;
+            color: #198754 !important;
+        }
+
+        .btn-outline-primary:active,
+        .btn-outline-primary.active {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #fff !important;
+        }
+
+        /* Force override all outline button variations */
+        .btn-outline-primary,
+        .btn-outline-primary:visited,
+        .btn-outline-primary:link,
+        button.btn-outline-primary,
+        a.btn-outline-primary {
+            color: #198754 !important;
+            border-color: #198754 !important;
+            background-color: transparent !important;
+        }
+
+        /* Override Bootstrap's default primary colors globally */
+        :root {
+            --bs-primary: #198754 !important;
+            --bs-primary-rgb: 25, 135, 84 !important;
+        }
+
+        /* Override any success button styles that might conflict */
+        .btn-success {
+            background-color: #198754 !important;
+            border-color: #198754 !important;
+            color: #ffffff !important;
+        }
+
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-success:active {
+            background-color: #146c43 !important;
+            border-color: #146c43 !important;
+            color: #ffffff !important;
+        }
+
+        /* Specific navbar login button (blue outline) */
+        .navbar .btn-outline-primary.navbar-login {
+            color: #007bff !important;
+            border-color: #007bff !important;
+            background: transparent !important;
+        }
+
+        .navbar .btn-outline-primary.navbar-login:hover {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+        }
+
+        .navbar .btn-outline-primary.navbar-login:focus,
+        .navbar .btn-outline-primary.navbar-login.focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5) !important;
+            background-color: transparent !important;
+            color: #007bff !important;
+        }
+
+        .navbar .btn-outline-primary.navbar-login:active,
+        .navbar .btn-outline-primary.navbar-login.active {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+        }
+
+        /* Specific navbar button overrides */
+        .navbar .btn-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+        }
+
+        .navbar .btn-primary:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+            color: #ffffff !important;
+        }
+
+        .navbar .btn-primary:focus,
+        .navbar .btn-primary.focus {
+            background-color: #0056b3 !important;
+            border-color: #004085 !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5) !important;
+            color: #ffffff !important;
+        }
+
+        .navbar .btn-primary:active,
+        .navbar .btn-primary.active {
+            background-color: #0056b3 !important;
+            border-color: #004085 !important;
+            color: #ffffff !important;
+        }
+
+        .navbar .btn-primary:not(:disabled):not(.disabled):active,
+        .navbar .btn-primary:not(:disabled):not(.disabled).active {
+            background-color: #0056b3 !important;
+            border-color: #004085 !important;
+            color: #ffffff !important;
+        }
+
+        .dropdown-menu {
+            border: 1px solid #e9ecef;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #007bff;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Modern Footer Styles */
+        .modern-footer {
+            background: #212529;
+            color: #adb5bd;
+            margin-top: auto;
+        }
+
+        .footer-main {
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-brand .brand-container {
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand .brand-icon {
+            background: #007bff;
+        }
+
+        .footer-brand .brand-text {
+            color: #ffffff;
+            font-size: 1.25rem;
+        }
+
+        .footer-description {
+            color: #adb5bd;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            max-width: 300px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .social-link.telegram {
+            background: #0088cc;
+            color: white;
+        }
+
+        .social-link.email {
+            background: #dc3545;
+            color: white;
+        }
+
+        .social-link.phone {
+            background: #198754;
+            color: white;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .footer-title {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .footer-links a:hover {
+            color: #007bff;
+            text-decoration: none;
+            padding-left: 0.5rem;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #343a40;
+            padding: 1.5rem 0;
+        }
+
+        .copyright {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .footer-badges {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .badge-item {
+            background: #343a40;
+            color: #adb5bd;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-item i {
+            color: #007bff;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .brand-text {
+                font-size: 1.25rem !important;
+            }
+
+            .navbar-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 0.75rem;
+                margin-top: 1rem;
+            }
+
+            .navbar-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer-main {
+                padding: 3rem 0 1.5rem;
+            }
+
+            .footer-badges {
+                justify-content: flex-start;
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .social-link {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Navbar scroll effect */
+        @media (min-width: 992px) {
+            .modern-navbar {
+                transition: all 0.3s ease;
+            }
+        }
+    </style>
+    
     <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
@@ -208,16 +742,23 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top modern-navbar">
         <div class="container">
             <!-- Logo -->
             <a class="navbar-brand" href="/">
-                <i class="fas fa-rocket me-2"></i>Young PG Virtual
+                <div class="brand-container">
+                    <div class="brand-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <span class="brand-text">Young PG Virtual</span>
+                </div>
             </a>
             
             <!-- Mobile toggle button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
             
             <!-- Navigation menu -->
@@ -225,27 +766,43 @@
                 <!-- Center menu -->
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#features">Features</a>
+                        <a class="nav-link" href="/#features">
+                            <i class="fas fa-star me-1"></i>Features
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'faq' %}">FAQ</a>
+                        <a class="nav-link" href="{% url 'faq' %}">
+                            <i class="fas fa-question-circle me-1"></i>FAQ
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'terms' %}">Terms of Service</a>
+                        <a class="nav-link" href="{% url 'terms' %}">
+                            <i class="fas fa-file-contract me-1"></i>Terms
+                        </a>
                     </li>
                 </ul>
                 
                 <!-- Right side buttons -->
-                <div class="d-flex flex-column flex-lg-row gap-2">
+                <div class="navbar-actions">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn btn-primary">Dashboard</a>
-                        <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-outline-primary">Login</a>
-                        <a href="{% url 'signup' %}" class="btn btn-primary">Sign Up</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                        <a href="{% url 'signup' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i>Get Started
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -259,44 +816,83 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="modern-footer">
         <div class="container">
-            <div class="row">
-                <!-- Column 1 - Company -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="footer-title">COMPANY</h5>
-                    <ul class="footer-links">
-                        <li><a href="/privacy/">Privacy Policy</a></li>
-                        <li><a href="/terms/">Terms of Service</a></li>
-                        <li><a href="/faq/">FAQ</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Column 2 - Access -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="footer-title">ACCESS</h5>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'signup' %}">Sign Up</a></li>
-                        <li><a href="{% url 'login' %}">Login</a></li>
-                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Column 3 - Contact -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="footer-title">CONTACT US</h5>
-                    <ul class="footer-links">
-                        <li><a href="mailto:support@youngpgvirtual.com"><i class="fas fa-envelope me-2"></i>support@youngpgvirtual.com</a></li>
-                        <li><a href="tel:+2349052864128"><i class="fas fa-phone me-2"></i>+234 905 286 4128</a></li>
-                        <li><a href="https://t.me/Customers_care0" target="_blank"><i class="fab fa-telegram me-2"></i>Customer Support</a></li>
-                    </ul>
+            <!-- Main Footer Content -->
+            <div class="footer-main">
+                <div class="row g-4">
+                    <!-- Column 1 - Brand & Description -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-brand">
+                            <div class="brand-container mb-3">
+                                <div class="brand-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <span class="brand-text">Young PG Virtual</span>
+                            </div>
+                            <p class="footer-description">
+                                Get virtual phone numbers from 180+ countries for SMS verification. Reliable, secure, and instant delivery for all your verification needs.
+                            </p>
+                            <div class="footer-social">
+                                <a href="https://t.me/Customers_care0" target="_blank" class="social-link telegram">
+                                    <i class="fab fa-telegram"></i>
+                                </a>
+                                <a href="mailto:support@youngpgvirtual.com" class="social-link email">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                                <a href="tel:+2349052864128" class="social-link phone">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2 - Company -->
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="footer-title">Company</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'index' %}">Home</a></li>
+                            <li><a href="{% url 'how_to_buy' %}">How to Buy</a></li>
+                            <li><a href="{% url 'faq' %}">FAQ</a></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Column 3 - Legal -->
+                    <div class="col-lg-3 col-md-6">
+                        <h5 class="footer-title">Legal</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'privacy' %}">Privacy Policy</a></li>
+                            <li><a href="{% url 'terms' %}">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Column 4 - Account -->
+                    <div class="col-lg-2 col-md-6">
+                        <h5 class="footer-title">Account</h5>
+                        <ul class="footer-links">
+                            {% if user.is_authenticated %}
+                                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                                <li><a href="{% url 'history' %}">History</a></li>
+                                <li><a href="{% url 'logout' %}">Logout</a></li>
+                            {% else %}
+                                <li><a href="{% url 'signup' %}">Sign Up</a></li>
+                                <li><a href="{% url 'login' %}">Login</a></li>
+                                <li><a href="{% url 'forgot_password' %}">Reset Password</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
             </div>
             
             <!-- Footer Bottom -->
             <div class="footer-bottom">
-                <p>&copy; 2025 Young PG Virtual. All rights reserved.
-                </p>
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <p class="copyright">
+                            &copy; 2025 <strong>Young PG Virtual</strong>. All rights reserved.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>
@@ -306,14 +902,43 @@
     
     <!-- Base JavaScript -->
     <script>
-        // Add active class to navbar on scroll
+        // Modern navbar scroll effect
         window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-            } else {
-                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+            const navbar = document.querySelector('.modern-navbar');
+            if (navbar) {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
             }
+        });
+
+        // Mobile menu toggle animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            if (navbarToggler) {
+                navbarToggler.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                        this.style.transform = isExpanded ? 'rotate(90deg)' : 'rotate(0deg)';
+                    }, 150);
+                });
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
     

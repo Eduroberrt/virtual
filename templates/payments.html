@@ -4,13 +4,13 @@
 {% block title %}Payment History - Young PG Virtual{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" style="margin-bottom: 120px;">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 fw-bold mb-2">Payment History</h1>
-                    <p class="text-muted mb-0">Time is in America/Los_Angeles time zone. The last 90 days are shown.</p>
+                    <h1 class="h4 fw-bold mb-2">Payment History</h1>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Time is in America/Los_Angeles time zone. The last 90 days are shown.</p>
                 </div>
                 <div>
                     <a href="/dashboard/" class="btn btn-outline-primary">
@@ -350,7 +350,7 @@ function getCookie(name) {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
 }
 
 .payments-card-header {
@@ -360,14 +360,14 @@ function getCookie(name) {
 }
 
 .payments-card-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #333;
     margin: 1rem 0 0.5rem 0;
 }
 
 .payments-card-subtitle {
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: #666;
     margin: 0;
     line-height: 1.5;
@@ -385,23 +385,23 @@ function getCookie(name) {
 .transactions-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
 }
 
 .transactions-table thead th {
-    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
     color: white;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     font-weight: 600;
     text-align: left;
     border: none;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .transactions-table tbody td {
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     vertical-align: middle;
 }
@@ -429,8 +429,8 @@ function getCookie(name) {
 .loading-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(23, 162, 184, 0.2);
-    border-top: 3px solid #17a2b8;
+    border: 3px solid rgba(25, 135, 84, 0.2);
+    border-top: 3px solid #198754;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-right: 1rem;
@@ -501,18 +501,18 @@ function getCookie(name) {
 }
 
 .pagination-btn:hover {
-    border-color: #17a2b8;
-    color: #17a2b8;
+    border-color: #198754;
+    color: #198754;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.2);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
 }
 
 .pagination-btn.active {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-    border-color: #17a2b8;
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+    border-color: #198754;
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
 }
 
 .pagination-number {
@@ -586,7 +586,7 @@ function getCookie(name) {
 }
 
 .text-info {
-    color: #17a2b8 !important;
+    color: #198754 !important;
 }
 
 .text-warning {
@@ -658,6 +658,75 @@ function getCookie(name) {
     .pagination-next .fas {
         display: none;
     }
+}
+
+/* Dark mode overrides for payments page */
+[data-theme="dark"] .payments-card {
+    background: #000000 !important;
+    border: 1px solid var(--success-color) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .payments-card-header {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid var(--success-color) !important;
+}
+
+[data-theme="dark"] .payments-card-body {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .payments-card-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .payments-card-subtitle {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .table {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #b3b3b3 !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #ffffff !important;
+}
+
+/* Dark mode pagination styling (transparent like history page) */
+[data-theme="dark"] .pagination-btn {
+    background: #000000 !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .pagination-btn:hover {
+    border-color: #198754 !important;
+    color: #198754 !important;
+    background: #1a1a1a !important;
+}
+
+[data-theme="dark"] .pagination-btn.active {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
+    border-color: #198754 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .pagination-ellipsis {
+    color: #b3b3b3 !important;
 }
 </style>
 {% endblock %}

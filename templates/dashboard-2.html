@@ -1,0 +1,1842 @@
+{% extends 'main.html' %}
+{% load currency_filters %}
+
+{% block title %}Dashboard 2 - DaisySMS Service - Young PG Virtual{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+<div class="row g-0">
+    <!-- SMS Verifications Section -->
+    <div class="col-12 col-lg-5 border-end">
+        <div class="p-2 p-md-3 p-lg-4">
+            <h2 class="h5 fw-bold mb-2">SMS Verifications</h2>
+
+            <div class="text-muted mb-3" style="font-size: 0.875rem;">
+                <p class="mb-1">Rent a phone number for SMS verification.</p>
+                <p class="mb-0">Credits are only used if you receive the SMS code.</p>
+            </div>
+
+            <!-- Service Search and Settings -->
+            <div class="d-flex gap-2 mb-3">
+                <div class="input-group flex-grow-1">
+                    <span class="input-group-text" style="font-size: 0.875rem;">Service</span>
+                    <input type="text" class="form-control" id="serviceFilter" placeholder="Search services..." style="font-size: 0.875rem;">
+                    <button class="btn btn-primary btn-sm" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-sm" type="button" id="settingsToggle">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="settings-panel" id="settingsPanel" style="display: none;">
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-medium" style="font-size: 0.75rem;">Number Preferences (Optional)</small>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                                <i class="fas fa-times me-1"></i>Clear All
+                            </button>
+                        </div>
+                        <div class="mb-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Area codes</span>
+                                <input type="text" class="form-control" id="areaCodes" placeholder="503, 202, 404 (optional)" style="font-size: 0.8rem;" title="Enter 3-digit US area codes separated by commas">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                Popular area codes: 503 (OR), 202 (DC), 404 (GA), 213 (CA). Increases price by 20%.
+                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearAreaCodes()">Clear</button>
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Carriers</span>
+                                <input type="text" class="form-control" id="carriers" placeholder="tmo, vz, att (optional)" style="font-size: 0.8rem;" title="Enter carrier codes separated by commas">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                Use: tmo (T-Mobile), vz (Verizon), att (AT&T). Increases price by 20%. 
+                                <a href="#carrierInfoModal" data-bs-toggle="modal" class="text-decoration-none">More info</a>
+                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearCarriers()">Clear</button>
+                            </small>
+                        </div>
+
+                        <div class="mb-0">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Phone</span>
+                                <input type="text" class="form-control" id="phone" placeholder="1112223333 (optional)" style="font-size: 0.8rem;" title="Enter specific 10-digit phone number">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                Specific 10-digit phone number. Increases price by 20%.
+                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearPhone()">Clear</button>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Table -->
+            <div class="border rounded services-table-container" style="height: 250px; overflow-y: auto;">
+                <table class="table mb-0 table-sm">
+                    <thead class="table-light sticky-top">
+                        <tr style="font-size: 0.8rem;">
+                            <th>Service</th>
+                            <th>Price</th>
+                            <th class="text-center" style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}" data-original-price="{{ service.get_naira_price }}">
+                            <td class="service-name">
+                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.name }}</div>
+                            </td>
+                            <td class="price">
+                                <div class="fw-medium price-display" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
+                                    <span class="text-muted">♡</span>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4">
+                                <div class="text-muted">
+                                    <p class="mb-2" style="font-size: 0.9rem;">No services available.</p>
+                                    <small>Please contact admin to add services.</small>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rented Numbers Section -->
+    <div class="col-12 col-lg-7">
+        <div class="p-2 p-md-3 p-lg-4">
+            <h2 class="h5 fw-bold mb-2">Rented numbers</h2>
+
+            <div class="text-muted mb-3" style="font-size: 0.875rem;">
+                <p class="mb-1">No need to refresh the page to get the code.</p>
+                <p class="mb-0">You can get more SMS to the same number for free when 🔁 is displayed.</p>
+            </div>
+
+            <!-- Active Rentals Counter -->
+            <div class="d-flex justify-content-end mb-3">
+                <div class="border border-2 rounded px-3 py-1">
+                    <span class="fw-medium" id="rentalCounter">0 active</span>
+                </div>
+            </div>
+
+            <!-- Rentals Table -->
+            <div class="table-responsive rentals-table-container">
+                <table class="table table-sm rentals-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Service</th>
+                            <th>Phone</th>
+                            <th>Code</th>
+                            <th>Cost</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="text-muted">
+                                    <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
+                                    <small>Click on a service to rent a number.</small>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- History Link -->
+            <div class="text-center mt-4">
+                <a href="/history/" class="text-decoration-none">View number history</a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Carrier Info Modal -->
+<div class="modal fade" id="carrierInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Why choose carrier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>There are 3 carriers in the USA: T-Mobile (tmo), Verizon (vz), and AT&T (att).</p>
+                <p>If you're experiencing issues on services like Tinder, where it says an account already exists, we recommend you try Verizon, or AT&T.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Message Modal -->
+<div class="modal fade" id="fullMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Full Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="font-monospace">Your WhatsApp verification code is: 123456</p>
+                <p class="font-monospace">Don't share this code with anyone.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Settings panel toggle
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    
+    settingsToggle.addEventListener('click', function() {
+        if (settingsPanel.style.display === 'none') {
+            settingsPanel.style.display = 'block';
+        } else {
+            settingsPanel.style.display = 'none';
+        }
+    });
+
+    // Service search functionality
+    const serviceFilter = document.getElementById('serviceFilter');
+    const serviceRows = document.querySelectorAll('.service-row');
+    
+    serviceFilter.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        let hasVisibleServices = false;
+        
+        serviceRows.forEach(row => {
+            const serviceName = row.getAttribute('data-service').toLowerCase();
+            if (serviceName.includes(searchTerm)) {
+                row.style.display = '';
+                hasVisibleServices = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show/hide "service not listed" option based on search results
+        handleServiceNotListed(searchTerm, hasVisibleServices);
+        
+        // Re-sort visible services by favorites
+        if (searchTerm === '') {
+            sortServicesByFavorites();
+        }
+    });
+
+    // Favorite toggle functionality
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    // Load saved favorites from localStorage
+    loadFavorites();
+    
+    favoriteButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent service row click
+            
+            const row = this.closest('.service-row');
+            const serviceCode = row.getAttribute('data-code');
+            const isFavorite = this.getAttribute('data-favorite') === 'true';
+            const heartIcon = this.querySelector('span');
+            
+            if (isFavorite) {
+                // Remove from favorites
+                this.setAttribute('data-favorite', 'false');
+                heartIcon.textContent = '♡';
+                heartIcon.className = 'text-muted';
+                removeFavorite(serviceCode);
+            } else {
+                // Add to favorites
+                this.setAttribute('data-favorite', 'true');
+                heartIcon.textContent = '♥';
+                heartIcon.className = 'text-danger';
+                addFavorite(serviceCode);
+            }
+            
+            // Re-sort the services table
+            sortServicesByFavorites();
+        });
+    });
+
+    // Service row click functionality
+    serviceRows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            console.log('Service row clicked:', this); // Debug log
+            console.log('Click event target:', e.target); // Debug log
+            
+            // Don't trigger if clicking on favorite button
+            if (e.target.closest('.favorite-btn')) {
+                console.log('Clicked on favorite button, ignoring'); // Debug log
+                return;
+            }
+            
+            const serviceName = this.getAttribute('data-service');
+            const serviceCode = this.getAttribute('data-code');
+            const priceElement = this.querySelector('.price .fw-medium');
+            const price = priceElement ? priceElement.textContent : 'Unknown';
+            
+            console.log('Service details:', { serviceName, serviceCode, price }); // Debug log
+            
+            if (!serviceName || !serviceCode) {
+                console.error('Missing service data:', { serviceName, serviceCode });
+                showNotification('Service information is incomplete. Please refresh the page.', 'error');
+                return;
+            }
+            
+            // Get settings values
+            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
+            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
+            const phoneRaw = document.getElementById('phone').value.trim();
+            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null; // Remove any non-digit characters
+            
+            console.log('Settings values:', { areaCodes, carriers, phone }); // Debug log
+            
+            // Disable the row temporarily to prevent double-clicks
+            this.style.pointerEvents = 'none';
+            this.style.opacity = '0.7';
+            
+            // Rent the service immediately without confirmation
+            console.log('Renting service immediately'); // Debug log
+            rentNumber(serviceCode, areaCodes, carriers, phone).finally(() => {
+                // Re-enable the row after the request completes
+                this.style.pointerEvents = '';
+                this.style.opacity = '';
+            });
+        });
+    });
+
+    // Add real-time validation for input fields
+    const areaCodes = document.getElementById('areaCodes');
+    const carriers = document.getElementById('carriers');
+    const phone = document.getElementById('phone');
+    
+    // Area codes validation
+    areaCodes.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value && !/^[\d,\s]+$/.test(value)) {
+            this.classList.add('is-invalid');
+            showValidationTooltip(this, 'Only numbers and commas allowed (e.g., 503, 202, 404)');
+        } else {
+            this.classList.remove('is-invalid');
+            hideValidationTooltip(this);
+        }
+        // Update prices when area codes change
+        updateServicePrices();
+    });
+    
+    // Carriers validation
+    carriers.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value) {
+            const validCarriers = ['tmo', 'vz', 'att'];
+            const enteredCarriers = value.toLowerCase().split(',').map(c => c.trim());
+            const invalidCarriers = enteredCarriers.filter(c => c && !validCarriers.includes(c));
+            
+            if (invalidCarriers.length > 0) {
+                this.classList.add('is-invalid');
+                showValidationTooltip(this, `Invalid carriers: ${invalidCarriers.join(', ')}. Use: tmo, vz, att`);
+            } else {
+                this.classList.remove('is-invalid');
+                hideValidationTooltip(this);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            hideValidationTooltip(this);
+        }
+        // Update prices when carriers change
+        updateServicePrices();
+    });
+    
+    // Phone validation
+    phone.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value) {
+            // Remove any non-digit characters for validation
+            const digitsOnly = value.replace(/\D/g, '');
+            if (digitsOnly.length !== 10) {
+                this.classList.add('is-invalid');
+                showValidationTooltip(this, 'Enter 10-digit US phone number (e.g., 5551234567)');
+            } else {
+                // Use our validation function instead of inline regex
+                if (!validatePhoneNumber(digitsOnly)) {
+                    this.classList.add('is-invalid');
+                    showValidationTooltip(this, 'Invalid US phone number format');
+                } else {
+                    this.classList.remove('is-invalid');
+                    hideValidationTooltip(this);
+                    // Auto-format the phone number
+                    this.value = digitsOnly;
+                }
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            hideValidationTooltip(this);
+        }
+        // Update prices when phone number changes
+        updateServicePrices();
+    });
+
+    // Load active rentals on page load
+    console.log('Loading active rentals on page load...'); // Debug log
+    loadActiveRentals();
+    
+    // Set up polling for SMS updates
+    setInterval(checkAllSMS, 5000); // Check every 5 seconds
+    
+    // Set up real-time wallet balance updates
+    updateUserBalance(); // Initial balance load
+    setInterval(updateUserBalance, 10000); // Update balance every 10 seconds
+
+    // Add real-time validation for settings inputs
+    const areaCodesInput = document.getElementById('areaCodes');
+    const carriersInput = document.getElementById('carriers');
+    const phoneInput = document.getElementById('phone');
+    
+    areaCodesInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (value && !validateAreaCodes(value)) {
+            this.classList.add('is-invalid');
+            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'warning');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    carriersInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        if (value && !validateCarriers(value)) {
+            this.classList.add('is-invalid');
+            showNotification('Invalid carriers. Use: tmo, vz, or att', 'warning');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    phoneInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        const digitsOnly = value.replace(/\D/g, '');
+        if (value && !validatePhoneNumber(digitsOnly)) {
+            this.classList.add('is-invalid');
+            showNotification('Invalid phone number. Use 10 digits (e.g., 1112223333)', 'warning');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // Countdown timer simulation
+    const countdownTimers = document.querySelectorAll('.countdown-timer');
+    
+    countdownTimers.forEach(timer => {
+        let timeLeft = 4 * 60 + 23; // 4:23 in seconds
+        
+        const updateTimer = () => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft > 0) {
+                timeLeft--;
+            }
+        };
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+});
+
+// Service pricing functions
+function updateServicePrices() {
+    const areaCodes = document.getElementById('areaCodes').value.trim();
+    const carriers = document.getElementById('carriers').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    
+    // Calculate price multiplier based on active filters
+    let priceMultiplier = 1.0;
+    
+    // Check if any premium filters are applied
+    if (areaCodes || carriers || phone) {
+        priceMultiplier = 1.2; // 20% increase
+    }
+    
+    // Update all service prices
+    document.querySelectorAll('.service-row').forEach(row => {
+        const originalPrice = parseFloat(row.dataset.originalPrice || 0);
+        const priceDisplay = row.querySelector('.price-display');
+        
+        if (originalPrice && priceDisplay) {
+            const newPrice = originalPrice * priceMultiplier;
+            priceDisplay.textContent = formatNairaPrice(newPrice);
+        }
+    });
+}
+
+function formatNairaPrice(price) {
+    // Format price as Naira currency
+    const formatted = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(price);
+    
+    // Replace NGN with ₦ symbol for consistency
+    return formatted.replace('NGN', '₦');
+}
+
+// Clear filter functions with price update
+function clearAreaCodes() {
+    document.getElementById('areaCodes').value = '';
+    document.getElementById('areaCodes').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Area codes cleared', 'success');
+}
+
+function clearCarriers() {
+    document.getElementById('carriers').value = '';
+    document.getElementById('carriers').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Carriers cleared', 'success');
+}
+
+function clearPhone() {
+    document.getElementById('phone').value = '';
+    document.getElementById('phone').classList.remove('is-invalid');
+    updateServicePrices();
+    showNotification('Phone number cleared', 'success');
+}
+
+function clearAllFilters() {
+    document.getElementById('areaCodes').value = '';
+    document.getElementById('carriers').value = '';
+    document.getElementById('phone').value = '';
+    
+    // Remove any validation classes
+    document.getElementById('areaCodes').classList.remove('is-invalid');
+    document.getElementById('carriers').classList.remove('is-invalid');
+    document.getElementById('phone').classList.remove('is-invalid');
+    
+    updateServicePrices();
+    showNotification('All filters cleared', 'success');
+}
+
+// Copy to clipboard function
+function copyToClipboard(text, element = null) {
+    // Prevent copying empty or invalid text
+    if (!text || text.trim() === '' || text === 'Waiting...' || text === 'undefined') {
+        showNotification('Nothing to copy yet!', 'warning');
+        return;
+    }
+    
+    // Add visual feedback on the clicked element
+    if (element) {
+        element.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+        element.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            element.style.backgroundColor = '';
+            element.style.transform = '';
+        }, 200);
+    }
+    
+    navigator.clipboard.writeText(text).then(function() {
+        // Create temporary notification with better styling
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: fadeInOut 2s ease-in-out;
+        `;
+        notification.textContent = `${text.length > 10 ? text.substring(0, 10) + '...' : text} copied!`;
+        
+        // Add animation keyframes if not already added
+        if (!document.querySelector('#copyAnimation')) {
+            const style = document.createElement('style');
+            style.id = 'copyAnimation';
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            // Show success message
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #28a745;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-size: 0.9rem;
+                font-weight: 500;
+            `;
+            notification.textContent = `${text.length > 10 ? text.substring(0, 10) + '...' : text} copied!`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 2000);
+        } catch (copyErr) {
+            console.error('Fallback copy failed: ', copyErr);
+            showNotification('Copy failed. Please select and copy manually.', 'error');
+        }
+        
+        document.body.removeChild(textArea);
+    });
+}
+
+// Rental management functions
+async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = null) {
+    console.log('Renting number with params:', { serviceCode, areaCodes, carriers, phone }); // Debug log
+    
+    // Validate inputs before making the request
+    let hasValidationErrors = false;
+    
+    if (areaCodes.length > 0) {
+        const areaCodesStr = areaCodes.join(',');
+        if (!validateAreaCodes(areaCodesStr)) {
+            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'error');
+            hasValidationErrors = true;
+        }
+    }
+    
+    if (carriers.length > 0) {
+        const carriersStr = carriers.join(',');
+        if (!validateCarriers(carriersStr)) {
+            showNotification('Invalid carriers. Use: tmo (T-Mobile), vz (Verizon), or att (AT&T)', 'error');
+            hasValidationErrors = true;
+        }
+    }
+    
+    if (phone && phone.length > 0 && !validatePhoneNumber(phone)) {
+        console.log('Phone validation failed for:', phone, 'Type:', typeof phone, 'Length:', phone.length);
+        showNotification('Invalid phone number format. Use a valid 10-digit US number (e.g., 5551234567)', 'error');
+        hasValidationErrors = true;
+    }
+    
+    if (hasValidationErrors) {
+        return;
+    }
+    
+    // Check CSRF token availability
+    const csrfToken = getCookie('csrftoken');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        showNotification('Security token missing. Please refresh the page and try again.', 'error');
+        return;
+    }
+    
+    console.log('Making API request to /api/rent/ with CSRF token:', csrfToken ? 'Present' : 'Missing');
+    
+    try {
+        const requestBody = {
+            service_code: serviceCode,
+            area_codes: areaCodes,
+            carriers: carriers,
+            number: phone
+        };
+        
+        console.log('Request body:', requestBody);
+        
+        const response = await fetch('/api/rent/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
+        
+        if (!response.ok) {
+            console.error('HTTP error:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response body:', errorText);
+            showNotification(`HTTP Error ${response.status}: ${response.statusText}`, 'error');
+            return;
+        }
+
+        const data = await response.json();
+        console.log('Rent API response:', data); // Debug log
+        
+        if (data.success) {
+            showNotification('Number rented successfully!', 'success');
+            loadActiveRentals(); // Refresh rentals table
+            updateUserBalance(); // Update balance display
+        } else {
+            // Provide better error messages with helpful suggestions
+            let errorMessage = data.error || 'Failed to rent number';
+            let errorType = 'error';
+            
+            console.log('API Error:', errorMessage); // Debug log
+            
+            // Check for specific error patterns and provide helpful suggestions
+            if (errorMessage.includes('service') && errorMessage.includes('not') && errorMessage.includes('support')) {
+                errorMessage = 'The "other" service code is not supported by DaisySMS. Contact DaisySMS support to add your requested service, or try a different service.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('service') && (errorMessage.includes('invalid') || errorMessage.includes('unknown'))) {
+                errorMessage = 'Service code not recognized by DaisySMS. This may mean "other" is not available. Try contacting DaisySMS support.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('area codes') && errorMessage.includes('not available')) {
+                errorMessage += ' Try removing area code filters or using common codes like 503, 202, or 404.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('carriers') && errorMessage.includes('not available')) {
+                errorMessage += ' Try removing carrier filters or use: tmo (T-Mobile), vz (Verizon), or att (AT&T).';
+                errorType = 'warning';
+            } else if (errorMessage.includes('phone number') && errorMessage.includes('not accepted')) {
+                errorMessage += ' Some numbers may not be available in the service pool. Try a different number or remove the phone filter.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('phone number') && errorMessage.includes('not available')) {
+                errorMessage += ' This number may be already rented by someone else or temporarily unavailable.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('Invalid phone number format')) {
+                errorMessage += ' Example: 5551234567 (10 digits, no spaces or dashes).';
+                errorType = 'warning';
+            } else if (errorMessage.includes('Invalid area codes')) {
+                errorMessage += ' Use 3-digit US area codes separated by commas (e.g., 503, 202, 404).';
+                errorType = 'warning';
+            } else if (errorMessage.includes('Invalid carriers')) {
+                errorMessage += ' Use carrier codes: tmo, vz, or att.';
+                errorType = 'warning';
+            } else if (errorMessage.includes('No numbers available')) {
+                if (document.getElementById('areaCodes').value.trim() || 
+                    document.getElementById('carriers').value.trim() || 
+                    document.getElementById('phone').value.trim()) {
+                    errorMessage += ' Try clearing your filters (area codes, carriers, or phone) and rent again.';
+                    errorType = 'warning';
+                }
+            }
+            
+            showNotification(errorMessage, errorType);
+        }
+    } catch (error) {
+        console.error('Error renting number:', error);
+        showNotification('Network error occurred', 'error');
+    }
+}
+
+async function loadActiveRentals() {
+    console.log('Loading active rentals...'); // Debug log
+    try {
+        const response = await fetch('/api/rentals/');
+        console.log('Rentals API response status:', response.status); // Debug log
+        
+        if (!response.ok) {
+            console.error('Failed to fetch rentals:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            showNotification('Failed to load rentals. Please refresh the page.', 'error');
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('Rentals API response:', data); // Debug log
+        
+        if (data.success && data.rentals) {
+            console.log(`Received ${data.rentals.length} rentals from API`);
+            updateRentalsTable(data.rentals);
+        } else if (data.rentals) {
+            // Handle case where success field might not be present
+            console.log(`Received ${data.rentals.length} rentals from API (no success field)`);
+            updateRentalsTable(data.rentals);
+        } else {
+            console.error('No rentals data in response:', data);
+            if (data.error) {
+                showNotification(`Error loading rentals: ${data.error}`, 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading rentals:', error);
+        showNotification('Network error while loading rentals', 'error');
+    }
+}
+
+function updateRentalsTable(rentals) {
+    const tbody = document.querySelector('.rentals-table-container tbody');
+    const rentalCounter = document.getElementById('rentalCounter');
+    
+    console.log('Updating rentals table with:', rentals); // Debug log
+    
+    // Filter rentals to show in the table:
+    // 1. Active waiting rentals (not cancelled/expired by Daisy SMS)
+    // 2. Rentals that have received codes (show regardless of age - these are successful)
+    const activeRentals = rentals.filter(rental => {
+        const isCancelled = rental.status === 'CANCELLED' || rental.status === 'EXPIRED';
+        const hasCode = rental.code && rental.code.trim() !== '';
+        
+        // Always show rentals that have received codes (successful rentals)
+        if (hasCode) {
+            return true;
+        }
+        
+        // For rentals without codes, only show if still active (not cancelled/expired by Daisy SMS)
+        return !isCancelled;
+    });
+    
+    // Update counter with active waiting rentals only (not successful ones)
+    const activeWaitingRentals = activeRentals.filter(rental => {
+        const hasCode = rental.code && rental.code.trim() !== '';
+        return !hasCode && rental.status === 'WAITING';
+    });
+    
+    if (rentalCounter) {
+        const countText = activeWaitingRentals.length === 1 ? '1 active' : `${activeWaitingRentals.length} active`;
+        rentalCounter.textContent = countText;
+    }
+    
+    if (activeRentals.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <div class="text-muted">
+                        <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
+                        <small>Click on a service to rent a number.</small>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = activeRentals.map(rental => {
+        // Use the exact price that was charged and stored in the rental record
+        let priceDisplay = '₦0.00';
+        try {
+            if (rental.price_naira) {
+                // The price_naira from the API is already formatted, just ensure it has ₦ symbol
+                priceDisplay = rental.price_naira.startsWith('₦') ? rental.price_naira : `₦${rental.price_naira}`;
+            } else if (rental.price) {
+                // Fallback: format the raw price as NGN currency
+                const numericPrice = parseFloat(rental.price);
+                priceDisplay = `₦${formatCurrency(numericPrice)}`;
+            }
+        } catch (e) {
+            console.error('Error formatting price:', e);
+        }
+        
+        // Check if rental has received code
+        const hasCode = rental.code && rental.code.trim() !== '';
+        
+        return `
+        <tr data-rental-id="${rental.rental_id}" data-supports-multiple="${rental.supports_multiple}">
+            <td><span>${rental.rental_id.slice(-6)}</span></td>
+            <td>${rental.service_name}</td>
+            <td>
+                <span class="fw-medium" onclick="copyToClipboard('${rental.phone_number}', this)" title="Click to copy" style="cursor: pointer;">${rental.phone_number}</span>
+            </td>
+            <td class="sms-code" data-rental-id="${rental.rental_id}">
+                ${hasCode ? `
+                    <span class="text-success" onclick="copyToClipboard('${rental.code}', this)" title="Click to copy" style="cursor: pointer;">${rental.code}</span>
+                ` : '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>'}
+            </td>
+            <td>${priceDisplay}</td>
+            <td>
+                ${hasCode ? `
+                    <span class="badge bg-success">Success</span>
+                ` : `
+                    <button class="btn btn-sm btn-danger w-100" onclick="cancelRental('${rental.rental_id}')" style="font-size: 0.75rem;">
+                        Cancel
+                    </button>
+                `}
+            </td>
+        </tr>
+        `;
+    }).join('');
+    
+    // Start active loaders for rentals waiting for SMS
+    startActiveLoaders();
+}
+
+async function cancelRental(rentalId) {
+    try {
+        const response = await fetch('/api/cancel/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                id: rentalId
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Use the proper Naira refund amount from backend
+            let refundNaira;
+            if (data.refund_amount_naira) {
+                refundNaira = parseFloat(data.refund_amount_naira);
+            } else {
+                // Fallback for backward compatibility
+                const refundUSD = parseFloat(data.refund_amount);
+                refundNaira = refundUSD * 1650;
+            }
+            showNotification(`Rental cancelled. Refund: ₦${formatCurrency(refundNaira)}`, 'success');
+            
+            // Remove the rental row immediately from the table
+            const rentalRow = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
+            if (rentalRow) {
+                rentalRow.remove();
+            }
+            
+            // Update the rental counter
+            const rentalCounter = document.getElementById('rentalCounter');
+            if (rentalCounter) {
+                const currentCount = parseInt(rentalCounter.textContent.split(' active')[0]);
+                const newCount = Math.max(0, currentCount - 1);
+                const countText = newCount === 1 ? '1 active' : `${newCount} active`;
+                rentalCounter.textContent = countText;
+            }
+            
+            // Check if table is now empty and show "No rented number yet" message
+            const tbody = document.querySelector('.rentals-table-container tbody');
+            if (tbody && tbody.children.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="text-muted">
+                                <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
+                                <small>Click on a service to rent a number.</small>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            updateUserBalance();
+        } else {
+            showNotification(data.error || 'Failed to cancel rental', 'error');
+        }
+    } catch (error) {
+        console.error('Error cancelling rental:', error);
+        showNotification('Network error occurred', 'error');
+    }
+}
+
+async function checkSMS(rentalId) {
+    try {
+        const response = await fetch(`/api/sms/${rentalId}/`);
+        const data = await response.json();
+        
+        if (data.status === 'RECEIVED' && data.messages && data.messages.length > 0) {
+            const latestMessage = data.messages[0];
+            updateSMSCode(rentalId, latestMessage.code);
+        } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
+            // Handle rental expiration/cancellation from Daisy SMS
+            handleRentalStatusChange(rentalId, data.status);
+        }
+    } catch (error) {
+        console.error('Error checking SMS:', error);
+    }
+}
+
+function handleRentalStatusChange(rentalId, status) {
+    const row = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
+    if (!row) return;
+    
+    const codeCell = row.querySelector('.sms-code');
+    const timer = row.querySelector('.countdown-timer');
+    const actionsCell = row.querySelector('td:last-child');
+    
+    if (status === 'CANCELLED' || status === 'EXPIRED') {
+        // Update UI to show cancelled/expired state
+        if (codeCell && codeCell.textContent.includes('Waiting')) {
+            codeCell.innerHTML = `<span class="text-danger">${status === 'CANCELLED' ? 'Cancelled' : 'Expired'}</span>`;
+        }
+        
+        if (timer) {
+            timer.innerHTML = `<span class="text-danger">${status === 'CANCELLED' ? 'Cancelled' : 'Expired'}</span>`;
+        }
+        
+        if (actionsCell) {
+            actionsCell.innerHTML = `<span class="badge bg-secondary">${status === 'CANCELLED' ? 'Cancelled' : 'Expired'}</span>`;
+        }
+        
+        // Update the rental counter
+        const rentalCounter = document.getElementById('rentalCounter');
+        if (rentalCounter) {
+            const currentCount = parseInt(rentalCounter.textContent.split(' active')[0]);
+            const newCount = Math.max(0, currentCount - 1);
+            const countText = newCount === 1 ? '1 active' : `${newCount} active`;
+            rentalCounter.textContent = countText;
+        }
+        
+        // Show notification about expiration
+        if (status === 'EXPIRED') {
+            showNotification('Rental expired by service provider', 'info');
+        }
+    }
+}
+
+async function checkAllSMS() {
+    const rentalRows = document.querySelectorAll('[data-rental-id]');
+    
+    for (const row of rentalRows) {
+        const rentalId = row.getAttribute('data-rental-id');
+        const codeCell = row.querySelector('.sms-code');
+        const timer = row.querySelector('.countdown-timer');
+        
+        // Only check if waiting for code and not expired or cancelled
+        if (codeCell && codeCell.textContent.includes('Waiting') && timer && !timer.textContent.includes('✅')) {
+            await checkSMS(rentalId);
+        }
+    }
+}
+
+function updateSMSCode(rentalId, code) {
+    const codeCell = document.querySelector(`.sms-code[data-rental-id="${rentalId}"]`);
+    if (codeCell && code) {
+        const row = codeCell.closest('tr');
+        const timer = row.querySelector('.countdown-timer');
+        
+        // Update code cell with code (with click to copy functionality)
+        codeCell.innerHTML = `
+            <span class="text-success" onclick="copyToClipboard('${code}', this)" title="Click to copy" style="cursor: pointer;">${code}</span>
+        `;
+        
+        // Code cell updated successfully
+        console.log(`Updated code for rental ${rentalId}: ${code}`);
+        
+        // Update the actions cell to show "Success" badge
+        const actionsCell = row.querySelector('td:last-child');
+        if (actionsCell) {
+            actionsCell.innerHTML = '<span class="badge bg-success">Success</span>';
+        }
+        
+        showNotification('SMS code received!', 'success');
+    }
+}
+
+function startActiveLoaders() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    
+    timers.forEach(timer => {
+        // Skip timers that already have codes
+        const hasCode = timer.getAttribute('data-has-code') === 'true';
+        if (hasCode || timer.innerHTML.includes('✅')) {
+            return;
+        }
+        
+        // Show spinning loader for active rentals waiting for SMS
+        timer.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>';
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    
+    // Map message types to Bootstrap alert classes
+    const alertClass = type === 'error' ? 'danger' : type === 'warning' ? 'warning' : type;
+    
+    notification.className = `alert alert-${alertClass} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 400px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border: none;
+    `;
+    
+    // Add appropriate icon based on type
+    let icon = '';
+    if (type === 'success') {
+        icon = '<i class="fas fa-check-circle me-2"></i>';
+    } else if (type === 'error') {
+        icon = '<i class="fas fa-exclamation-circle me-2"></i>';
+    } else if (type === 'warning') {
+        icon = '<i class="fas fa-exclamation-triangle me-2"></i>';
+    } else {
+        icon = '<i class="fas fa-info-circle me-2"></i>';
+    }
+    
+    notification.innerHTML = `
+        <div class="d-flex align-items-start">
+            <div class="flex-shrink-0">
+                ${icon}
+            </div>
+            <div class="flex-grow-1">
+                ${message}
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem;"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after longer time for warnings and errors
+    const dismissTime = (type === 'warning' || type === 'error') ? 8000 : 5000;
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, dismissTime);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function formatCurrency(amount) {
+    /**
+     * Format number with commas and 2 decimal places
+     */
+    try {
+        return parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    } catch (e) {
+        return '0.00';
+    }
+}
+
+// Real-time wallet balance update
+async function updateUserBalance() {
+    try {
+        const response = await fetch('/api/balance/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to fetch balance:', response.status);
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.balance_naira) {
+            // Remove commas from the API response before parsing
+            const balanceValue = data.balance_naira.replace(/,/g, '');
+            const numericBalance = parseFloat(balanceValue);
+            
+            // Update desktop balance display
+            const desktopBalanceElement = document.querySelector('.navbar-right .balance-amount');
+            if (desktopBalanceElement) {
+                desktopBalanceElement.textContent = `₦${formatCurrency(numericBalance)}`;
+            }
+            
+            // Update mobile balance display
+            const mobileBalanceElement = document.querySelector('.mobile-user-info .user-balance');
+            if (mobileBalanceElement) {
+                mobileBalanceElement.textContent = `Balance: ₦${formatCurrency(numericBalance)}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error updating balance:', error);
+    }
+}
+
+// Favorite services management
+function loadFavorites() {
+    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
+    
+    favorites.forEach(serviceCode => {
+        const row = document.querySelector(`[data-code="${serviceCode}"]`);
+        if (row) {
+            const favoriteBtn = row.querySelector('.favorite-btn');
+            const heartIcon = favoriteBtn.querySelector('span');
+            
+            favoriteBtn.setAttribute('data-favorite', 'true');
+            heartIcon.textContent = '♥';
+            heartIcon.className = 'text-danger';
+        }
+    });
+    
+    // Sort services after loading favorites
+    sortServicesByFavorites();
+}
+
+function addFavorite(serviceCode) {
+    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
+    if (!favorites.includes(serviceCode)) {
+        favorites.push(serviceCode);
+        localStorage.setItem('favoriteServices', JSON.stringify(favorites));
+    }
+}
+
+function removeFavorite(serviceCode) {
+    const favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
+    const index = favorites.indexOf(serviceCode);
+    if (index > -1) {
+        favorites.splice(index, 1);
+        localStorage.setItem('favoriteServices', JSON.stringify(favorites));
+    }
+}
+
+function sortServicesByFavorites() {
+    const tbody = document.querySelector('.table.mb-0.table-sm tbody');
+    if (!tbody) return;
+    
+    const rows = Array.from(tbody.querySelectorAll('.service-row'));
+    
+    // Sort rows: favorites first, then alphabetically
+    rows.sort((a, b) => {
+        const aIsFavorite = a.querySelector('.favorite-btn').getAttribute('data-favorite') === 'true';
+        const bIsFavorite = b.querySelector('.favorite-btn').getAttribute('data-favorite') === 'true';
+        
+        // If both are favorites or both are not favorites, sort alphabetically
+        if (aIsFavorite === bIsFavorite) {
+            const aName = a.getAttribute('data-service').toLowerCase();
+            const bName = b.getAttribute('data-service').toLowerCase();
+            return aName.localeCompare(bName);
+        }
+        
+        // Favorites come first
+        return bIsFavorite - aIsFavorite;
+    });
+    
+    // Re-append rows in sorted order
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+// Validation tooltip functions
+function showValidationTooltip(element, message) {
+    hideValidationTooltip(element); // Remove any existing tooltip
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'validation-tooltip';
+    tooltip.textContent = message;
+    tooltip.style.cssText = `
+        position: absolute;
+        background: #dc3545;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        z-index: 1000;
+        max-width: 200px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        top: 100%;
+        left: 0;
+        margin-top: 0.25rem;
+    `;
+    
+    const container = element.closest('.input-group');
+    container.style.position = 'relative';
+    container.appendChild(tooltip);
+    
+    // Store reference for cleanup
+    element._validationTooltip = tooltip;
+}
+
+function hideValidationTooltip(element) {
+    if (element._validationTooltip) {
+        element._validationTooltip.remove();
+        element._validationTooltip = null;
+    }
+}
+
+// Input validation for settings
+function validateAreaCodes(input) {
+    const areaCodes = input.split(',').map(code => code.trim()).filter(code => code);
+    const validCodes = areaCodes.filter(code => /^\d{3}$/.test(code));
+    
+    if (areaCodes.length !== validCodes.length) {
+        return false;
+    }
+    return true;
+}
+
+function validateCarriers(input) {
+    const carriers = input.split(',').map(carrier => carrier.trim().toLowerCase()).filter(carrier => carrier);
+    const validCarriers = ['tmo', 'vz', 'att'];
+    
+    return carriers.every(carrier => validCarriers.includes(carrier));
+}
+
+function validatePhoneNumber(input) {
+    console.log('Validating phone number input:', input, 'Type:', typeof input);
+    
+    if (!input) {
+        console.log('Phone validation: input is empty');
+        return true; // Empty is valid (optional field)
+    }
+    
+    const digitsOnly = input.replace(/\D/g, '');
+    console.log('Digits only:', digitsOnly, 'Length:', digitsOnly.length);
+    
+    // Must be exactly 10 digits
+    if (digitsOnly.length !== 10) {
+        console.log('Phone validation failed: length is not 10');
+        return false;
+    }
+    
+    // Basic validation: cannot start with 0 or 1, cannot be all same digits
+    if (digitsOnly.charAt(0) === '0' || digitsOnly.charAt(0) === '1') {
+        console.log('Phone validation failed: starts with 0 or 1');
+        return false;
+    }
+    
+    // Reject obviously invalid numbers (all same digit, etc.)
+    if (/^(\d)\1{9}$/.test(digitsOnly)) {
+        console.log('Phone validation failed: all same digits');
+        return false;
+    }
+    
+    console.log('Phone validation passed');
+    return true;
+}
+
+// Debug function for testing phone validation
+function testPhoneValidation(phoneNumber) {
+    console.log('Testing phone number:', phoneNumber);
+    const result = validatePhoneNumber(phoneNumber);
+    console.log('Validation result:', result);
+    return result;
+}
+
+// Handle "service not listed" option
+function handleServiceNotListed(searchTerm, hasVisibleServices) {
+    const tbody = document.querySelector('.table.mb-0.table-sm tbody');
+    let serviceNotListedRow = document.getElementById('service-not-listed-row');
+    
+    // Remove existing "service not listed" row if it exists
+    if (serviceNotListedRow) {
+        serviceNotListedRow.remove();
+    }
+    
+    // Only show "service not listed" if there's a search term and no visible services
+    if (searchTerm.trim() && !hasVisibleServices) {
+        // Create "service not listed" row
+        serviceNotListedRow = document.createElement('tr');
+        serviceNotListedRow.id = 'service-not-listed-row';
+        serviceNotListedRow.className = 'service-row';
+        serviceNotListedRow.setAttribute('data-service', 'Service Not Listed');
+        serviceNotListedRow.setAttribute('data-code', 'service_not_listed');
+        
+        serviceNotListedRow.innerHTML = `
+            <td class="service-name">
+                <div class="fw-medium" style="font-size: 0.85rem;">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>Service Not Listed
+                </div>
+            </td>
+            <td class="price">
+                <div class="fw-medium" style="font-size: 0.85rem;" id="service-not-listed-price">Loading...</div>
+            </td>
+            <td class="text-center">
+                <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
+                    <span class="text-muted">♡</span>
+                </button>
+            </td>
+        `;
+        
+        // Add click handler for service not listed
+        serviceNotListedRow.addEventListener('click', function(e) {
+            if (e.target.closest('.favorite-btn')) {
+                return;
+            }
+            
+            const serviceName = 'Service Not Listed';
+            const serviceCode = 'service_not_listed';
+            
+            // Get settings values
+            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
+            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
+            const phoneRaw = document.getElementById('phone').value.trim();
+            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null;
+            
+            console.log('Renting service not listed:', { serviceCode, areaCodes, carriers, phone });
+            rentNumber(serviceCode, areaCodes, carriers, phone);
+        });
+        
+        // Insert at the beginning of tbody
+        tbody.insertBefore(serviceNotListedRow, tbody.firstChild);
+        
+        // Fetch and display the price for "service not listed"
+        fetchServiceNotListedPrice();
+    }
+}
+
+// Fetch price for "Service Not Listed" from backend
+async function fetchServiceNotListedPrice() {
+    try {
+        const response = await fetch('/api/services/');
+        const data = await response.json();
+        
+        console.log('Services API response:', data); // Debug log
+        
+        if (data.services) {
+            const serviceNotListed = data.services.find(service => 
+                service.name === 'Service Not Listed' || service.code === 'service_not_listed'
+            );
+            
+            console.log('Found Service Not Listed:', serviceNotListed); // Debug log
+            
+            if (serviceNotListed) {
+                const priceElement = document.getElementById('service-not-listed-price');
+                if (priceElement) {
+                    // The price_naira is already formatted, so use it directly
+                    priceElement.textContent = `₦${serviceNotListed.price_naira}`;
+                }
+            } else {
+                console.warn('Service Not Listed not found in services list');
+                // Fallback: try to create the service
+                await createServiceNotListed();
+            }
+        } else {
+            console.error('No services data in API response');
+        }
+    } catch (error) {
+        console.error('Error fetching service not listed price:', error);
+        const priceElement = document.getElementById('service-not-listed-price');
+        if (priceElement) {
+            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
+            priceElement.style.color = '#dc3545'; // Error color
+        }
+    }
+}
+
+// Create Service Not Listed if it doesn't exist
+async function createServiceNotListed() {
+    try {
+        console.log('Attempting to create Service Not Listed...');
+        
+        const response = await fetch('/api/create-service-not-listed/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('Service Not Listed created/exists:', data.service);
+            
+            // Update the price element
+            const priceElement = document.getElementById('service-not-listed-price');
+            if (priceElement && data.service) {
+                // The price_naira is already formatted, so use it directly
+                priceElement.textContent = `₦${data.service.price_naira}`;
+                priceElement.style.color = ''; // Remove warning color
+                priceElement.title = '';
+            }
+            
+            if (data.message.includes('created')) {
+                showNotification('Service Not Listed has been set up successfully!', 'success');
+            }
+        } else {
+            console.error('Failed to create Service Not Listed:', data);
+            const priceElement = document.getElementById('service-not-listed-price');
+            if (priceElement) {
+                priceElement.textContent = 'Admin setup required'; // Show setup message instead of fallback
+                priceElement.style.color = '#ffc107'; // Warning color
+                priceElement.title = 'Service needs admin setup';
+            }
+            
+            showNotification('Please contact administrator to set up "Service Not Listed" in Django Admin.', 'warning');
+        }
+    } catch (error) {
+        console.error('Error creating service not listed:', error);
+        const priceElement = document.getElementById('service-not-listed-price');
+        if (priceElement) {
+            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
+            priceElement.style.color = '#dc3545'; // Error color
+            priceElement.title = 'Service needs admin setup';
+        }
+    }
+}
+
+// Fetch real-time prices from DaisySMS API (optional feature)
+async function fetchRealtimePrices() {
+    try {
+        const response = await fetch('/api/realtime-prices/');
+        const data = await response.json();
+        
+        if (data.success && data.realtime_prices) {
+            console.log('Real-time prices from DaisySMS:', data.realtime_prices);
+            
+            // Update service availability based on real-time data
+            const serviceRows = document.querySelectorAll('.service-row');
+            serviceRows.forEach(row => {
+                const serviceCode = row.getAttribute('data-code');
+                if (serviceCode && data.realtime_prices[serviceCode]) {
+                    const realtimeData = data.realtime_prices[serviceCode];
+                    const availabilityElement = row.querySelector('.availability-count');
+                    if (availabilityElement) {
+                        availabilityElement.textContent = `${realtimeData.count} available`;
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching real-time prices:', error);
+    }
+}
+
+// Auto-sync prices every 30 seconds (optional)
+function enableAutoSync() {
+    // Fetch real-time data on page load
+    fetchRealtimePrices();
+    
+    // Set up periodic sync every 30 seconds
+    setInterval(() => {
+        fetchRealtimePrices();
+    }, 30000);
+}
+
+enableAutoSync();
+</script>
+
+<style>
+/* Mobile optimization for services table */
+@media screen and (max-width: 767px) {
+    .services-table-container {
+        height: 320px !important; /* Increased height to show at least 4 service rows on mobile */
+    }
+    
+    /* Optimize table row spacing on mobile */
+    .services-table-container .table-sm > tbody > tr > td {
+        padding: 0.5rem 0.25rem;
+        vertical-align: middle;
+    }
+    
+    .services-table-container .table-sm > thead > tr > th {
+        padding: 0.5rem 0.25rem;
+        vertical-align: middle;
+    }
+}
+
+/* Tablet optimization */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    .services-table-container {
+        height: 300px !important; /* Slightly increased for tablets */
+    }
+}
+
+/* Rentals table mobile optimization */
+.rentals-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rentals-table {
+    min-width: 600px; /* Ensure minimum width for proper spacing */
+    white-space: nowrap;
+}
+
+/* Mobile font sizes for rentals table */
+@media screen and (max-width: 767px) {
+    .rentals-table thead th {
+        font-size: 0.7rem !important;
+        padding: 0.5rem 0.3rem !important;
+        font-weight: 600;
+    }
+    
+    .rentals-table tbody td {
+        font-size: 0.75rem !important;
+        padding: 0.6rem 0.3rem !important;
+        vertical-align: middle;
+    }
+    
+    .rentals-table .btn-sm {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    
+    .rentals-table .btn-sm i {
+        font-size: 0.7rem !important;
+    }
+    
+    /* Adjust column widths for mobile */
+    .rentals-table th:nth-child(1), /* ID */
+    .rentals-table td:nth-child(1) {
+        width: 60px;
+        max-width: 60px;
+    }
+    
+    .rentals-table th:nth-child(2), /* Service */
+    .rentals-table td:nth-child(2) {
+        width: 100px;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .rentals-table th:nth-child(3), /* Phone */
+    .rentals-table td:nth-child(3) {
+        width: 110px;
+        max-width: 110px;
+    }
+    
+    .rentals-table th:nth-child(4), /* Code */
+    .rentals-table td:nth-child(4) {
+        width: 80px;
+        max-width: 80px;
+    }
+    
+    .rentals-table th:nth-child(5), /* Cost */
+    .rentals-table td:nth-child(5) {
+        width: 80px;
+        max-width: 80px;
+    }
+    
+    .rentals-table th:nth-child(6), /* Actions */
+    .rentals-table td:nth-child(6) {
+        width: 60px;
+        max-width: 60px;
+    }
+}
+
+/* Tablet font sizes for rentals table */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    .rentals-table thead th {
+        font-size: 0.75rem !important;
+        padding: 0.6rem 0.4rem !important;
+    }
+    
+    .rentals-table tbody td {
+        font-size: 0.8rem !important;
+        padding: 0.7rem 0.4rem !important;
+    }
+}
+
+/* Click-to-copy styling */
+.clickable-copy {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+}
+
+.clickable-copy:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #0056b3 !important;
+    text-decoration: none;
+}
+
+.clickable-copy:active {
+    background-color: rgba(0, 123, 255, 0.2);
+    transform: scale(0.98);
+}
+
+/* Add a subtle indicator for clickable elements */
+.clickable-copy::after {
+    content: " 📋";
+    font-size: 0.7em;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.clickable-copy:hover::after {
+    opacity: 0.7;
+}
+
+@media screen and (max-width: 767px) {
+    /* Always show copy indicator on mobile */
+    .clickable-copy::after {
+        opacity: 0.5;
+        font-size: 0.6em;
+    }
+    
+    .clickable-copy:hover::after {
+        opacity: 0.8;
+    }
+}
+
+/* Horizontal scroll indicator for mobile */
+@media screen and (max-width: 767px) {
+    .rentals-table-container::after {
+        content: "← Scroll horizontally →";
+        display: block;
+        text-align: center;
+        font-size: 0.7rem;
+        color: #6c757d;
+        padding: 0.25rem;
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05) 20%, rgba(0,0,0,0.05) 80%, transparent);
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .rentals-table-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .rentals-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .rentals-table-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .rentals-table-container::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+}
+
+/* Dark mode styling - Using correct data-theme="dark" selector */
+[data-theme="dark"] .form-control::placeholder {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+[data-theme="dark"] .input-group-text {
+    color: #ffffff !important;
+    background-color: #1a1a1a !important;
+    border-color: #404040 !important;
+}
+
+/* SMS Verifications table dark mode styling */
+[data-theme="dark"] .services-table-container {
+    border: 2px solid #198754 !important;
+    background-color: #000000 !important;
+    border-radius: 8px !important;
+}
+
+[data-theme="dark"] .services-table-container .table {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    --bs-table-bg: #000000 !important;
+}
+
+[data-theme="dark"] .services-table-container .table thead th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .services-table-container .table tbody td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .services-table-container .table tbody tr {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .services-table-container .table-light thead th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+/* Rented Numbers table dark mode styling */
+[data-theme="dark"] .rentals-table-container {
+    border: 2px solid #198754 !important;
+    background-color: #000000 !important;
+    border-radius: 8px !important;
+}
+
+[data-theme="dark"] .rentals-table {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    --bs-table-bg: #000000 !important;
+}
+
+[data-theme="dark"] .rentals-table thead th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .rentals-table tbody td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .rentals-table tbody tr {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .rentals-table .table-light thead th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+</style>
+
+{% endblock %}

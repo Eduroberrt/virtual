@@ -234,18 +234,25 @@ class DaisySMSClient:
         if get_full_text:
             params['text'] = '1'
         
-        response_text, headers = self._make_request('getStatus', params, user=user)
-        
-        if response_text.startswith('STATUS_OK:'):
-            code = response_text.split(':')[1]
-            full_text = headers.get('X-Text', None) if get_full_text else None
-            return 'RECEIVED', code, full_text
-        elif response_text == 'STATUS_WAIT_CODE':
-            return 'WAITING', None, None
-        elif response_text == 'STATUS_CANCEL':
-            return 'CANCELLED', None, None
-        
-        raise DaisySMSException(f"Unexpected status response: {response_text}")
+        try:
+            response_text, headers = self._make_request('getStatus', params, user=user)
+            
+            if response_text.startswith('STATUS_OK:'):
+                code = response_text.split(':')[1]
+                full_text = headers.get('X-Text', None) if get_full_text else None
+                return 'RECEIVED', code, full_text
+            elif response_text == 'STATUS_WAIT_CODE':
+                return 'WAITING', None, None
+            elif response_text == 'STATUS_CANCEL':
+                return 'CANCELLED', None, None
+            
+            raise DaisySMSException(f"Unexpected status response: {response_text}")
+            
+        except DaisySMSException as e:
+            # If we get NO_ACTIVATION, it likely means the rental has expired or been removed by DaisySMS
+            if "Rental not found" in str(e):
+                return 'EXPIRED', None, None
+            raise
     
     def set_status_done(self, rental_id: str, user=None) -> bool:
         """
