@@ -138,6 +138,7 @@ EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+
 # Password Reset Settings
 PASSWORD_RESET_TIMEOUT = 3600
 
