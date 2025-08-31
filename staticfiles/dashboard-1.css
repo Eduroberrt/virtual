@@ -1,0 +1,800 @@
+:root {
+    --primary-color: #198754;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 16px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 24px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    --gradient-secondary: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+}
+
+/* Modern Dashboard Layout */
+.modern-dashboard {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    padding: 1rem 0 0.1rem 0;
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(25, 135, 84, 0.15);
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1; /* Lower z-index for glass cards */
+}
+
+.glass-card .card-header {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(32, 201, 151, 0.08) 100%);
+    border-bottom: 1px solid rgba(25, 135, 84, 0.1);
+    border-radius: calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px) 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+.glass-card .card-body {
+    border-radius: 0 0 calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px);
+}
+
+/* Table Styling */
+.status-success {
+    background-color: #28a745 !important;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-cancel {
+    background-color: #dc3545 !important;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.countdown-timer {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #ffc107;
+}
+
+.countdown-timer.expired {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+.countdown-timer.completed {
+    color: #28a745 !important;
+    font-size: 1.2rem;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e9ecef;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Purchase Button Styling */
+#purchaseBtn {
+    background: #198754 !important;
+    border: none !important;
+    padding: 10px 16px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    width: auto !important;
+    max-width: 180px !important;
+    min-width: 120px !important;
+    margin: 0 auto !important;
+    display: block !important;
+    position: relative !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#purchaseBtn:hover:not(:disabled) {
+    background: #146c43 !important;
+    transform: translateY(-1px);
+}
+
+#purchaseBtn:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+#purchaseBtn.loading {
+    background: #198754 !important;
+    cursor: wait !important;
+    padding-left: 32px !important;
+}
+
+#purchaseBtn .spinner {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.service-panel.glass-card .card-header {
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.service-panel.glass-card .card-header .card-title {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Orders Panel Specific Styling */
+.orders-panel.glass-card .card-header {
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.orders-panel.glass-card .card-header .card-title {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Form Controls */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Form groups positioning */
+.form-group {
+    position: relative;
+    z-index: 10; /* Ensure form groups have higher stacking context */
+}
+
+/* Country form group gets higher z-index to show over service form group */
+.form-group:first-child {
+    position: relative !important;
+    z-index: 1001 !important;
+}
+
+/* Service form group gets standard z-index */
+.form-group:nth-child(2) {
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+/* SIMPLIFIED DROPDOWN SOLUTION */
+.intelligent-dropdown .dropdown-container,
+div#countryDropdownContainer,
+div#serviceDropdownContainer {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-top: none !important;
+    border-radius: 0 0 8px 8px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    z-index: 10000 !important;
+    transition: all 0.3s ease !important;
+    visibility: hidden !important;
+}
+
+.intelligent-dropdown .dropdown-container.open,
+div#countryDropdownContainer.open,
+div#serviceDropdownContainer.open {
+    max-height: 350px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure dropdown form groups have proper positioning */
+.intelligent-dropdown {
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+/* Desktop: Hide service field when country dropdown is open */
+.country-dropdown-open #serviceDropdownSelected {
+    display: none !important;
+}
+
+.country-dropdown-open .form-group:nth-child(2) {
+    display: none !important;
+}
+
+/* Clean dropdown styling for all devices */
+.intelligent-dropdown .dropdown-container {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10000 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-top: none !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 0 0 8px 8px !important;
+    display: none; /* Hidden by default */
+}
+
+.intelligent-dropdown .dropdown-container.open {
+    display: block !important; /* Show when open */
+}
+
+.intelligent-dropdown .dropdown-selected {
+    border: 1px solid #ccc !important;
+    padding: 12px !important;
+    cursor: pointer !important;
+    background: white !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    color: #333 !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.intelligent-dropdown .dropdown-selected.open {
+    border-radius: 8px 8px 0 0 !important;
+    border-color: #007bff !important;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.15) !important;
+}
+
+.intelligent-dropdown .dropdown-search {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    border: none !important;
+    border-bottom: 1px solid #eee !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    font-size: 13px !important;
+}
+
+.intelligent-dropdown .dropdown-options {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
+    scrollbar-width: thin !important; /* Firefox */
+    scrollbar-color: #ccc #f1f1f1 !important; /* Firefox */
+}
+
+/* Force scrollbar visibility on very small screens */
+@media (max-width: 480px) {
+    .intelligent-dropdown .dropdown-container {
+        position: absolute !important;
+        display: none !important;
+        z-index: 10000 !important;
+    }
+    
+    .intelligent-dropdown .dropdown-container.open {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        max-height: 250px !important;
+    }
+    
+    .intelligent-dropdown .dropdown-options {
+        overflow-y: scroll !important; /* Force scrollbar instead of auto */
+        scrollbar-width: auto !important; /* Show scrollbar on Firefox mobile */
+        max-height: 250px !important;
+    }
+}
+
+.intelligent-dropdown .dropdown-option {
+    padding: 8px 12px !important;
+    cursor: pointer !important;
+    transition: background-color 0.1s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    user-select: none !important;
+    position: relative !important;
+    background: white !important;
+    border: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important; /* Prevent options from shrinking */
+    min-height: 40px !important; /* Ensure touchable area */
+}
+
+.intelligent-dropdown .dropdown-option:hover {
+    background-color: #f8f9fa !important;
+}
+
+.intelligent-dropdown .dropdown-option:active {
+    background-color: #e9ecef !important;
+}
+
+/* Fix touch scrolling on mobile devices */
+.intelligent-dropdown .dropdown-options {
+    touch-action: pan-y !important; /* Allow vertical scrolling on touch devices */
+    -ms-touch-action: pan-y !important; /* IE/Edge */
+    scroll-behavior: smooth !important; /* Smooth scrolling */
+}
+
+/* Ensure dropdown options are always clickable */
+.intelligent-dropdown .dropdown-options {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    z-index: 999999 !important;
+    background: white !important;
+    -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
+    scrollbar-width: thin !important; /* Firefox */
+    scrollbar-color: #ccc #f1f1f1 !important; /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important; /* Force scrollbar to show */
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 4px !important;
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb {
+    background: #ccc !important;
+    border-radius: 4px !important;
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb:hover {
+    background: #999 !important;
+}
+
+/* Force scrollbar visibility on mobile devices */
+@media (max-width: 768px) {
+    .intelligent-dropdown .dropdown-options {
+        scrollbar-width: auto !important; /* Show scrollbar on Firefox mobile */
+        -webkit-overflow-scrolling: touch !important;
+        overflow-y: scroll !important; /* Force scrollbar instead of auto */
+    }
+    
+    .intelligent-dropdown .dropdown-options::-webkit-scrollbar {
+        width: 14px !important; /* Larger for mobile touch */
+        display: block !important;
+        background: #f0f0f0 !important;
+    }
+    
+    .intelligent-dropdown .dropdown-options::-webkit-scrollbar-track {
+        background: #f0f0f0 !important; /* More visible track on mobile */
+        border-radius: 0 !important;
+    }
+    
+    .intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb {
+        background: #333 !important; /* Much darker for visibility */
+        border-radius: 0 !important;
+        border: 2px solid #f0f0f0 !important;
+    }
+    
+    /* Force scrollbars on specific dropdowns */
+    #countryDropdownContainer .dropdown-options,
+    #serviceDropdownContainer .dropdown-options {
+        overflow-y: scroll !important;
+        scrollbar-width: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    #countryDropdownContainer .dropdown-options::-webkit-scrollbar,
+    #serviceDropdownContainer .dropdown-options::-webkit-scrollbar {
+        width: 14px !important;
+        display: block !important;
+        background: #f0f0f0 !important;
+    }
+    
+    #countryDropdownContainer .dropdown-options::-webkit-scrollbar-thumb,
+    #serviceDropdownContainer .dropdown-options::-webkit-scrollbar-thumb {
+        background: #333 !important;
+        border: 2px solid #f0f0f0 !important;
+    }
+}
+
+/* Simple and clean dropdown solution */
+.orders-panel {
+    z-index: 1 !important;
+    position: relative !important;
+}
+
+/* Dropdown options styling */
+.dropdown-options {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #ffffff !important;
+    border: none !important;
+    scrollbar-width: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* Visible scrollbars */
+.dropdown-options::-webkit-scrollbar {
+    width: 12px !important;
+    background: #f0f0f0 !important;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 6px !important;
+}
+
+.dropdown-option {
+    background: #ffffff !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+    cursor: pointer !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.dropdown-option:hover {
+    background: #f8f9fa !important;
+}
+
+/* Mobile specific enhancements */
+@media (max-width: 768px) {
+    
+    /* Make service dropdown scrollable on mobile */
+    #serviceDropdownContainer.open .dropdown-options {
+        max-height: 250px !important;
+        overflow-y: scroll !important; /* Force scrollbar instead of auto */
+        overflow-x: hidden !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: auto !important; /* Show scrollbar on Firefox */
+        scrollbar-color: #888 #e0e0e0 !important;
+    }
+    
+    /* Make country dropdown scrollable on mobile too */
+    #countryDropdownContainer.open .dropdown-options {
+        max-height: 250px !important;
+        overflow-y: scroll !important; /* Force scrollbar instead of auto */
+        overflow-x: hidden !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: auto !important; /* Show scrollbar on Firefox */
+        scrollbar-color: #888 #e0e0e0 !important;
+    }
+    
+    /* Mobile-specific scrollbar styling */
+    #serviceDropdownContainer.open .dropdown-options::-webkit-scrollbar,
+    #countryDropdownContainer.open .dropdown-options::-webkit-scrollbar {
+        width: 12px !important;
+        display: block !important;
+        -webkit-appearance: auto !important;
+    }
+    
+    #serviceDropdownContainer.open .dropdown-options::-webkit-scrollbar-thumb,
+    #countryDropdownContainer.open .dropdown-options::-webkit-scrollbar-thumb {
+        background: #888 !important;
+        border-radius: 6px !important;
+    }
+}
+
+/* Dark Mode Styles for Dashboard */
+[data-theme="dark"] body[data-page="dashboard"] {
+    background: #000000 !important;
+}
+
+[data-theme="dark"] .modern-dashboard {
+    background: #000000 !important;
+}
+
+/* Dark mode - SMS Verification and Recent Orders cards with thin green border */
+[data-theme="dark"] .service-panel.glass-card,
+[data-theme="dark"] .orders-panel.glass-card {
+    background-color: #000000 !important;
+    border: 1px solid #198754 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .service-panel.glass-card .card-body,
+[data-theme="dark"] .orders-panel.glass-card .card-body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode - Tables with black background */
+[data-theme="dark"] #recentOrdersTable,
+[data-theme="dark"] .table {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #recentOrdersTable th,
+[data-theme="dark"] #recentOrdersTable td,
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] #recentOrdersTable tbody tr:hover,
+[data-theme="dark"] .table tbody tr:hover {
+    background-color: #1a1a1a !important;
+}
+
+/* Dark mode - Descriptive text styling */
+[data-theme="dark"] .service-panel.glass-card .text-muted {
+    color: #ffffff !important;
+}
+
+/* Dark mode - Form labels styling */
+[data-theme="dark"] .modern-label {
+    color: #ffffff !important;
+}
+
+/* Dark mode - Dropdown fields styling */
+[data-theme="dark"] .intelligent-dropdown .dropdown-selected {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-search {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-search::placeholder {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+/* Dark mode - Dropdown container and options */
+[data-theme="dark"] .intelligent-dropdown .dropdown-container {
+    background-color: #000000 !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .intelligent-dropdown .dropdown-option:hover {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode - Dropdown containers with IDs */
+[data-theme="dark"] #countryDropdownContainer,
+[data-theme="dark"] #serviceDropdownContainer {
+    background-color: #000000 !important;
+    border-color: #404040 !important;
+}
+
+/* Dark mode - Specific dropdown selected elements */
+[data-theme="dark"] #countryDropdownSelected,
+[data-theme="dark"] #serviceDropdownSelected {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+/* Dark mode - Search input fields */
+[data-theme="dark"] #countrySearch,
+[data-theme="dark"] #serviceSearch {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+}
+
+[data-theme="dark"] #countrySearch::placeholder,
+[data-theme="dark"] #serviceSearch::placeholder {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+/* Desktop dropdown fixes */
+@media (min-width: 769px) {
+    /* Ensure form containers have proper stacking */
+    .form-group {
+        position: relative;
+    }
+    
+    /* Standard dropdown styling with enhanced coverage */
+    #countryDropdownContainer {
+        z-index: 99999 !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+        border: 2px solid #198754 !important;
+        background: #ffffff !important;
+        position: absolute !important;
+        max-height: 300px !important;
+        opacity: 1 !important;
+        backdrop-filter: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+    
+    #serviceDropdownContainer {
+        z-index: 99998 !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+        border: 2px solid #198754 !important;
+        background: #ffffff !important;
+        position: absolute !important;
+        max-height: 300px !important;
+        opacity: 1 !important;
+        backdrop-filter: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Ensure form groups don't interfere */
+    .form-group.country-open {
+        z-index: 99999 !important;
+        position: relative !important;
+        isolation: isolate !important;
+    }
+    
+    .form-group.service-open {
+        z-index: 99998 !important;
+        position: relative !important;
+        isolation: isolate !important;
+    }
+    
+    /* Ensure containers don't clip */
+    .container-fluid,
+    .row,
+    .col-md-6 {
+        overflow: visible !important;
+    }
+}
+
+.modern-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Table Styling */
+.table {
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.table thead th {
+    border-bottom: 2px solid rgba(25, 135, 84, 0.1);
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Button Styling */
+.btn {
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(25, 135, 84, 0.4);
+}
+
+.btn-primary:disabled {
+    background: var(--secondary-color);
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-group .btn {
+    border-radius: 4px;
+    margin: 0 2px;
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: var(--border-radius-sm);
+    border: none;
+    font-weight: 500;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+    color: var(--danger-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+    color: var(--primary-color);
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .col-xl-5, .col-xl-7 {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .glass-card {
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .form-stack {
+        gap: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+}

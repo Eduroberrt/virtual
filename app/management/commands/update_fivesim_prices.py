@@ -117,7 +117,7 @@ class Command(BaseCommand):
             raise CommandError(f'Failed to update prices: {str(e)}')
 
     def get_service_price_from_api(self, service_code, pricing_data):
-        """Extract price for a specific service from pricing data"""
+        """Extract price for a specific service from pricing data - uses MOST EXPENSIVE operator"""
         if not pricing_data:
             return 0
         
@@ -126,33 +126,45 @@ class Command(BaseCommand):
             if service_code in pricing_data:
                 service_prices = pricing_data[service_code]
                 if isinstance(service_prices, dict):
-                    # Find the cheapest price across countries/operators
-                    min_price = float('inf')
+                    # Find the MOST EXPENSIVE price across countries/operators with availability
+                    max_price = 0
                     for country_data in service_prices.values():
                         if isinstance(country_data, dict):
                             for operator_data in country_data.values():
                                 if isinstance(operator_data, dict) and 'cost' in operator_data:
                                     price = float(operator_data['cost'])
-                                    if price > 0 and price < min_price:
-                                        min_price = price
+                                    count = int(operator_data.get('count', 0))
+                                    # Only consider operators with available phones
+                                    if price > 0 and count > 0 and price > max_price:
+                                        max_price = price
                                 elif isinstance(operator_data, (int, float)):
                                     price = float(operator_data)
-                                    if price > 0 and price < min_price:
-                                        min_price = price
+                                    if price > 0 and price > max_price:
+                                        max_price = price
                     
-                    if min_price != float('inf'):
-                        return min_price
+                    if max_price > 0:
+                        return max_price
             
             # Method 2: Search through all pricing data
+            max_price = 0
             for country_name, country_data in pricing_data.items():
                 if isinstance(country_data, dict) and service_code in country_data:
                     service_prices = country_data[service_code]
                     if isinstance(service_prices, dict):
                         for operator_name, price_data in service_prices.items():
                             if isinstance(price_data, dict) and 'cost' in price_data:
-                                return float(price_data['cost'])
+                                price = float(price_data['cost'])
+                                count = int(price_data.get('count', 0))
+                                # Only consider operators with available phones
+                                if price > 0 and count > 0 and price > max_price:
+                                    max_price = price
                             elif isinstance(price_data, (int, float)):
-                                return float(price_data)
+                                price = float(price_data)
+                                if price > 0 and price > max_price:
+                                    max_price = price
+            
+            if max_price > 0:
+                return max_price
             
         except Exception:
             pass

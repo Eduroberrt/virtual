@@ -404,8 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Loading active rentals on page load...'); // Debug log
     loadActiveRentals();
     
-    // Set up polling for SMS updates
-    setInterval(checkAllSMS, 5000); // Check every 5 seconds
+    // Set up polling for SMS updates - check every 3 seconds for better responsiveness
+    setInterval(checkAllSMS, 3000); // Check every 3 seconds
     
     // Set up real-time wallet balance updates
     updateUserBalance(); // Initial balance load
@@ -718,7 +718,42 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
             console.error('HTTP error:', response.status, response.statusText);
             const errorText = await response.text();
             console.error('Error response body:', errorText);
-            showNotification(`HTTP Error ${response.status}: ${response.statusText}`, 'error');
+            
+            // Handle specific HTTP errors with user-friendly messages
+            let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+            
+            if (response.status === 400) {
+                // Try to parse the error response for more specific error
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.error && errorData.error.toLowerCase().includes('insufficient')) {
+                        errorMessage = 'Insufficient balance';
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    } else {
+                        errorMessage = 'Invalid request. Please check your inputs and try again.';
+                    }
+                } catch (parseError) {
+                    // If parsing fails, check if the raw text contains balance-related keywords
+                    if (errorText.toLowerCase().includes('insufficient') || 
+                        errorText.toLowerCase().includes('balance') || 
+                        errorText.toLowerCase().includes('funds')) {
+                        errorMessage = 'Insufficient balance';
+                    } else {
+                        errorMessage = 'Invalid request. Please check your inputs and try again.';
+                    }
+                }
+            } else if (response.status === 401) {
+                errorMessage = 'Authentication failed. Please refresh the page and try again.';
+            } else if (response.status === 403) {
+                errorMessage = 'Access denied. Please check your account permissions.';
+            } else if (response.status === 429) {
+                errorMessage = 'Too many requests. Please wait a moment and try again.';
+            } else if (response.status >= 500) {
+                errorMessage = 'Server error. Please try again later.';
+            }
+            
+            showNotification(errorMessage, 'error');
             return;
         }
 
@@ -737,7 +772,12 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
             console.log('API Error:', errorMessage); // Debug log
             
             // Check for specific error patterns and provide helpful suggestions
-            if (errorMessage.includes('service') && errorMessage.includes('not') && errorMessage.includes('support')) {
+            if (errorMessage.toLowerCase().includes('insufficient') || 
+                errorMessage.toLowerCase().includes('balance') || 
+                errorMessage.toLowerCase().includes('funds')) {
+                errorMessage = 'Insufficient balance';
+                errorType = 'error';
+            } else if (errorMessage.includes('service') && errorMessage.includes('not') && errorMessage.includes('support')) {
                 errorMessage = 'The "other" service code is not supported by DaisySMS. Contact DaisySMS support to add your requested service, or try a different service.';
                 errorType = 'warning';
             } else if (errorMessage.includes('service') && (errorMessage.includes('invalid') || errorMessage.includes('unknown'))) {
@@ -982,18 +1022,30 @@ async function cancelRental(rentalId) {
 
 async function checkSMS(rentalId) {
     try {
+        console.log(`Checking SMS for rental ID: ${rentalId}`);
         const response = await fetch(`/api/sms/${rentalId}/`);
+        
+        if (!response.ok) {
+            console.error(`HTTP error ${response.status} for rental ${rentalId}`);
+            return;
+        }
+        
         const data = await response.json();
+        console.log(`SMS check response for ${rentalId}:`, data);
         
         if (data.status === 'RECEIVED' && data.messages && data.messages.length > 0) {
             const latestMessage = data.messages[0];
+            console.log(`Found code for rental ${rentalId}: ${latestMessage.code}`);
             updateSMSCode(rentalId, latestMessage.code);
         } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
             // Handle rental expiration/cancellation from Daisy SMS
+            console.log(`Rental ${rentalId} status changed to: ${data.status}`);
             handleRentalStatusChange(rentalId, data.status);
+        } else {
+            console.log(`No SMS yet for rental ${rentalId}, status: ${data.status}`);
         }
     } catch (error) {
-        console.error('Error checking SMS:', error);
+        console.error(`Error checking SMS for rental ${rentalId}:`, error);
     }
 }
 
@@ -1037,6 +1089,7 @@ function handleRentalStatusChange(rentalId, status) {
 
 async function checkAllSMS() {
     const rentalRows = document.querySelectorAll('[data-rental-id]');
+    console.log(`Checking SMS for ${rentalRows.length} rental rows`);
     
     for (const row of rentalRows) {
         const rentalId = row.getAttribute('data-rental-id');
@@ -1044,16 +1097,22 @@ async function checkAllSMS() {
         const timer = row.querySelector('.countdown-timer');
         
         // Only check if waiting for code and not expired or cancelled
-        if (codeCell && codeCell.textContent.includes('Waiting') && timer && !timer.textContent.includes('✅')) {
+        if (codeCell && codeCell.textContent.includes('Waiting') && timer && !timer.textContent.includes('✅') && !timer.textContent.includes('Expired') && !timer.textContent.includes('Cancelled')) {
+            console.log(`Checking SMS for rental ${rentalId}`);
             await checkSMS(rentalId);
         }
     }
 }
 
 function updateSMSCode(rentalId, code) {
-    const codeCell = document.querySelector(`.sms-code[data-rental-id="${rentalId}"]`);
+    const row = document.querySelector(`tr[data-rental-id="${rentalId}"]`);
+    if (!row) {
+        console.error(`Row not found for rental ID: ${rentalId}`);
+        return;
+    }
+    
+    const codeCell = row.querySelector('.sms-code');
     if (codeCell && code) {
-        const row = codeCell.closest('tr');
         const timer = row.querySelector('.countdown-timer');
         
         // Update code cell with code (with click to copy functionality)
@@ -1068,6 +1127,11 @@ function updateSMSCode(rentalId, code) {
         const actionsCell = row.querySelector('td:last-child');
         if (actionsCell) {
             actionsCell.innerHTML = '<span class="badge bg-success">Success</span>';
+        }
+        
+        // Update timer to show success
+        if (timer) {
+            timer.innerHTML = '<span class="text-success">✅ Received</span>';
         }
         
         showNotification('SMS code received!', 'success');
