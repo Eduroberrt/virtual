@@ -11,7 +11,6 @@ from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import UserProfile, Service, Rental, PasswordResetToken
-from .turnstile import verify_turnstile, get_client_ip
 import logging
 from django.http import HttpResponse, FileResponse
 import os
@@ -59,15 +58,6 @@ def signup(request):
         email = request.POST.get('email', '').lower().strip()  # Normalize email to lowercase
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
-        turnstile_token = request.POST.get('cf-turnstile-response')
-        
-        # Verify Turnstile CAPTCHA
-        client_ip = get_client_ip(request)
-        turnstile_result = verify_turnstile(turnstile_token, client_ip)
-        
-        if not turnstile_result.get('success'):
-            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
-            return render(request, 'signup.html')
         
         # Basic validation
         if not all([username, email, password, password_confirm]):
@@ -135,15 +125,6 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
-        turnstile_token = request.POST.get('cf-turnstile-response')
-        
-        # Verify Turnstile CAPTCHA first
-        client_ip = get_client_ip(request)
-        turnstile_result = verify_turnstile(turnstile_token, client_ip)
-        
-        if not turnstile_result.get('success'):
-            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
-            return render(request, 'login.html')
         
         # Normalize email to lowercase if it looks like an email
         if '@' in username:
@@ -175,15 +156,6 @@ def forgot_password(request):
     """Simple forgot password view"""
     if request.method == 'POST':
         email = request.POST.get('email', '').lower().strip()  # Normalize to lowercase
-        turnstile_token = request.POST.get('cf-turnstile-response')
-        
-        # Verify Turnstile CAPTCHA first
-        client_ip = get_client_ip(request)
-        turnstile_result = verify_turnstile(turnstile_token, client_ip)
-        
-        if not turnstile_result.get('success'):
-            messages.error(request, '❌ CAPTCHA verification failed. Please try again.')
-            return render(request, 'forgot_password.html')
         
         if not email:
             messages.error(request, '❌ Please enter your email address.')

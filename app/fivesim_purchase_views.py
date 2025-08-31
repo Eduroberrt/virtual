@@ -56,6 +56,9 @@ def buy_activation_number(request):
         ref = request.POST.get('ref', '').strip()
         max_price = request.POST.get('max_price', '').strip()
         
+        # Debug logging
+        logger.info(f"Purchase request - User: {request.user.username}, Country: '{country}', Operator: '{operator}', Product: '{product}'")
+        
         # Validate required fields
         if not all([country, operator, product]):
             return JsonResponse({
@@ -87,7 +90,9 @@ def buy_activation_number(request):
                 pass
         
         # Make the purchase
+        logger.info(f"Calling 5sim API with params: {purchase_params}")
         result = api_client.buy_activation_number(**purchase_params)
+        logger.info(f"5sim API response: {result}")
         
         # Calculate price using admin-configured pricing
         from .models import SMSService, SMSOperator
