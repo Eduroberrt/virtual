@@ -1,37 +1,5 @@
-# Database
 db.sqlite3
-*.sqlite3
-
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
-
-# Log files
 *.log
-logs/
-log/
-
-# Environment variables
-.env
-.env.local
-
-# IDE
-.vscode/
-.idea/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Static files (if collected)
-staticfiles/
-static/collected/
-
-# Media files (uploads)
-media/uploads/
-
-# Virtual environment
-venv/
-env/
-ENV/
