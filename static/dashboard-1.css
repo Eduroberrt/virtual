@@ -15,6 +15,9 @@
     --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
     --gradient-primary: linear-gradient(135deg, #198754 0%, #20c997 100%);
     --gradient-secondary: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+    --z-dropdown-country: 9999;  /* Highest z-index */
+    --z-dropdown-service: 9998;  /* Second highest */
+    --z-cards: 1;                /* Standard card z-index */
 }
 
 /* Modern Dashboard Layout */
@@ -22,6 +25,7 @@
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     min-height: 100vh;
     padding: 1rem 0 0.1rem 0;
+    overflow: visible !important;
 }
 
 /* Glass Card Effect */
@@ -32,7 +36,8 @@
     border-radius: var(--border-radius);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     position: relative;
-    z-index: 1; /* Lower z-index for glass cards */
+    z-index: var(--z-cards); /* Lower z-index for glass cards */
+    overflow: visible !important;
 }
 
 .glass-card .card-header {
@@ -44,11 +49,21 @@
 
 .glass-card .card-body {
     border-radius: 0 0 calc(var(--border-radius) - 2px) calc(var(--border-radius) - 2px);
+    overflow: visible !important;
 }
 
 /* Table Styling */
 .status-success {
     background-color: #28a745 !important;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-finished {
+    background-color: #17a2b8 !important;
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -160,6 +175,11 @@
 }
 
 /* Orders Panel Specific Styling */
+.orders-panel.glass-card {
+    z-index: var(--z-cards) !important;
+    position: relative !important;
+}
+
 .orders-panel.glass-card .card-header {
     background: #198754;
     color: white;
@@ -180,87 +200,34 @@
     flex-direction: column;
     gap: 1.5rem;
     margin-bottom: 2rem;
+    overflow: visible !important;
 }
 
-/* Form groups positioning */
+/* Form groups positioning with proper z-index */
 .form-group {
-    position: relative;
-    z-index: 10; /* Ensure form groups have higher stacking context */
+    position: relative !important;
+    z-index: 10 !important; /* Default z-index */
+    overflow: visible !important;
 }
 
-/* Country form group gets higher z-index to show over service form group */
+/* Country form group gets higher z-index */
 .form-group:first-child {
     position: relative !important;
-    z-index: 1001 !important;
+    z-index: var(--z-dropdown-country) !important;
 }
 
-/* Service form group gets standard z-index */
+/* Service form group gets lower z-index than country */
 .form-group:nth-child(2) {
     position: relative !important;
-    z-index: 1000 !important;
+    z-index: var(--z-dropdown-service) !important;
 }
 
-/* SIMPLIFIED DROPDOWN SOLUTION */
-.intelligent-dropdown .dropdown-container,
-div#countryDropdownContainer,
-div#serviceDropdownContainer {
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    background: white !important;
-    border: 1px solid #ccc !important;
-    border-top: none !important;
-    border-radius: 0 0 8px 8px !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-    max-height: 0 !important;
-    opacity: 0 !important;
-    overflow: hidden !important;
-    z-index: 10000 !important;
-    transition: all 0.3s ease !important;
-    visibility: hidden !important;
-}
-
-.intelligent-dropdown .dropdown-container.open,
-div#countryDropdownContainer.open,
-div#serviceDropdownContainer.open {
-    max-height: 350px !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* Ensure dropdown form groups have proper positioning */
+/* ======= DROPDOWN STYLING ======= */
+/* This is the updated dropdown styling that fixes mobile scrolling */
 .intelligent-dropdown {
     position: relative !important;
     z-index: 1000 !important;
-}
-
-/* Desktop: Hide service field when country dropdown is open */
-.country-dropdown-open #serviceDropdownSelected {
-    display: none !important;
-}
-
-.country-dropdown-open .form-group:nth-child(2) {
-    display: none !important;
-}
-
-/* Clean dropdown styling for all devices */
-.intelligent-dropdown .dropdown-container {
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 10000 !important;
-    background: white !important;
-    border: 1px solid #ccc !important;
-    border-top: none !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-    border-radius: 0 0 8px 8px !important;
-    display: none; /* Hidden by default */
-}
-
-.intelligent-dropdown .dropdown-container.open {
-    display: block !important; /* Show when open */
+    overflow: visible !important;
 }
 
 .intelligent-dropdown .dropdown-selected {
@@ -281,6 +248,39 @@ div#serviceDropdownContainer.open {
     box-shadow: 0 2px 8px rgba(0,123,255,0.15) !important;
 }
 
+/* Dropdown container styling */
+.intelligent-dropdown .dropdown-container,
+div#countryDropdownContainer,
+div#serviceDropdownContainer {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-top: none !important;
+    border-radius: 0 0 8px 8px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    z-index: 10000 !important;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    transform: translateY(-10px) !important;
+}
+
+/* Show dropdown when open */
+.intelligent-dropdown .dropdown-container.open,
+div#countryDropdownContainer.open,
+div#serviceDropdownContainer.open {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    max-height: none !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+/* Search input styling */
 .intelligent-dropdown .dropdown-search {
     width: 100% !important;
     padding: 8px 12px !important;
@@ -291,37 +291,165 @@ div#serviceDropdownContainer.open {
     font-size: 13px !important;
 }
 
-.intelligent-dropdown .dropdown-options {
+/* IMPROVED: Scrollable options container */
+.intelligent-dropdown .dropdown-options,
+#countryOptions,
+#serviceOptions {
     max-height: 250px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
-    scrollbar-width: thin !important; /* Firefox */
-    scrollbar-color: #ccc #f1f1f1 !important; /* Firefox */
+    background: white !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #007bff #f1f1f1 !important;
+    touch-action: pan-y !important;
+    scroll-behavior: smooth !important;
+    overscroll-behavior: contain !important;
+    position: relative !important;
+    z-index: 10 !important;
+    /* Prevent text selection during scroll */
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    /* Improve touch performance */
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
 }
 
-/* Force scrollbar visibility on very small screens */
-@media (max-width: 480px) {
-    .intelligent-dropdown .dropdown-container {
-        position: absolute !important;
-        display: none !important;
-        z-index: 10000 !important;
+/* iOS-specific scrolling improvements */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific */
+    .intelligent-dropdown .dropdown-options,
+    #countryOptions,
+    #serviceOptions {
+        -webkit-overflow-scrolling: touch !important;
+        /* Add a subtle shadow at top/bottom to indicate scrollability */
+        background: 
+            linear-gradient(white 30%, rgba(255,255,255,0)),
+            linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+            radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.1), rgba(0,0,0,0)),
+            radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.1), rgba(0,0,0,0)) 0 100% !important;
+        background-repeat: no-repeat !important;
+        background-color: white !important;
+        background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px !important;
+        background-attachment: local, local, scroll, scroll !important;
     }
     
-    .intelligent-dropdown .dropdown-container.open {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        max-height: 250px !important;
+    /* Make iOS dropdown options larger for better touch */
+    .intelligent-dropdown .dropdown-option {
+        min-height: 48px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
     }
     
-    .intelligent-dropdown .dropdown-options {
-        overflow-y: scroll !important; /* Force scrollbar instead of auto */
-        scrollbar-width: auto !important; /* Show scrollbar on Firefox mobile */
-        max-height: 250px !important;
+    /* Add momentum scrolling indicator */
+    .intelligent-dropdown .dropdown-options::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 2px;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(to bottom, 
+            transparent 0%, 
+            rgba(0,123,255,0.3) 20%, 
+            rgba(0,123,255,0.3) 80%, 
+            transparent 100%);
+        pointer-events: none;
+        z-index: 1;
+        border-radius: 2px;
     }
 }
 
+/* iOS scroll hint animations */
+@keyframes iosScrollHint {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-3px); }
+    75% { transform: translateY(3px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* iOS scroll indicator */
+.ios-scroll-indicator {
+    transition: opacity 0.3s ease;
+}
+
+/* Copy functionality styles */
+.copyable-phone,
+.copyable-code {
+    transition: all 0.2s ease !important;
+    border-radius: 4px !important;
+    padding: 4px 6px !important;
+}
+
+.copyable-phone:hover,
+.copyable-code:hover {
+    background-color: #f8f9fc !important;
+    color: #007bff !important;
+    transform: scale(1.02) !important;
+}
+
+.copyable-phone:active,
+.copyable-code:active {
+    background-color: #e3f2fd !important;
+    transform: scale(0.98) !important;
+}
+
+/* Special styling for phone numbers */
+.copyable-phone {
+    font-family: 'Courier New', monospace !important;
+    font-weight: 600 !important;
+}
+
+/* Special styling for codes */
+.copyable-code strong {
+    font-family: 'Courier New', monospace !important;
+    font-size: 1.1em !important;
+    color: #28a745 !important;
+}
+
+/* Copy notification animation */
+.copy-notification {
+    animation: slideInNotification 0.3s ease-out;
+}
+
+@keyframes slideInNotification {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Custom scrollbar for WebKit browsers */
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 4px !important;
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb {
+    background: #007bff !important;
+    border-radius: 4px !important;
+}
+
+.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb:hover {
+    background: #0056b3 !important;
+}
+
+/* Individual option styling */
 .intelligent-dropdown .dropdown-option {
     padding: 8px 12px !important;
     cursor: pointer !important;
@@ -334,8 +462,8 @@ div#serviceDropdownContainer.open {
     border: none !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    flex-shrink: 0 !important; /* Prevent options from shrinking */
-    min-height: 40px !important; /* Ensure touchable area */
+    flex-shrink: 0 !important;
+    min-height: 40px !important;
 }
 
 .intelligent-dropdown .dropdown-option:hover {
@@ -346,176 +474,96 @@ div#serviceDropdownContainer.open {
     background-color: #e9ecef !important;
 }
 
-/* Fix touch scrolling on mobile devices */
-.intelligent-dropdown .dropdown-options {
-    touch-action: pan-y !important; /* Allow vertical scrolling on touch devices */
-    -ms-touch-action: pan-y !important; /* IE/Edge */
-    scroll-behavior: smooth !important; /* Smooth scrolling */
-}
-
-/* Ensure dropdown options are always clickable */
-.intelligent-dropdown .dropdown-options {
-    max-height: 250px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    position: relative !important;
-    z-index: 999999 !important;
-    background: white !important;
-    -webkit-overflow-scrolling: touch !important; /* iOS smooth scrolling */
-    scrollbar-width: thin !important; /* Firefox */
-    scrollbar-color: #ccc #f1f1f1 !important; /* Firefox */
-}
-
-/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
-.intelligent-dropdown .dropdown-options::-webkit-scrollbar {
-    width: 8px !important;
-    display: block !important; /* Force scrollbar to show */
-}
-
-.intelligent-dropdown .dropdown-options::-webkit-scrollbar-track {
-    background: #f1f1f1 !important;
-    border-radius: 4px !important;
-}
-
-.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb {
-    background: #ccc !important;
-    border-radius: 4px !important;
-}
-
-.intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb:hover {
-    background: #999 !important;
-}
-
-/* Force scrollbar visibility on mobile devices */
+/* Mobile scrolling improvements */
 @media (max-width: 768px) {
-    .intelligent-dropdown .dropdown-options {
-        scrollbar-width: auto !important; /* Show scrollbar on Firefox mobile */
-        -webkit-overflow-scrolling: touch !important;
+    /* Fix stacking context for mobile */
+    .form-group:first-child {
+        z-index: 99999 !important; /* Ultra high for mobile */
+    }
+    
+    .form-group:nth-child(2) {
+        z-index: 99998 !important; /* Second highest for mobile */
+    }
+    
+    /* Ensure no parent element blocks scrolling */
+    .form-group,
+    .form-stack,
+    .service-panel,
+    .glass-card,
+    .card-body,
+    .col-xl-5,
+    .row,
+    .container-fluid,
+    .modern-dashboard {
+        overflow: visible !important;
+    }
+    
+    /* Add margin to recent orders when service dropdown is open */
+    body.service-dropdown-open .orders-panel {
+        margin-top: 50px !important;
+        transition: margin-top 0.3s ease !important;
+    }
+    
+    /* Reset margin when dropdown is closed */
+    .orders-panel {
+        margin-top: 0 !important;
+        transition: margin-top 0.3s ease !important;
+    }
+    
+    /* Fix dropdown containers for mobile */
+    .intelligent-dropdown .dropdown-container,
+    div#countryDropdownContainer,
+    div#serviceDropdownContainer {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    .intelligent-dropdown .dropdown-container.open,
+    div#countryDropdownContainer.open,
+    div#serviceDropdownContainer.open {
+        position: absolute !important;
+        z-index: 99999 !important;
+    }
+    
+    /* Mobile scrolling options */
+    .intelligent-dropdown .dropdown-options,
+    #countryOptions,
+    #serviceOptions {
+        max-height: 200px !important; /* Slightly smaller for mobile */
         overflow-y: scroll !important; /* Force scrollbar instead of auto */
-    }
-    
-    .intelligent-dropdown .dropdown-options::-webkit-scrollbar {
-        width: 14px !important; /* Larger for mobile touch */
-        display: block !important;
-        background: #f0f0f0 !important;
-    }
-    
-    .intelligent-dropdown .dropdown-options::-webkit-scrollbar-track {
-        background: #f0f0f0 !important; /* More visible track on mobile */
-        border-radius: 0 !important;
-    }
-    
-    .intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb {
-        background: #333 !important; /* Much darker for visibility */
-        border-radius: 0 !important;
-        border: 2px solid #f0f0f0 !important;
-    }
-    
-    /* Force scrollbars on specific dropdowns */
-    #countryDropdownContainer .dropdown-options,
-    #serviceDropdownContainer .dropdown-options {
-        overflow-y: scroll !important;
-        scrollbar-width: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
     }
     
-    #countryDropdownContainer .dropdown-options::-webkit-scrollbar,
-    #serviceDropdownContainer .dropdown-options::-webkit-scrollbar {
+    /* Mobile scrollbar visibility */
+    .intelligent-dropdown .dropdown-options::-webkit-scrollbar,
+    #countryOptions::-webkit-scrollbar,
+    #serviceOptions::-webkit-scrollbar {
         width: 14px !important;
         display: block !important;
         background: #f0f0f0 !important;
     }
     
-    #countryDropdownContainer .dropdown-options::-webkit-scrollbar-thumb,
-    #serviceDropdownContainer .dropdown-options::-webkit-scrollbar-thumb {
+    .intelligent-dropdown .dropdown-options::-webkit-scrollbar-thumb,
+    #countryOptions::-webkit-scrollbar-thumb,
+    #serviceOptions::-webkit-scrollbar-thumb {
         background: #333 !important;
+        border-radius: 6px !important;
         border: 2px solid #f0f0f0 !important;
     }
-}
-
-/* Simple and clean dropdown solution */
-.orders-panel {
-    z-index: 1 !important;
-    position: relative !important;
-}
-
-/* Dropdown options styling */
-.dropdown-options {
-    max-height: 300px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    background: #ffffff !important;
-    border: none !important;
-    scrollbar-width: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* Visible scrollbars */
-.dropdown-options::-webkit-scrollbar {
-    width: 12px !important;
-    background: #f0f0f0 !important;
-}
-
-.dropdown-options::-webkit-scrollbar-thumb {
-    background: #888 !important;
-    border-radius: 6px !important;
-}
-
-.dropdown-option {
-    background: #ffffff !important;
-    min-height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    padding: 10px 12px !important;
-    cursor: pointer !important;
-    border-bottom: 1px solid #f0f0f0 !important;
-}
-
-.dropdown-option:hover {
-    background: #f8f9fa !important;
-}
-
-/* Mobile specific enhancements */
-@media (max-width: 768px) {
     
-    /* Make service dropdown scrollable on mobile */
+    /* Larger touch targets for mobile */
+    .intelligent-dropdown .dropdown-option {
+        min-height: 44px !important;
+        padding: 10px 12px !important;
+    }
+    
+    /* Fixed positioning for specific dropdown containers */
+    #countryDropdownContainer.open .dropdown-options,
     #serviceDropdownContainer.open .dropdown-options {
-        max-height: 250px !important;
-        overflow-y: scroll !important; /* Force scrollbar instead of auto */
-        overflow-x: hidden !important;
-        border: 1px solid #ddd !important;
-        background: white !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+        overflow-y: scroll !important;
+        max-height: 200px !important;
         -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: auto !important; /* Show scrollbar on Firefox */
-        scrollbar-color: #888 #e0e0e0 !important;
-    }
-    
-    /* Make country dropdown scrollable on mobile too */
-    #countryDropdownContainer.open .dropdown-options {
-        max-height: 250px !important;
-        overflow-y: scroll !important; /* Force scrollbar instead of auto */
-        overflow-x: hidden !important;
-        border: 1px solid #ddd !important;
-        background: white !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
-        -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: auto !important; /* Show scrollbar on Firefox */
-        scrollbar-color: #888 #e0e0e0 !important;
-    }
-    
-    /* Mobile-specific scrollbar styling */
-    #serviceDropdownContainer.open .dropdown-options::-webkit-scrollbar,
-    #countryDropdownContainer.open .dropdown-options::-webkit-scrollbar {
-        width: 12px !important;
-        display: block !important;
-        -webkit-appearance: auto !important;
-    }
-    
-    #serviceDropdownContainer.open .dropdown-options::-webkit-scrollbar-thumb,
-    #countryDropdownContainer.open .dropdown-options::-webkit-scrollbar-thumb {
-        background: #888 !important;
-        border-radius: 6px !important;
     }
 }
 
@@ -634,61 +682,6 @@ div#serviceDropdownContainer.open {
 [data-theme="dark"] #serviceSearch::placeholder {
     color: #ffffff !important;
     opacity: 0.8 !important;
-}
-
-/* Desktop dropdown fixes */
-@media (min-width: 769px) {
-    /* Ensure form containers have proper stacking */
-    .form-group {
-        position: relative;
-    }
-    
-    /* Standard dropdown styling with enhanced coverage */
-    #countryDropdownContainer {
-        z-index: 99999 !important;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
-        border: 2px solid #198754 !important;
-        background: #ffffff !important;
-        position: absolute !important;
-        max-height: 300px !important;
-        opacity: 1 !important;
-        backdrop-filter: none !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-    
-    #serviceDropdownContainer {
-        z-index: 99998 !important;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
-        border: 2px solid #198754 !important;
-        background: #ffffff !important;
-        position: absolute !important;
-        max-height: 300px !important;
-        opacity: 1 !important;
-        backdrop-filter: none !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-    
-    /* Ensure form groups don't interfere */
-    .form-group.country-open {
-        z-index: 99999 !important;
-        position: relative !important;
-        isolation: isolate !important;
-    }
-    
-    .form-group.service-open {
-        z-index: 99998 !important;
-        position: relative !important;
-        isolation: isolate !important;
-    }
-    
-    /* Ensure containers don't clip */
-    .container-fluid,
-    .row,
-    .col-md-6 {
-        overflow: visible !important;
-    }
 }
 
 .modern-label {
