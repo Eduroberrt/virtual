@@ -209,48 +209,56 @@ def check_order_status(request, order_id):
         order.status = result['status']
         order.save()
         
-        # Update SMS messages
+        # *** THIS IS THE FIX ***
+        # Update SMS messages by clearing and recreating them
         if result.get('sms'):
-            existing_sms_ids = set(
-                order.sms_messages.exclude(sms_id__isnull=True).values_list('sms_id', flat=True)
-            )
+            # Clear any existing (and potentially outdated) SMS messages for this order
+            order.sms_messages.all().delete()
             
+            # Process and save the new SMS data from the API response
             for sms_data in result['sms']:
-                sms_id = sms_data.get('id')
-                if sms_id and sms_id not in existing_sms_ids:
-                    sms_date = datetime.fromisoformat(sms_data['date'].replace('Z', '+00:00'))
-                    FiveSimSMS.objects.create(
-                        order=order,
-                        sms_id=sms_id,
-                        sender=sms_data.get('sender', ''),
-                        text=sms_data.get('text', ''),
-                        code=sms_data.get('code', ''),
-                        date=sms_date,
-                    )
+                # The broken ID check is now removed. We process every message.
+                sms_date = datetime.fromisoformat(sms_data['date'].replace('Z', '+00:00'))
+                FiveSimSMS.objects.create(
+                    order=order,
+                    # sms_id is removed as it's not provided by the API in this context
+                    sender=sms_data.get('sender', ''),
+                    text=sms_data.get('text', ''),
+                    code=sms_data.get('code', ''),
+                    date=sms_date,
+                )
         
-        # Get updated SMS messages
+        # Get updated SMS messages from the database
         sms_messages = order.sms_messages.all().order_by('-date')
-        sms_data = []
+        sms_data_list = []
         latest_sms_code = None
         
         for sms in sms_messages:
-            sms_data.append({
+            sms_data_list.append({
                 'sender': sms.sender,
                 'text': sms.text,
                 'code': sms.code,
                 'date': sms.date.isoformat(),
             })
-            # Get the latest SMS code for quick access
+            # Get the latest SMS code for quick access on the frontend
             if not latest_sms_code and (sms.code or sms.text):
-                latest_sms_code = sms.code or sms.text
-        
+                # Prioritize the clean 'code' field if it exists
+                if sms.code:
+                    latest_sms_code = sms.code
+                else:
+                    # Fallback to extracting from the full text
+                    import re
+                    match = re.search(r'(\d{4,8})', sms.text)
+                    if match:
+                        latest_sms_code = match.group(1)
+
         return JsonResponse({
             'success': True,
             'status': order.status,
             'phone_number': order.phone_number,
             'expires_at': order.expires_at.isoformat(),
-            'sms_code': latest_sms_code,
-            'sms_messages': sms_data,
+            'sms_code': latest_sms_code, # This will now contain the code
+            'sms_messages': sms_data_list, # This will now be populated
         })
         
     except Exception as e:

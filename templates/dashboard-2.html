@@ -1059,7 +1059,7 @@ function handleRentalStatusChange(rentalId, status) {
     
     if (status === 'CANCELLED' || status === 'EXPIRED') {
         // Update UI to show cancelled/expired state
-        if (codeCell && codeCell.textContent.includes('Waiting')) {
+        if (codeCell && codeCell.innerHTML.includes('spinner-border')) {
             codeCell.innerHTML = `<span class="text-danger">${status === 'CANCELLED' ? 'Cancelled' : 'Expired'}</span>`;
         }
         
@@ -1087,18 +1087,20 @@ function handleRentalStatusChange(rentalId, status) {
     }
 }
 
+// *** THIS IS THE CORRECTED FUNCTION ***
 async function checkAllSMS() {
-    const rentalRows = document.querySelectorAll('[data-rental-id]');
-    console.log(`Checking SMS for ${rentalRows.length} rental rows`);
-    
+    const rentalRows = document.querySelectorAll('tr[data-rental-id]');
+    if (rentalRows.length === 0) return;
+
+    console.log(`Polling: Found ${rentalRows.length} rental rows to check.`);
+
     for (const row of rentalRows) {
         const rentalId = row.getAttribute('data-rental-id');
         const codeCell = row.querySelector('.sms-code');
-        const timer = row.querySelector('.countdown-timer');
-        
-        // Only check if waiting for code and not expired or cancelled
-        if (codeCell && codeCell.textContent.includes('Waiting') && timer && !timer.textContent.includes('✅') && !timer.textContent.includes('Expired') && !timer.textContent.includes('Cancelled')) {
-            console.log(`Checking SMS for rental ${rentalId}`);
+
+        // Check if the code cell contains the spinner, which indicates we are waiting for a code.
+        if (codeCell && codeCell.querySelector('.spinner-border')) {
+            console.log(`Polling: Checking SMS for rental ${rentalId} because it has a spinner.`);
             await checkSMS(rentalId);
         }
     }
@@ -1113,28 +1115,23 @@ function updateSMSCode(rentalId, code) {
     
     const codeCell = row.querySelector('.sms-code');
     if (codeCell && code) {
-        const timer = row.querySelector('.countdown-timer');
-        
-        // Update code cell with code (with click to copy functionality)
-        codeCell.innerHTML = `
-            <span class="text-success" onclick="copyToClipboard('${code}', this)" title="Click to copy" style="cursor: pointer;">${code}</span>
-        `;
-        
-        // Code cell updated successfully
-        console.log(`Updated code for rental ${rentalId}: ${code}`);
-        
-        // Update the actions cell to show "Success" badge
-        const actionsCell = row.querySelector('td:last-child');
-        if (actionsCell) {
-            actionsCell.innerHTML = '<span class="badge bg-success">Success</span>';
+        // Only update if the code isn't already there
+        if (codeCell.innerHTML.includes('spinner-border')) {
+            // Update code cell with code (with click to copy functionality)
+            codeCell.innerHTML = `
+                <span class="text-success" onclick="copyToClipboard('${code}', this)" title="Click to copy" style="cursor: pointer;">${code}</span>
+            `;
+            
+            console.log(`UI Updated: Code for rental ${rentalId} is now ${code}`);
+            
+            // Update the actions cell to show "Success" badge
+            const actionsCell = row.querySelector('td:last-child');
+            if (actionsCell) {
+                actionsCell.innerHTML = '<span class="badge bg-success">Success</span>';
+            }
+            
+            showNotification('SMS code received!', 'success');
         }
-        
-        // Update timer to show success
-        if (timer) {
-            timer.innerHTML = '<span class="text-success">✅ Received</span>';
-        }
-        
-        showNotification('SMS code received!', 'success');
     }
 }
 
