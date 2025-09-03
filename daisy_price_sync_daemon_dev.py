@@ -7,6 +7,7 @@ import sys
 import django
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
 # Setup Django
@@ -16,12 +17,16 @@ django.setup()
 
 from django.core.management import call_command
 
-# Setup logging
+# Setup logging with rotation (more verbose for dev)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/daisy_price_sync_daemon.log'),
+        RotatingFileHandler(
+            'logs/daisy_price_sync_daemon.log',
+            maxBytes=10*1024*1024,  # 10MB per file for dev
+            backupCount=3           # Keep 3 backups = 40MB max total
+        ),
         logging.StreamHandler()
     ]
 )

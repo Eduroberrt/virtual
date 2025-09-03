@@ -7,6 +7,7 @@ import sys
 import django
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
 
 # Setup Django
@@ -17,12 +18,16 @@ django.setup()
 from django.core.management import call_command
 from django.conf import settings
 
-# Setup logging
+# Setup logging with rotation
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,  # Less verbose for production
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/auto_sync.log'),
+        RotatingFileHandler(
+            'logs/auto_sync.log',
+            maxBytes=5*1024*1024,  # 5MB per file
+            backupCount=2          # Keep 2 backups = 15MB max total
+        ),
         logging.StreamHandler()
     ]
 )
