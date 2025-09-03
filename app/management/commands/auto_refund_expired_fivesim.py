@@ -23,7 +23,7 @@ class Command(BaseCommand):
         current_time = timezone.now()
         
         expired_orders = FiveSimOrder.objects.filter(
-            status__in=['PENDING', 'RECEIVED'],  # Orders waiting for SMS
+            status__in=['PENDING', 'RECEIVED', 'TIMEOUT'],  # Orders waiting for SMS or timed out
             expires_at__lte=current_time,  # Already expired
         ).exclude(
             # Don't refund if SMS messages already received

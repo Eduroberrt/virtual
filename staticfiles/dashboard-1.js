@@ -206,7 +206,10 @@ async function purchaseNumber(country, product, operator) {
             showSuccess(`SMS number purchased successfully! Phone: ${data.phone_number}`);
             if (data.new_balance !== undefined) updateBalanceDisplay(data.new_balance);
             await loadRecentOrders();
-            resetPurchaseButton();
+            // Remove loading state and restore the button
+            purchaseBtn.classList.remove('loading');
+            // Keep the same selection active for easy re-ordering
+            updatePurchaseButton(country, product, operator, currentPrice);
         } else {
             showError(data.error || 'Purchase failed');
             purchaseBtn.classList.remove('loading');

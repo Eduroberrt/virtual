@@ -94,9 +94,9 @@ class Rental(models.Model):
 
     @property
     def is_expired(self):
-        """Check if rental has expired - now syncs with DaisySMS status instead of time-based"""
-        # This property is deprecated - expiration is now managed by DaisySMS API status
-        # Use the status field instead: 'EXPIRED' status indicates DaisySMS has expired the rental
+        """Check if rental has expired (handled by DaisySMS sync daemon)"""
+        # Expiration is now handled by DaisySMS API through sync_daisy_status
+        # This property returns True only if status is already EXPIRED
         return self.status == 'EXPIRED'
     
     def get_naira_price(self):

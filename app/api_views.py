@@ -30,7 +30,7 @@ def get_user_balance(request):
     """Get user's current balance"""
     try:
         profile, created = UserProfile.objects.get_or_create(user=request.user)
-        # Return user's wallet balance (no DaisySMS sync needed)
+
         return json_response({
             'success': True,
             'balance': str(profile.balance),
@@ -45,8 +45,6 @@ def get_user_balance(request):
 def get_services(request):
     """Get available services with pricing"""
     try:
-        # Services are synced via admin using the shared DaisySMS API account
-        # No need for individual user API keys
         services = Service.objects.filter(is_active=True)
         
         services_data = []
@@ -366,7 +364,6 @@ def get_rentals(request):
         # 1. Active waiting rentals (not expired, not cancelled)
         # 2. Rentals that have received SMS (regardless of age - these should always show)
         # 3. Recent successful rentals (within last 24 hours) even if they expired
-        expiry_threshold = timezone.now() - timezone.timedelta(minutes=5)
         recent_threshold = timezone.now() - timezone.timedelta(hours=24)
         
         rentals = Rental.objects.filter(
@@ -374,10 +371,7 @@ def get_rentals(request):
         ).filter(
             # Include rentals that:
             Q(messages__isnull=False) |  # Have received SMS messages (always show these)
-            Q(
-                status__in=['WAITING', 'RECEIVED'],  # Are currently active
-                created_at__gt=expiry_threshold  # And not expired
-            ) |
+            Q(status__in=['WAITING', 'RECEIVED']) |  # Are currently active (DaisySMS handles expiration)
             Q(
                 status='RECEIVED',  # Or recently successful
                 created_at__gt=recent_threshold  # Within last 24 hours
