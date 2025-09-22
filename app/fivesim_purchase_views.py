@@ -94,33 +94,10 @@ def buy_activation_number(request):
         result = api_client.buy_activation_number(**purchase_params)
         logger.info(f"5sim API response: {result}")
         
-        # Calculate price using admin-configured pricing
-        from .models import SMSService, SMSOperator
-        from django.conf import settings
-        
-        try:
-            # Try to find admin-configured service
-            service = SMSService.objects.filter(service_code=product, is_active=True).first()
-            if service:
-                # Try to find operator-specific pricing
-                sms_operator = service.operators.filter(
-                    country_code=country,
-                    operator_code=operator,
-                    is_active=True
-                ).first()
-                
-                if sms_operator:
-                    # Use operator-specific pricing
-                    price_naira = Decimal(str(sms_operator.get_final_price_ngn()))
-                else:
-                    # Use service default pricing
-                    price_naira = Decimal(str(service.get_final_price_ngn()))
-            else:
-                # Fallback to basic conversion if service not configured
-                price_naira = Decimal(str(result['price'])) * settings.EXCHANGE_RATE_USD_TO_NGN
-        except Exception as e:
-            # Emergency fallback
-            price_naira = Decimal(str(result['price'])) * settings.EXCHANGE_RATE_USD_TO_NGN
+        # Calculate price using simple fixed pricing (same logic as pricing endpoint)
+        api_price_rub = Decimal(str(result['price']))  # What 5sim charged us in RUB
+        wholesale_ngn = api_price_rub * settings.EXCHANGE_RATE_RUB_TO_NGN  # Convert to NGN (20x)
+        price_naira = wholesale_ngn + settings.FIVESIM_FIXED_PROFIT_NGN  # Add ₦1,000 profit
         
         # Parse expiration date
         expires_at = datetime.fromisoformat(result['expires'].replace('Z', '+00:00'))

@@ -119,8 +119,19 @@ class DaisySMSClient:
             execution_time = time.time() - start_time
             error_msg = str(e)
             
-            # Handle specific HTTP errors that might indicate area code/carrier/phone issues
-            if hasattr(e, 'response') and e.response is not None:
+            # Convert technical errors to user-friendly messages
+            if "SSLError" in error_msg or "SSL" in error_msg or "handshake" in error_msg:
+                error_msg = "Connection security issue with SMS service. Please try again in a few minutes."
+            elif "ConnectionError" in error_msg or "Connection refused" in error_msg:
+                error_msg = "Unable to connect to SMS service. Please check your internet connection and try again."
+            elif "Timeout" in error_msg or "timeout" in error_msg or "Read timed out" in error_msg:
+                error_msg = "SMS service is taking too long to respond. Please try again."
+            elif "Max retries exceeded" in error_msg:
+                error_msg = "SMS service is currently unavailable. Please try again in a few minutes."
+            elif "Name or service not known" in error_msg or "nodename nor servname provided" in error_msg:
+                error_msg = "Cannot reach SMS service. Please check your internet connection."
+            elif hasattr(e, 'response') and e.response is not None:
+                # Handle specific HTTP errors that might indicate area code/carrier/phone issues
                 if e.response.status_code == 400:
                     # Bad Request - likely due to invalid parameters
                     areas = params.get('areas', '')
@@ -137,10 +148,19 @@ class DaisySMSClient:
                         error_msg = f"Invalid carriers ({carriers}). Please use: tmo (T-Mobile), vz (Verizon), or att (AT&T)."
                     else:
                         error_msg = "Invalid request parameters. Please check your settings."
+                elif e.response.status_code == 401:
+                    error_msg = "Authentication issue with SMS service. Please contact support."
+                elif e.response.status_code == 403:
+                    error_msg = "Access denied by SMS service. Please contact support."
                 elif e.response.status_code == 404:
                     error_msg = "Service temporarily unavailable. Please try again later."
+                elif e.response.status_code == 429:
+                    error_msg = "Too many requests. Please wait a moment and try again."
                 elif e.response.status_code >= 500:
                     error_msg = "SMS service is experiencing issues. Please try again in a few minutes."
+            else:
+                # Generic fallback for other network errors
+                error_msg = "Connection problem with SMS service. Please try again."
             
             if log_entry:
                 log_entry.error_message = error_msg

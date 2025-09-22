@@ -261,36 +261,10 @@ def get_prices_by_country_and_product(request, country, product):
             
             for operator_name, operator_data in product_data.items():
                 if isinstance(operator_data, dict):
-                    # Get admin-configured pricing for this service
-                    from .models import SMSService, SMSOperator
-                    from django.conf import settings
-                    
-                    try:
-                        # Try to find admin-configured service
-                        service = SMSService.objects.filter(service_code=product, is_active=True).first()
-                        if service:
-                            # Try to find operator-specific pricing
-                            operator = service.operators.filter(
-                                country_code=country,
-                                operator_code=operator_name,
-                                is_active=True
-                            ).first()
-                            
-                            if operator:
-                                # Use operator-specific pricing
-                                final_price_ngn = operator.get_final_price_ngn()
-                            else:
-                                # Use service default pricing
-                                final_price_ngn = service.get_final_price_ngn()
-                        else:
-                            # Fallback to basic conversion if service not configured
-                            # 5sim returns prices in RUB, convert to NGN
-                            cost_rub = operator_data.get('cost', 0)
-                            final_price_ngn = cost_rub * settings.EXCHANGE_RATE_RUB_TO_NGN
-                    except:
-                        # Emergency fallback - 5sim prices are in RUB
-                        cost_rub = operator_data.get('cost', 0)
-                        final_price_ngn = cost_rub * settings.EXCHANGE_RATE_RUB_TO_NGN
+                    # Simple fixed pricing: RUB → NGN + ₦1,000 profit
+                    cost_rub = operator_data.get('cost', 0)
+                    wholesale_ngn = cost_rub * settings.EXCHANGE_RATE_RUB_TO_NGN  # 20x
+                    final_price_ngn = wholesale_ngn + settings.FIVESIM_FIXED_PROFIT_NGN  # +₦1,000
                     
                     operators[operator_name] = {
                         'cost': int(final_price_ngn),

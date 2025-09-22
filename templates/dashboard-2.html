@@ -140,7 +140,7 @@
                 <table class="table table-sm rentals-table">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
+                            <th>Country</th>
                             <th>Service</th>
                             <th>Phone</th>
                             <th>Code</th>
@@ -893,7 +893,7 @@ function updateRentalsTable(rentals) {
     if (activeRentals.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="6" class="text-center py-4">
                     <div class="text-muted">
                         <p class="mb-2" style="font-size: 0.9rem;">No rented number yet.</p>
                         <small>Click on a service to rent a number.</small>
@@ -925,7 +925,7 @@ function updateRentalsTable(rentals) {
         
         return `
         <tr data-rental-id="${rental.rental_id}" data-supports-multiple="${rental.supports_multiple}">
-            <td><span>${rental.rental_id.slice(-6)}</span></td>
+            <td><span style="font-size: 1.2em;">🇺🇸</span></td>
             <td>${rental.service_name}</td>
             <td>
                 <span class="fw-medium" onclick="copyToClipboard('${rental.phone_number}', this)" title="Click to copy" style="cursor: pointer;">${rental.phone_number}</span>

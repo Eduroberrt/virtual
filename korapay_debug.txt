@@ -118,3 +118,38 @@ GET redirect: YPG_30_1616758a - NO PROCESSING, just redirect
 Method: GET
 Time: 2025-08-24 06:15:03.752694
 GET redirect: YPG_36_d804e449 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-09-04 07:30:13.697114
+GET redirect: YPG_30_0cfbb2b4 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-09-22 05:55:14.233564
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_35_b1e02836","payment_reference":"YPG_35_b1e02836","currency":"NGN","amount":5000,"fee":80.63,"payment_method":"bank_transfer","status":"success","virtual_bank_account_details":{"virtual_bank_account":{"account_name":"Korapay-YOU-CHKOUT","account_number":"5231460464"}},"transaction_date":"2025-09-22 13:54:27"}}
+Reference: YPG_35_b1e02836, Status: success
+PROCESSING WEBHOOK: YPG_35_b1e02836
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-09-22 05:55:17.649230
+GET redirect: YPG_35_b1e02836 - NO PROCESSING, just redirect
+
+=== KORAPAY UNIFIED CALLED ===
+Method: POST
+Time: 2025-09-22 06:09:14.904377
+POST webhook - PROCESSING PAYMENT
+POST body: {"event":"charge.success","data":{"reference":"YPG_35_a041ad11","payment_reference":"YPG_35_a041ad11","currency":"NGN","amount":5000,"fee":80.63,"payment_method":"bank_transfer","status":"success","virtual_bank_account_details":{"virtual_bank_account":{"account_name":"Korapay-YOU-CHKOUT","account_number":"5232882708"}},"transaction_date":"2025-09-22 14:08:37"}}
+Reference: YPG_35_a041ad11, Status: success
+PROCESSING WEBHOOK: YPG_35_a041ad11
+Result: SUCCESS
+FINAL: Webhook payment processed successfully
+
+=== KORAPAY UNIFIED CALLED ===
+Method: GET
+Time: 2025-09-22 06:09:18.009221
+GET redirect: YPG_35_a041ad11 - NO PROCESSING, just redirect

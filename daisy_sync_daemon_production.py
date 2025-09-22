@@ -11,19 +11,20 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
 # Setup Django
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Fixed: only one dirname()
+sys.path.append(BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'virtual.settings')
 django.setup()
 
 from django.core.management import call_command
 
-# Setup logging with rotation
+# Setup logging with rotation (using absolute path)
 logging.basicConfig(
     level=logging.WARNING,  # Less verbose for production
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         RotatingFileHandler(
-            'logs/daisy_sync_daemon.log',
+            os.path.join(BASE_DIR, 'logs', 'daisy_sync_daemon.log'),
             maxBytes=5*1024*1024,  # 5MB per file
             backupCount=2          # Keep 2 backups = 15MB max total
         )

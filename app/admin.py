@@ -6,11 +6,11 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import (
     UserProfile, Service, Rental, SMSMessage, Transaction,
-    SMSService, FiveSimOrder, FiveSimSMS
+    FiveSimOrder, FiveSimSMS
 )
 
 # Import models to unregister them from admin (but don't use them)
-from .models import APILog, PasswordResetToken, SMSServiceCategory, SMSOperator, FiveSimAPIKey
+from .models import APILog, PasswordResetToken, SMSServiceCategory, SMSOperator, FiveSimAPIKey, SMSService
 
 # Unregister unwanted models from admin
 try:
@@ -30,6 +30,11 @@ except admin.sites.NotRegistered:
 
 try:
     admin.site.unregister(SMSOperator)
+except admin.sites.NotRegistered:
+    pass
+
+try:
+    admin.site.unregister(SMSService)
 except admin.sites.NotRegistered:
     pass
 
@@ -193,102 +198,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
 # SMS Service Management Admin Classes
 
-@admin.register(SMSService)
-class SMSServiceAdmin(admin.ModelAdmin):
-    list_display = [
-        'service_name', 'service_code', 'category', 'display_wholesale_price', 
-        'profit_margin_naira', 'display_final_price', 'operator_count', 
-        'is_active', 'last_price_update'
-    ]
-    list_filter = ['category', 'is_active', 'is_featured', 'last_price_update']
-    search_fields = ['service_name', 'service_code', 'description']
-    readonly_fields = [
-        'last_price_update', 'price_update_count', 'created_at', 'updated_at',
-        'display_wholesale_price', 'display_final_price', 'base_price_usd'
-    ]
-    list_editable = ['profit_margin_naira', 'is_active']
-    
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('service_name', 'service_code', 'category', 'description', 'is_active', 'is_featured')
-        }),
-        ('Pricing Configuration', {
-            'fields': ('base_price_usd', 'base_price_naira', 'profit_margin_naira'),
-            'description': 'Base prices are auto-updated from 5sim API. Adjust profit margin in Naira to set final customer price.'
-        }),
-        ('Price Display (Calculated)', {
-            'fields': ('display_wholesale_price', 'display_final_price'),
-            'classes': ('collapse',)
-        }),
-        ('Auto-Update Tracking', {
-            'fields': ('last_price_update', 'price_update_count'),
-            'classes': ('collapse',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    actions = ['sync_prices_with_5sim', 'enable_auto_sync', 'disable_auto_sync']
-    
-    def display_wholesale_price(self, obj):
-        return f"₦{obj.get_wholesale_price_ngn():,.2f}"
-    display_wholesale_price.short_description = 'Wholesale Price (NGN)'
-    
-    def display_final_price(self, obj):
-        return f"₦{obj.get_final_price_ngn():,.2f}"
-    display_final_price.short_description = 'Customer Price (NGN)'
-    
-    def display_profit_margin(self, obj):
-        return f"₦{obj.profit_margin_naira:,.2f}"
-    display_profit_margin.short_description = 'Profit Margin (NGN)'
-    
-    def operator_count(self, obj):
-        return obj.operators.filter(is_active=True).count()
-    operator_count.short_description = 'Active Operators'
-    
-    def sync_prices_with_5sim(self, request, queryset):
-        """Admin action to sync prices with 5sim API"""
-        from django.core.management import call_command
-        from django.contrib import messages
-        import io
-        import sys
-        
-        try:
-            # Capture command output
-            old_stdout = sys.stdout
-            sys.stdout = output = io.StringIO()
-            
-            # Run the price update command
-            call_command('update_fivesim_prices', 
-                        services=[service.service_code for service in queryset])
-            
-            # Restore stdout
-            sys.stdout = old_stdout
-            
-            # Show success message
-            messages.success(request, f"Price sync completed for {queryset.count()} services. Check logs for details.")
-            
-        except Exception as e:
-            messages.error(request, f"Failed to sync prices: {str(e)}")
-    
-    sync_prices_with_5sim.short_description = "🔄 Sync prices with 5sim API"
-    
-    def enable_auto_sync(self, request, queryset):
-        """Enable services for auto-sync"""
-        queryset.update(is_active=True)
-        messages.success(request, f"Enabled auto-sync for {queryset.count()} services")
-    
-    enable_auto_sync.short_description = "✅ Enable auto-sync"
-    
-    def disable_auto_sync(self, request, queryset):
-        """Disable services from auto-sync"""
-        queryset.update(is_active=False)
-        messages.success(request, f"Disabled auto-sync for {queryset.count()} services")
-    
-    disable_auto_sync.short_description = "❌ Disable auto-sync"
-
+# SMS Service admin registration removed - 5sim uses real-time pricing
 
 # 5sim Purchase System Admin Classes
 
@@ -339,17 +249,8 @@ class FiveSimSMSAdmin(admin.ModelAdmin):
 try:
     from .models import SMSService, SMSServiceCategory, SMSOperator
     
-    # Simple registration if the complex ones failed
-    if SMSService not in admin.site._registry:
-        @admin.register(SMSService)
-        class SMSServiceSimpleAdmin(admin.ModelAdmin):
-            list_display = ['service_name', 'service_code', 'base_price_naira', 'profit_margin_naira', 'is_active']
-            list_filter = ['is_active', 'category']
-            search_fields = ['service_name', 'service_code']
-            list_editable = ['profit_margin_naira', 'is_active']
-    
-    # Removed: SMSServiceCategory and SMSOperator backup registrations
-    # These models are now hidden from admin as requested
+    # SMS Service backup registration removed - 5sim uses real-time pricing
+    # All SMS service models are now hidden from admin as requested
 
 except Exception as e:
     print(f"Admin registration error: {e}")

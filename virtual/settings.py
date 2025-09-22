@@ -157,7 +157,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://youngpgvirtual.com",
     "http://www.youngpgvirtual.com",
     "https://www.youngpgvirtual.com",
-    "https://852d3fa9cf88.ngrok-free.app"
 ]
 
 # Logging Configuration
