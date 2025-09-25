@@ -10,14 +10,9 @@ from .models import (
 )
 
 # Import models to unregister them from admin (but don't use them)
-from .models import APILog, PasswordResetToken, SMSServiceCategory, SMSOperator, FiveSimAPIKey, SMSService
+from .models import PasswordResetToken, SMSServiceCategory, SMSOperator, FiveSimAPIKey, SMSService
 
 # Unregister unwanted models from admin
-try:
-    admin.site.unregister(APILog)
-except admin.sites.NotRegistered:
-    pass
-
 try:
     admin.site.unregister(PasswordResetToken)
 except admin.sites.NotRegistered:

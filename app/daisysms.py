@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 from django.conf import settings
 from django.utils import timezone
-from .models import APILog, Service, Rental, SMSMessage
+from .models import Service, Rental, SMSMessage
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,6 @@ class DaisySMSClient:
         })
         
         start_time = time.time()
-        log_entry = None
         
         try:
             response = requests.get(self.BASE_URL, params=params, timeout=30)
@@ -51,17 +50,7 @@ class DaisySMSClient:
             logger.info(f"DaisySMS Request params: {params}")
             logger.info(f"DaisySMS Response status: {response.status_code}")
             logger.info(f"DaisySMS Response text: {response.text}")
-            
-            # Log the API call
-            log_entry = APILog.objects.create(
-                user=user,
-                endpoint=f"{action}",
-                method='GET',
-                request_data=params,
-                response_data={'body': response.text, 'headers': dict(response.headers)},
-                status_code=response.status_code,
-                execution_time=execution_time
-            )
+            logger.info(f"DaisySMS Execution time: {execution_time:.2f}s")
             
             # Parse response first before checking HTTP status
             response_text = response.text.strip()
@@ -162,26 +151,10 @@ class DaisySMSClient:
                 # Generic fallback for other network errors
                 error_msg = "Connection problem with SMS service. Please try again."
             
-            if log_entry:
-                log_entry.error_message = error_msg
-                log_entry.save()
-            else:
-                APILog.objects.create(
-                    user=user,
-                    endpoint=f"{action}",
-                    method='GET',
-                    request_data=params,
-                    error_message=error_msg,
-                    execution_time=execution_time
-                )
-            
             logger.error(f"DaisySMS API request failed: {action} - {error_msg}")
             raise DaisySMSException(error_msg)
         
         except DaisySMSException as e:
-            if log_entry:
-                log_entry.error_message = str(e)
-                log_entry.save()
             logger.warning(f"DaisySMS API error: {action} - {str(e)}")
             raise
     

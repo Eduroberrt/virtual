@@ -143,23 +143,6 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.transaction_type} - ₦{self.amount}"
 
-class APILog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    endpoint = models.CharField(max_length=255)
-    method = models.CharField(max_length=10)
-    request_data = models.JSONField(blank=True, null=True)
-    response_data = models.JSONField(blank=True, null=True)
-    status_code = models.IntegerField(blank=True, null=True)
-    error_message = models.TextField(blank=True, null=True)
-    execution_time = models.FloatField(blank=True, null=True)  # In seconds
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.endpoint} - {self.status_code} - {self.created_at}"
-
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=64, unique=True)
