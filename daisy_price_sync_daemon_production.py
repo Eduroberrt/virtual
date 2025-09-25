@@ -6,9 +6,6 @@ import os
 import sys
 import django
 import time
-import logging
-from logging.handlers import RotatingFileHandler
-from datetime import datetime
 
 # Setup Django
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Fixed: only one dirname()
@@ -18,61 +15,32 @@ django.setup()
 
 from django.core.management import call_command
 
-# Setup logging with rotation (using absolute path)
-logging.basicConfig(
-    level=logging.WARNING,  # Less verbose for production
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        RotatingFileHandler(
-            os.path.join(BASE_DIR, 'logs', 'daisy_price_sync_daemon.log'),
-            maxBytes=5*1024*1024,  # 5MB per file
-            backupCount=2          # Keep 2 backups = 15MB max total
-        )
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
 def main():
     """Main daemon loop for production"""
-    logger.info("DaisySMS Price Sync Daemon started (Production)")
-    logger.info("Will sync services and prices every 2 hours")
+    # Do an initial sync on startup
+    try:
+        call_command('sync_daisy_prices')
+    except Exception as e:
+        pass  # Silent failure
     
     try:
-        # Do an initial sync on startup
-        try:
-            logger.info("Performing initial price sync...")
-            call_command('sync_daisy_prices')
-            logger.info("Initial sync completed successfully")
-        except Exception as e:
-            logger.error(f"Initial sync failed: {str(e)}")
-        
         while True:
             try:
-                start_time = time.time()
-                logger.info("Starting scheduled DaisySMS price sync...")
-                
-                # Run the sync command
+                # Run the sync command silently
                 call_command('sync_daisy_prices')
                 
-                execution_time = time.time() - start_time
-                logger.info(f"Price sync completed in {execution_time:.2f} seconds")
-                
             except KeyboardInterrupt:
-                logger.info("Received stop signal")
                 break
             except Exception as e:
-                logger.error(f"Error during DaisySMS price sync: {str(e)}")
+                pass  # Silent failure
             
-            # Wait 2 hours before next sync (7200 seconds)
-            wait_hours = 2
-            logger.info(f"Waiting {wait_hours} hours until next sync...")
-            time.sleep(wait_hours * 3600)
+            # Wait 30 minutes before next sync (1800 seconds)  
+            time.sleep(30 * 60)
     
     except KeyboardInterrupt:
         pass
     
-    logger.info("DaisySMS Price Sync Daemon stopped")
+    # Silent shutdown
 
 if __name__ == '__main__':
     main()
