@@ -34,8 +34,8 @@ def main():
             except Exception as e:
                 pass  # Silent failure
             
-            # Wait 30 minutes before next sync (1800 seconds)  
-            time.sleep(30 * 60)
+            # Wait 10 minutes before next sync (600 seconds)  
+            time.sleep(10 * 60)
     
     except KeyboardInterrupt:
         pass

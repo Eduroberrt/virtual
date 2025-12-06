@@ -201,7 +201,7 @@ class Command(BaseCommand):
                 user=rental.user,
                 amount=refund_amount_naira,
                 transaction_type='REFUND',
-                description=f"Auto-refund for expired rental {rental.phone_number} (Daisy SMS expired)",
+                description=f"Auto-refund for expired rental {rental.phone_number}",
                 rental=rental
             )
             
@@ -242,7 +242,7 @@ class Command(BaseCommand):
                 user=rental.user,
                 amount=refund_amount_naira,
                 transaction_type='REFUND',
-                description=f"Auto-refund for cancelled rental {rental.phone_number} (Daisy SMS cancelled)",
+                description=f"Auto-refund for cancelled rental {rental.phone_number}",
                 rental=rental
             )
             

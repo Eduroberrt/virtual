@@ -63,7 +63,7 @@ class Command(BaseCommand):
                         user=order.user,
                         amount=refund_amount,
                         transaction_type='REFUND',
-                        description=f'Auto-refund for expired 5sim order: {order.product} ({order.phone_number})',
+                        description=f'Auto-refund for expired Dashboard 1 order: {order.product} ({order.phone_number})',
                         rental=None,
                     )
                     

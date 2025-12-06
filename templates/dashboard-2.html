@@ -89,9 +89,14 @@
                     </thead>
                     <tbody>
                         {% for service in services %}
-                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}" data-original-price="{{ service.get_naira_price }}">
+                        <tr class="service-row" data-service="{{ service.name }}" data-code="{{ service.code }}" data-original-price="{{ service.get_naira_price }}" data-stock="{{ service.available_numbers }}">
                             <td class="service-name">
-                                <div class="fw-medium" style="font-size: 0.85rem;">{{ service.name }}</div>
+                                <div class="fw-medium" style="font-size: 0.85rem;">
+                                    {{ service.name }}
+                                    {% if service.available_numbers == 0 %}
+                                    <span class="badge bg-danger" style="font-size: 0.65rem; margin-left: 4px;">Out of stock</span>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td class="price">
                                 <div class="fw-medium price-display" style="font-size: 0.85rem;">{{ service.get_naira_price|format_naira }}</div>
@@ -410,6 +415,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up real-time wallet balance updates
     updateUserBalance(); // Initial balance load
     setInterval(updateUserBalance, 10000); // Update balance every 10 seconds
+    
+    // Set up auto-refresh for rentals list to show API purchases without manual refresh
+    setInterval(loadActiveRentals, 5000); // Refresh rentals list every 5 seconds
 
     // Add real-time validation for settings inputs
     const areaCodesInput = document.getElementById('areaCodes');
@@ -652,6 +660,16 @@ function copyToClipboard(text, element = null) {
 // Rental management functions
 async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = null) {
     console.log('Renting number with params:', { serviceCode, areaCodes, carriers, phone }); // Debug log
+    
+    // Check if service is out of stock
+    const serviceRow = document.querySelector(`tr.service-row[data-code="${serviceCode}"]`);
+    if (serviceRow) {
+        const stock = parseInt(serviceRow.getAttribute('data-stock') || '0');
+        if (stock === 0) {
+            showNotification('This service is currently out of stock. Please try a different service or check back later.', 'error');
+            return;
+        }
+    }
     
     // Validate inputs before making the request
     let hasValidationErrors = false;

@@ -27,6 +27,15 @@ from app.balance_views import get_user_balance as get_user_balance_new
 from app.debug_views import debug_callback
 from app.unified_korapay import unified_korapay_handler
 
+# Reseller API imports
+from app.reseller_api_views import (
+    api_get_balance, api_get_services, api_get_service_price,
+    api_purchase_number, api_check_order, api_cancel_order, api_get_orders
+)
+from app.api_management_views import (
+    api_keys_dashboard, create_api_key
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
@@ -104,6 +113,19 @@ urlpatterns = [
     path('api/korapay/webhook/', korapay_webhook, name='api_korapay_webhook'),
     path('api/korapay/unified/', unified_korapay_handler, name='api_korapay_unified'),
     path('api/debug/callback/', debug_callback, name='api_debug_callback'),
+    
+    # Reseller API v1 - Public endpoints for external developers
+    path('api/v1/balance/', api_get_balance, name='reseller_api_balance'),
+    path('api/v1/services/', api_get_services, name='reseller_api_services'),
+    path('api/v1/price/', api_get_service_price, name='reseller_api_service_price'),
+    path('api/v1/purchase/', api_purchase_number, name='reseller_api_purchase'),
+    path('api/v1/orders/', api_get_orders, name='reseller_api_orders'),
+    path('api/v1/order/<str:order_id>/', api_check_order, name='reseller_api_check_order'),
+    path('api/v1/order/<str:order_id>/cancel/', api_cancel_order, name='reseller_api_cancel_order'),
+    
+    # API Key Management - User dashboard
+    path('api-keys/', api_keys_dashboard, name='api_keys_dashboard'),
+    path('api-keys/create/', create_api_key, name='create_api_key'),
 ]
 
 # Serve static and media files in development

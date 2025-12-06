@@ -370,8 +370,8 @@ def dashboard_2(request):
     # Get user profile for balance display
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
-    # Get services for DaisySMS
-    services = Service.objects.filter(available_numbers__gt=0).order_by('name')
+    # Get all services for DaisySMS (including out of stock)
+    services = Service.objects.all().order_by('name')
     
     context = {
         'user_profile': profile,

@@ -102,6 +102,11 @@ def buy_activation_number(request):
         # Parse expiration date
         expires_at = datetime.fromisoformat(result['expires'].replace('Z', '+00:00'))
         
+        # Log the actual duration 5sim gave us
+        purchase_time = timezone.now()
+        duration_minutes = (expires_at - purchase_time).total_seconds() / 60
+        logger.info(f"5sim Purchase: {product} - Duration given: {duration_minutes:.1f} minutes (expires at {expires_at})")
+        
         # Get user profile and check balance
         user_profile = UserProfile.objects.get(user=request.user)
         if user_profile.balance < price_naira:
@@ -141,8 +146,8 @@ def buy_activation_number(request):
                 user=request.user,
                 amount=price_naira,
                 transaction_type='RENTAL',
-                description=f'5sim activation number: {product} ({result["phone"]})',
-                rental=None,  # This is for 5sim, not old rental system
+                description=f'Dashboard 1 activation number: {product} ({result["phone"]})',
+                rental=None,  # This is for Dashboard 1, not old rental system
             )
         
         return JsonResponse({
@@ -336,7 +341,7 @@ def cancel_order(request, order_id):
                 user=request.user,
                 amount=refund_amount,
                 transaction_type='REFUND',
-                description=f'Refund for cancelled 5sim order: {order.product} ({order.phone_number})',
+                description=f'Refund for cancelled Dashboard 1 order: {order.product} ({order.phone_number})',
                 rental=None,
             )
         

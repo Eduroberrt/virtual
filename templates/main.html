@@ -1316,6 +1316,10 @@
                                 <i class="fas fa-newspaper"></i>
                                 <span>News</span>
                             </a>
+                            <a href="{% url 'api_keys_dashboard' %}" class="dropdown-item">
+                                <i class="fas fa-code"></i>
+                                <span>API</span>
+                            </a>
                         </div>
                     </div>
                 </nav>
@@ -1404,6 +1408,10 @@
             <a href="https://t.me/storemarketplacepg" target="_blank" class="mobile-nav-item">
                 <i class="fas fa-newspaper"></i>
                 <span>News</span>
+            </a>
+            <a href="{% url 'api_keys_dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'api_keys_dashboard' %}active{% endif %}">
+                <i class="fas fa-code"></i>
+                <span>API</span>
             </a>
             <div class="mobile-nav-divider"></div>
             <a href="{% url 'logout' %}" class="mobile-nav-item text-danger">

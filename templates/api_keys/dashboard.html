@@ -1,0 +1,624 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}API - Young PG Virtual{% endblock %}
+
+{% block content %}
+<style>
+    .api-page {
+        font-size: 0.85rem;
+        margin-top: 80px;
+    }
+    .api-page h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .api-page h2 {
+        font-size: 1.2rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .api-page h3 {
+        font-size: 1rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .api-page h4 {
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .api-page h5 {
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .api-page h6 {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .api-page p {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+    .api-page .lead {
+        font-size: 1rem;
+    }
+    .api-page pre {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+    .api-page .table {
+        font-size: 0.8rem;
+    }
+    .api-page .badge {
+        font-size: 0.75rem;
+    }
+    .api-page .alert {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem;
+    }
+    .api-page .card-header {
+        padding: 0.6rem 1rem;
+    }
+    .api-page .card-body {
+        padding: 1rem;
+    }
+    .api-key-field {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        background: #f8f9fa;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        word-break: break-all;
+        cursor: text;
+    }
+    .copy-btn {
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="container-fluid py-4 api-page" style="margin-bottom: 120px;">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h4 fw-bold mb-2">API</h1>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;">Integrate SMS verification services into your application.</p>
+                </div>
+            </div>
+            
+            <!-- API Key Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-3">API Key</h3>
+                    <input type="text" class="form-control api-key-field mb-3" id="apiKeyDisplay" 
+                           value="{% if full_api_key %}{{ full_api_key }}{% else %}Click 'Create New API Key' to generate{% endif %}" 
+                           readonly>
+                    <button class="btn btn-sm btn-primary copy-btn me-2" onclick="copyApiKey()">
+                        <i class="fas fa-copy"></i> Copy API Key
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="regenerateApiKey()">
+                        <i class="fas fa-sync-alt"></i> Create New API Key / Change API Key
+                    </button>
+                    {% if show_full_key %}
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="fas fa-check-circle"></i> <strong>Success!</strong> Your API key is displayed above. Copy it now.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Documentation Section -->
+            <h2>API Documentation</h2>
+            <p class="lead">
+                Integrate SMS verification services into your application using our RESTful API.
+                All requests use DaisySMS (USA numbers) as the backend provider.
+            </p>
+            <div class="alert alert-info">
+                <strong>Base URL:</strong> <code>{{ request.scheme }}://{{ request.get_host }}/api/v1</code>
+            </div>
+
+            <!-- Authentication -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-key"></i> Authentication</h3>
+                </div>
+                <div class="card-body">
+                    <p>All API requests require authentication using an API key in the <code>X-API-Key</code> header:</p>
+                    <pre class="bg-light p-2 rounded"><code>X-API-Key: YOUR_API_KEY</code></pre>
+                    
+                    <p class="mt-2">Example using cURL:</p>
+                    <pre class="bg-dark text-light p-2 rounded"><code>curl -H "X-API-Key: your_32_character_api_key" \
+     {{ request.scheme }}://{{ request.get_host }}/api/v1/balance</code></pre>
+                </div>
+            </div>
+
+            <!-- Endpoints -->
+            <h3 class="mt-4 mb-3">API Endpoints</h3>
+
+            <!-- Get Balance -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="badge bg-success text-white mr-2">GET</span> /balance</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Get your current account balance</p>
+                    
+                    <h6 class="mt-2">Response Example:</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "balance": 5000.00,
+  "currency": "NGN"
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Get Services -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="badge bg-success text-white mr-2">GET</span> /services</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Get list of available services with pricing</p>
+                    
+                    <h6 class="mt-2">Response Example:</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "services": [
+    {
+      "code": "wa",
+      "name": "WhatsApp",
+      "price": 1650.00,
+      "currency": "NGN",
+      "available": 15,
+      "supports_multiple_sms": true
+    },
+    {
+      "code": "tg",
+      "name": "Telegram",
+      "price": 1320.00,
+      "currency": "NGN",
+      "available": 23,
+      "supports_multiple_sms": true
+    }
+  ],
+  "country": "usa"
+}</code></pre>
+                    <div class="alert alert-info mt-2 mb-0">
+                        <strong>Common Service Codes:</strong> wa (WhatsApp), tg (Telegram), go (Google), fb (Facebook), ig (Instagram), tw (Twitter/X). Use this endpoint to see all available services.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Get Service Price -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="badge bg-success text-white mr-2">GET</span> /price</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Get pricing for a specific service before purchasing</p>
+                    
+                    <h6 class="mt-2">Query Parameters:</h6>
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>service</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Service code (e.g., "wa")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h6 class="mt-2">Example Request:</h6>
+                    <pre class="bg-dark text-light p-2 rounded"><code>GET {{ request.scheme }}://{{ request.get_host }}/api/v1/price?service=wa</code></pre>
+                    
+                    <h6 class="mt-2">Response Example:</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "service": "wa",
+  "name": "WhatsApp",
+  "price": 1650.00,
+  "currency": "NGN",
+  "available": 15
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Purchase Number -->
+            <div class="card mb-3 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><span class="badge badge-light text-primary mr-2">POST</span> /purchase</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Purchase a phone number for SMS verification</p>
+                    
+                    <h6 class="mt-2">Request Body (JSON):</h6>
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>service</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Service code (e.g., "wa", "tg", "go")</td>
+                            </tr>
+                            <tr>
+                                <td><code>max_price</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Maximum price in NGN you're willing to pay</td>
+                            </tr>
+                            <tr>
+                                <td><code>area_codes</code></td>
+                                <td>array</td>
+                                <td>No</td>
+                                <td>Specific area codes (e.g., ["503", "202"]) - adds 20% premium</td>
+                            </tr>
+                            <tr>
+                                <td><code>carriers</code></td>
+                                <td>array</td>
+                                <td>No</td>
+                                <td>Carriers: "tmo", "vz", "att" - adds 20% premium</td>
+                            </tr>
+                            <tr>
+                                <td><code>number</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Specific 10-digit number - adds 20% premium</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h6 class="mt-2">Example Request (Basic):</h6>
+                    <pre class="bg-dark text-light p-2 rounded"><code>POST /api/v1/purchase/
+Content-Type: application/json
+
+{
+  "service": "wa",
+  "max_price": 2000.00
+}</code></pre>
+                    
+                    <h6 class="mt-2">Example Request (With Premium Filters):</h6>
+                    <pre class="bg-dark text-light p-2 rounded"><code>POST /api/v1/purchase/
+Content-Type: application/json
+
+{
+  "service": "wa",
+  "area_codes": ["503", "202"],
+  "carriers": ["tmo"]
+}</code></pre>
+                    
+                    <h6 class="mt-2">Response Example (Success):</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "order_id": "api_1234567890abcdef",
+  "rental_id": "12345",
+  "phone_number": "15034567890",
+  "service": "wa",
+  "service_name": "WhatsApp",
+  "price": 1980.00,
+  "currency": "NGN",
+  "status": "WAITING",
+  "has_premium": true,
+  "message": "Number rented successfully"
+}</code></pre>
+                    
+                    <div class="alert alert-warning mt-2 mb-0">
+                        <strong><i class="fas fa-star"></i> Premium Filters:</strong> Using area_codes, carriers, or specific number adds a 20% premium to the base price.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check Order -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="badge bg-success text-white mr-2">GET</span> /order/{order_id}</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Check order status and retrieve SMS messages</p>
+                    
+                    <h6 class="mt-2">Response Example (Waiting for SMS):</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "order_id": "api_1234567890abcdef",
+  "rental_id": "12345",
+  "phone_number": "15034567890",
+  "status": "WAITING",
+  "service": "wa",
+  "sms": []
+}</code></pre>
+                    
+                    <h6 class="mt-2">Response Example (SMS Received):</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "order_id": "api_1234567890abcdef",
+  "rental_id": "12345",
+  "phone_number": "15034567890",
+  "status": "RECEIVED",
+  "service": "wa",
+  "sms": [
+    {
+      "code": "123456",
+      "text": "Your WhatsApp code is 123456",
+      "received_at": "2024-01-15T10:32:15Z"
+    }
+  ]
+}</code></pre>
+                    
+                    <h6 class="mt-2">Status Values:</h6>
+                    <ul class="mb-2">
+                        <li><code>WAITING</code> - Number rented, waiting for SMS</li>
+                        <li><code>RECEIVED</code> - SMS received successfully</li>
+                        <li><code>DONE</code> - Order completed</li>
+                        <li><code>CANCELLED</code> - Order cancelled</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-2 mb-0">
+                        <strong><i class="fas fa-clock"></i> Polling:</strong> Poll this endpoint every 3-5 seconds to check for SMS codes. Don't poll more frequently to avoid rate limits.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cancel Order -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><span class="badge badge-light text-danger mr-2">POST</span> /order/{order_id}/cancel</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Cancel an order and receive a refund</p>
+                    
+                    <h6 class="mt-2">Response Example:</h6>
+                    <pre class="bg-light p-2 rounded"><code>{
+  "success": true,
+  "status": "CANCELLED",
+  "refund_amount": 1650.00
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Get Orders -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><span class="badge bg-success text-white mr-2">GET</span> /orders</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Description:</strong> Get list of your orders</p>
+                    
+                    <h6 class="mt-2">Query Parameters:</h6>
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>Number of orders (max 100, default 20)</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>Filter by status (WAITING, RECEIVED, etc.)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Error Handling -->
+            <div class="card mb-3 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="fas fa-exclamation-circle"></i> Error Handling</h3>
+                </div>
+                <div class="card-body">
+                    <p>All errors return a JSON response with <code>success: false</code> and an <code>error</code> message:</p>
+                    
+                    <h6 class="mt-2">Common Error Codes:</h6>
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Status Code</th>
+                                <th>Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>400</code></td>
+                                <td>Bad Request</td>
+                            </tr>
+                            <tr>
+                                <td><code>401</code></td>
+                                <td>Unauthorized</td>
+                            </tr>
+                            <tr>
+                                <td><code>402</code></td>
+                                <td>Insufficient balance</td>
+                            </tr>
+                            <tr>
+                                <td><code>404</code></td>
+                                <td>Not Found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="card mb-4 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0"><i class="fas fa-code"></i> Code Examples</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Python -->
+                    <h5 class="mt-2">Python</h5>
+                    <pre class="bg-dark text-light p-2 rounded"><code>import requests
+
+API_KEY = "your_api_key_here"
+BASE_URL = "{{ request.scheme }}://{{ request.get_host }}/api/v1"
+
+headers = {
+    "X-API-Key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+# Purchase a number
+response = requests.post(f"{BASE_URL}/purchase/", 
+    headers=headers,
+    json={"service": "wa"}
+)
+result = response.json()
+order_id = result["order_id"]
+
+# Check for SMS
+import time
+while True:
+    response = requests.get(f"{BASE_URL}/order/{order_id}", headers=headers)
+    result = response.json()
+    
+    if result["sms"]:
+        code = result["sms"][0]["code"]
+        print(f"SMS Code: {code}")
+        break
+    
+    time.sleep(5)</code></pre>
+                    
+                    <!-- JavaScript -->
+                    <h5 class="mt-3">JavaScript (Node.js)</h5>
+                    <pre class="bg-dark text-light p-2 rounded"><code>const axios = require('axios');
+
+const API_KEY = 'your_api_key_here';
+const BASE_URL = '{{ request.scheme }}://{{ request.get_host }}/api/v1';
+
+const headers = {
+    'X-API-Key': API_KEY,
+    'Content-Type': 'application/json'
+};
+
+// Purchase and wait for SMS
+async function purchaseAndWaitForSMS() {
+    const response = await axios.post(`${BASE_URL}/purchase/`, 
+        { service: 'wa' },
+        { headers }
+    );
+    const orderId = response.data.order_id;
+    
+    while (true) {
+        const check = await axios.get(`${BASE_URL}/order/${orderId}`, { headers });
+        
+        if (check.data.sms.length > 0) {
+            console.log('SMS Code:', check.data.sms[0].code);
+            break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+}</code></pre>
+                    
+                    <!-- PHP -->
+                    <h5 class="mt-3">PHP</h5>
+                    <pre class="bg-dark text-light p-2 rounded"><code>&lt;?php
+$apiKey = 'your_api_key_here';
+$baseUrl = '{{ request.scheme }}://{{ request.get_host }}/api/v1';
+
+$headers = [
+    'X-API-Key: ' . $apiKey,
+    'Content-Type: application/json'
+];
+
+// Purchase a number
+$ch = curl_init($baseUrl . '/purchase/');
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['service' => 'wa']));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = curl_exec($ch);
+$result = json_decode($response, true);
+$orderId = $result['order_id'];
+
+// Check for SMS
+while (true) {
+    $ch = curl_init($baseUrl . '/order/' . $orderId);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $result = json_decode($response, true);
+    
+    if (count($result['sms']) > 0) {
+        echo "SMS Code: " . $result['sms'][0]['code'] . "\n";
+        break;
+    }
+    
+    sleep(5);
+}
+?&gt;</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyApiKey() {
+    const keyInput = document.getElementById('apiKeyDisplay');
+    keyInput.select();
+    keyInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    navigator.clipboard.writeText(keyInput.value).then(function() {
+        alert('API key copied to clipboard!');
+    }, function(err) {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        alert('API key copied to clipboard!');
+    });
+}
+
+function regenerateApiKey() {
+    if (!confirm('Are you sure you want to generate a new API key? Your old key will stop working immediately.')) {
+        return;
+    }
+    
+    fetch('{% url "create_api_key" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('apiKeyDisplay').value = data.api_key;
+            alert('New API key generated successfully! Make sure to copy it now.');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error generating API key: ' + error);
+    });
+}
+</script>
+{% endblock %}

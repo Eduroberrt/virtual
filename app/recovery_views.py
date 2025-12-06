@@ -102,13 +102,13 @@ def recover_purchase(request):
                 referral_key=None,
             )
             
-            # Note: We don't deduct balance since this was already charged by 5sim
+            # Note: We don't deduct balance since this was already charged by Dashboard 1
             # Create a transaction record for tracking
             Transaction.objects.create(
                 user=request.user,
                 amount=price_naira,
                 transaction_type='RENTAL',
-                description=f'Manual recovery - 5sim order: {order_data.get("product", "")} ({order_data.get("phone", "")})',
+                description=f'Manual recovery - Dashboard 1 order: {order_data.get("product", "")} ({order_data.get("phone", "")})',
                 rental=None,
             )
         

@@ -438,3 +438,7 @@ class FiveSimAPIKey(models.Model):
         if len(self.api_key) > 10:
             return f"{self.api_key[:10]}...{self.api_key[-4:]}"
         return "***"
+
+
+# Import Reseller API Models
+from .api_models import APIKey, APIRequest, APIWebhook, APIOrderMapping
