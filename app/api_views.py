@@ -11,7 +11,7 @@ import json
 import logging
 
 from .models import UserProfile, Service, Rental, SMSMessage, Transaction
-from .daisysms import get_daisysms_client, DaisySMSException
+from .mtelsms import get_mtelsms_client, MTelSMSException
 from .korapay import KoraPayClient
 
 logger = logging.getLogger(__name__)
@@ -77,39 +77,18 @@ def rent_number(request):
     try:
         data = json.loads(request.body)
         service_code = data.get('service_code')
-        max_price = data.get('max_price')
-        area_codes = data.get('area_codes', [])
-        carriers = data.get('carriers', [])
-        specific_number = data.get('number')
         
         if not service_code:
             return error_response("Service code is required")
         
         service = get_object_or_404(Service, code=service_code, is_active=True)
         
-        # Get base service price (USD converted to NGN + profit margin)
-        base_service_price_naira = service.get_naira_price()
-        original_price_usd = service.get_usd_price()  # Keep original USD for calculations
-        
-        # Apply 20% premium to the FINAL service price for filters (same as frontend)
-        has_premium_filters = bool(area_codes or carriers or specific_number)
-        if has_premium_filters:
-            service_price_naira = base_service_price_naira * Decimal('1.2')  # 20% increase on final NGN price
-        else:
-            service_price_naira = base_service_price_naira
-        
-        # Calculate equivalent USD price for DaisySMS API (reverse calculation)
-        base_price_usd = service_price_naira / UserProfile.USD_TO_NGN_RATE
-        
-        # Convert max_price to Decimal if provided (max_price is in NGN)
-        if max_price:
-            max_price = Decimal(str(max_price))
-        
-        # Use the premium-adjusted USD price for DaisySMS API call
-        max_price_usd = max_price / UserProfile.USD_TO_NGN_RATE if max_price else None
+        # Get service price (USD converted to NGN + profit margin)
+        service_price_naira = service.get_naira_price()
+        service_price_usd = service.get_usd_price()
         
         try:
-            # CRITICAL: Lock user profile BEFORE calling DaisySMS API to prevent race conditions
+            # CRITICAL: Lock user profile BEFORE calling MTelSMS API to prevent race conditions
             with transaction.atomic():
                 # Get user profile with row-level lock to prevent concurrent access
                 profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -121,104 +100,100 @@ def rent_number(request):
                 if user_balance_naira < service_price_naira:
                     return error_response("Insufficient balance")
                 
-                # Call DaisySMS API while holding the lock (this ensures no other request can interfere)
-                client = get_daisysms_client()
+                # Call MTelSMS API while holding the lock
+                client = get_mtelsms_client()
                 try:
-                    rental_id, phone_number, actual_price = client.get_number(
-                        service_code=service_code,
-                        user=request.user,
-                        max_price=base_price_usd,  # Pass premium-adjusted USD price to DaisySMS API
-                        area_codes=area_codes if area_codes else None,
-                        carriers=carriers if carriers else None,
-                        specific_number=specific_number
+                    # Get service_id from service model
+                    service_id = service.mtelsms_service_id
+                    
+                    # Validate that we have a valid numeric service_id
+                    if not service_id or service_id.strip() == '':
+                        logger.error(f"Service {service.name} ({service.code}) has no MTelSMS service_id")
+                        return error_response(f"Service '{service.name}' is not available. Please contact support.")
+                    
+                    rental_id, phone_number, actual_price, time_remaining = client.get_number(
+                        service_id=service_id,
+                        max_price=service_price_usd,
+                        wholesale=False
                     )
-                    logger.info(f"DaisySMS API success: rental_id={rental_id}, phone={phone_number}")
-                except DaisySMSException as e:
-                    logger.error(f"DaisySMS API failed: {str(e)}")
+                    logger.info(f"MTelSMS API success: rental_id={rental_id}, phone={phone_number}")
+                except MTelSMSException as e:
+                    logger.error(f"MTelSMS API failed: {str(e)}")
                     return error_response(str(e))
                 except Exception as api_error:
-                    logger.error(f"Unexpected DaisySMS error: {str(api_error)}")
+                    logger.error(f"Unexpected MTelSMS error: {str(api_error)}")
                     return error_response(f"API communication error: {str(api_error)}")
                 
-                # DaisySMS call succeeded, now handle database operations
+                # MTelSMS call succeeded, now handle database operations
                 try:
-                    # Final price is already calculated with premium applied
-                    final_price_naira = service_price_naira
-                    
-                    # Debug logging for price breakdown
-                    logger.info(f"Price breakdown - Original USD: ${original_price_usd}, Final USD: ${base_price_usd}, Final NGN: ₦{final_price_naira}, Premium: {has_premium_filters}")
-                    
                     rental = Rental.objects.create(
                         user=request.user,
                         rental_id=rental_id,
                         service=service,
                         phone_number=phone_number,
-                        price=final_price_naira,  # Store final NGN price (includes premium if filters used)
-                        area_codes=','.join(area_codes) if area_codes else None,
-                        carriers=','.join(carriers) if carriers else None,
-                        max_price=max_price  # NGN
+                        price=service_price_naira,
+                        area_codes=None,
+                        carriers=None,
+                        max_price=None
                     )
-                    logger.info(f"Rental record created: {rental.id}, price=₦{final_price_naira}, premium_applied={has_premium_filters}")
+                    logger.info(f"Rental record created: {rental.id}, price=₦{service_price_naira}")
                     
-                    # Create transaction record using final NGN price (includes premium)
+                    # Create transaction record
                     Transaction.objects.create(
                         user=request.user,
-                        amount=-final_price_naira,  # Deduct final NGN price (with premium) from balance
+                        amount=-service_price_naira,
                         transaction_type='RENTAL',
-                        description=f"Rented {service.name} number {phone_number}{' (Premium filters applied)' if has_premium_filters else ''}",
+                        description=f"Rented {service.name} number {phone_number}",
                         rental=rental
                     )
                     logger.info(f"Transaction record created for rental {rental_id}")
                     
-                    # Update user balance (all balances are in NGN) - this is now atomic with the check
+                    # Update user balance
                     old_balance = profile.balance
-                    profile.balance -= final_price_naira
+                    profile.balance -= service_price_naira
                     profile.save()
-                    logger.info(f"Balance updated: {old_balance} -> {profile.balance} (deducted {final_price_naira})")
+                    logger.info(f"Balance updated: {old_balance} -> {profile.balance} (deducted {service_price_naira})")
                     
-                    # If we reach here, everything succeeded
                     logger.info(f"Rental process completed successfully: {rental_id}")
                     
                 except Exception as db_error:
-                    # CRITICAL: DaisySMS succeeded but database failed!
-                    logger.error(f"DATABASE ERROR after DaisySMS success! rental_id={rental_id}, phone={phone_number}, error={str(db_error)}")
-                    
-                    # Since we're in a transaction, the database changes will rollback automatically
-                    # But we need to cancel the DaisySMS rental outside the transaction
-                    raise db_error  # This will rollback the transaction
+                    logger.error(f"DATABASE ERROR after MTelSMS success! rental_id={rental_id}, phone={phone_number}, error={str(db_error)}")
+                    raise db_error
             
-            # Transaction completed successfully, return success
+            # Transaction completed successfully
             return json_response({
                 'success': True,
                 'rental_id': rental_id,
                 'phone_number': phone_number,
-                'price': str(service_price_naira),  # Return final NGN price (includes premium)
-                'price_naira': str(service_price_naira),  # Return final NGN price (includes premium)
-                'base_price_naira': str(base_service_price_naira),  # Original service price in NGN
-                'premium_amount': str(service_price_naira - base_service_price_naira) if has_premium_filters else '0.00',  # Premium amount in NGN
-                'profit_margin': str(service.profit_margin),  # Margin amount
-                'has_premium_filters': has_premium_filters,  # Indicate if premium pricing was applied
-                'price_breakdown': {
-                    'original_usd': str(original_price_usd),
-                    'premium_usd': str((service_price_naira - base_service_price_naira) / UserProfile.USD_TO_NGN_RATE) if has_premium_filters else '0.00',
-                    'final_usd': str(base_price_usd),
-                    'final_naira_before_margin': str(service_price_naira - service.profit_margin),
-                    'margin_naira': str(service.profit_margin),
-                    'final_total_naira': str(service_price_naira)
+                'price': str(service_price_naira),
+                'price_naira': str(service_price_naira),
+                'profit_margin': str(service.profit_margin),
+                # Include full rental data for immediate display
+                'rental': {
+                    'rental_id': rental_id,
+                    'service_name': service.name,
+                    'service_code': service.code,
+                    'phone_number': phone_number,
+                    'status': 'WAITING',
+                    'price': str(service_price_naira),
+                    'price_naira': f"{float(service_price_naira):,.2f}",
+                    'code': None,
+                    'full_text': None,
+                    'created_at': rental.created_at.isoformat()
                 }
             })
             
         except Exception as e:
-            # Check if we have rental_id (meaning DaisySMS succeeded but DB failed)
+            # Check if we have rental_id (meaning MTelSMS succeeded but DB failed)
             if 'rental_id' in locals():
-                logger.error(f"Database transaction failed after DaisySMS success! Attempting to cancel rental_id={rental_id}")
+                logger.error(f"Database transaction failed after MTelSMS success! Attempting to cancel rental_id={rental_id}")
                 try:
-                    client = get_daisysms_client()
-                    cancel_success = client.cancel_rental(rental_id=rental_id, user=request.user)
+                    client = get_mtelsms_client()
+                    cancel_success = client.cancel_rental(rental_id=rental_id)
                     if cancel_success:
-                        logger.info(f"Successfully cancelled rental_id={rental_id} on DaisySMS after database failure")
+                        logger.info(f"Successfully cancelled rental_id={rental_id} on MTelSMS after database failure")
                     else:
-                        logger.error(f"Failed to cancel rental_id={rental_id} on DaisySMS - MANUAL INTERVENTION REQUIRED!")
+                        logger.error(f"Failed to cancel rental_id={rental_id} on MTelSMS - MANUAL INTERVENTION REQUIRED!")
                 except Exception as cancel_error:
                     logger.error(f"Error cancelling rental_id={rental_id}: {str(cancel_error)} - MANUAL INTERVENTION REQUIRED!")
             
@@ -236,19 +211,61 @@ def check_sms(request, rental_id):
     try:
         rental = get_object_or_404(Rental, rental_id=rental_id, user=request.user)
         
-        if rental.status in ['CANCELLED', 'DONE']:
+        # For already completed/cancelled rentals, return stored messages
+        if rental.status in ['CANCELLED', 'DONE', 'EXPIRED']:
+            messages = []
+            for msg in rental.messages.all():
+                messages.append({
+                    'code': msg.code,
+                    'full_text': msg.full_text,
+                    'received_at': msg.received_at.isoformat()
+                })
             return json_response({
                 'status': rental.status,
-                'messages': []
+                'messages': messages,
+                'refunded': rental.refunded
             })
         
         try:
-            client = get_daisysms_client()
-            status, code, full_text = client.get_status(
-                rental_id=rental_id, 
-                user=request.user, 
-                get_full_text=True
+            client = get_mtelsms_client()
+            # MTelSMS uses get_code() instead of get_status() for retrieving SMS
+            status, code, phone_number, time_remaining = client.get_code(
+                rental_id=rental_id
             )
+            
+            # Check if rental has expired (time_remaining = 0 or negative)
+            if time_remaining <= 0 and status == 'WAITING':
+                logger.info(f"Rental {rental_id} has expired (time_remaining={time_remaining})")
+                
+                with transaction.atomic():
+                    # Mark as expired
+                    rental.status = 'EXPIRED'
+                    rental.save()
+                    
+                    # Issue refund if not already refunded
+                    if not rental.refunded:
+                        profile, _ = UserProfile.objects.get_or_create(user=rental.user)
+                        profile.balance += rental.price
+                        profile.save()
+                        
+                        # Log refund transaction
+                        Transaction.objects.create(
+                            user=rental.user,
+                            amount=rental.price,
+                            transaction_type='REFUND',
+                            description=f'Automatic refund for expired rental {rental.phone_number}'
+                        )
+                        
+                        rental.refunded = True
+                        rental.save()
+                        
+                        logger.info(f"Automatic refund issued for expired rental {rental_id}, user received ₦{rental.price}")
+                
+                return json_response({
+                    'status': 'EXPIRED',
+                    'messages': [],
+                    'refunded': True
+                })
             
             # Update rental status
             rental.status = status
@@ -259,7 +276,7 @@ def check_sms(request, rental_id):
                 message, created = SMSMessage.objects.get_or_create(
                     rental=rental,
                     code=code,
-                    defaults={'full_text': full_text}
+                    defaults={'full_text': code}  # MTelSMS returns code only, not full text
                 )
             
             # Get all messages for this rental
@@ -273,10 +290,63 @@ def check_sms(request, rental_id):
             
             return json_response({
                 'status': status,
-                'messages': messages
+                'messages': messages,
+                'time_remaining': time_remaining
             })
         
-        except DaisySMSException as e:
+        except MTelSMSException as e:
+            error_msg = str(e).lower()
+            
+            # Log the full error for debugging
+            logger.warning(f"MTelSMS error for rental {rental_id}: {error_msg}")
+            
+            # Check if rental is expired/invalid on MTelSMS side
+            # MTelSMS might return various error messages for expired rentals
+            expired_keywords = [
+                'invalid service id',
+                'record expired',
+                'expired',
+                'not found',
+                'invalid id',
+                'invalid request',
+                'no such',
+                'does not exist'
+            ]
+            
+            is_expired = any(keyword in error_msg for keyword in expired_keywords)
+            
+            if is_expired:
+                logger.info(f"Detected expired rental {rental_id} from error: {error_msg}")
+                
+                with transaction.atomic():
+                    rental.status = 'EXPIRED'
+                    rental.save()
+                    
+                    # Issue refund if not already refunded
+                    if not rental.refunded:
+                        profile, _ = UserProfile.objects.get_or_create(user=rental.user)
+                        profile.balance += rental.price
+                        profile.save()
+                        
+                        Transaction.objects.create(
+                            user=rental.user,
+                            amount=rental.price,
+                            transaction_type='REFUND',
+                            description=f'Automatic refund: Rental expired on provider - {rental.phone_number}'
+                        )
+                        
+                        rental.refunded = True
+                        rental.save()
+                        
+                        logger.info(f"Rental {rental_id} expired on MTelSMS, user refunded ₦{rental.price}")
+                
+                return json_response({
+                    'status': 'EXPIRED',
+                    'messages': [],
+                    'refunded': True
+                })
+            
+            # For other errors, return the original error message
             return error_response(str(e))
     
     except Exception as e:
@@ -301,8 +371,8 @@ def cancel_rental(request):
             return error_response("Cannot cancel this rental")
         
         try:
-            client = get_daisysms_client()
-            success = client.cancel_rental(rental_id=rental_id, user=request.user)
+            client = get_mtelsms_client()
+            success = client.cancel_rental(rental_id=rental_id)
             
             if success:
                 with transaction.atomic():
@@ -344,7 +414,7 @@ def cancel_rental(request):
             else:
                 return error_response("Failed to cancel rental")
         
-        except DaisySMSException as e:
+        except MTelSMSException as e:
             return error_response(str(e))
     
     except Exception as e:
@@ -361,22 +431,20 @@ def get_rentals(request):
         from django.db.models import Q
         
         # Get rentals that should be shown in the dashboard:
-        # 1. Active waiting rentals (not expired, not cancelled)
-        # 2. Rentals that have received SMS (regardless of age - these should always show)
-        # 3. Recent successful rentals (within last 24 hours) even if they expired
-        recent_threshold = timezone.now() - timezone.timedelta(hours=24)
+        # 1. All WAITING rentals (actively waiting for SMS)
+        # 2. All RECEIVED rentals (got the SMS code)
+        # 3. Recent EXPIRED/CANCELLED rentals (within last hour for user awareness)
+        recent_threshold = timezone.now() - timezone.timedelta(hours=1)
         
         rentals = Rental.objects.filter(
             user=request.user
         ).filter(
-            # Include rentals that:
-            Q(messages__isnull=False) |  # Have received SMS messages (always show these)
-            Q(status__in=['WAITING', 'RECEIVED']) |  # Are currently active (DaisySMS handles expiration)
+            Q(status__in=['WAITING', 'RECEIVED']) |  # Active rentals
             Q(
-                status='RECEIVED',  # Or recently successful
-                created_at__gt=recent_threshold  # Within last 24 hours
+                status__in=['EXPIRED', 'CANCELLED'],  # Recent expired/cancelled
+                created_at__gt=recent_threshold
             )
-        ).select_related('service').distinct().order_by('-created_at')
+        ).select_related('service').prefetch_related('messages').order_by('-created_at')
         
         # Pagination
         page = request.GET.get('page', 1)
@@ -470,40 +538,31 @@ def get_transactions(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def sync_services(request):
-    """Sync services from DaisySMS API"""
+    """Sync services from MTelSMS API"""
     try:
-        from app.daisysms import DaisySMSClient
+        from app.mtelsms import get_mtelsms_client
         from django.conf import settings
         
-        # Get API key from settings
-        api_key = getattr(settings, 'DAISYSMS_API_KEY', None)
-        if not api_key:
-            return error_response("No DaisySMS API key configured in settings")
-        
-        # Create client and test connection
-        client = DaisySMSClient(api_key)
+        # Get MTelSMS client
+        client = get_mtelsms_client()
         
         # Test balance first
         try:
             balance = client.get_balance()
-            logger.info(f"DaisySMS balance: ${balance}")
+            logger.info(f"MTelSMS balance: ${balance}")
         except Exception as e:
-            return error_response(f"Failed to connect to DaisySMS API: {str(e)}")
+            return error_response(f"Failed to connect to MTelSMS API: {str(e)}")
         
-        # Clear existing services
-        Service.objects.all().delete()
-        logger.info("Cleared existing services")
-        
-        # Sync new services
+        # Sync services from MTelSMS
         updated_count = client.sync_services()
         total_services = Service.objects.count()
         
-        logger.info(f"Synced {updated_count} services from DaisySMS")
+        logger.info(f"Synced {updated_count} services from MTelSMS")
         return json_response({
             'success': True,
             'count': updated_count,
             'total': total_services,
-            'balance': balance
+            'balance': str(balance)
         })
         
     except Exception as e:
@@ -613,12 +672,12 @@ def get_rental_history(request):
 @login_required
 @require_http_methods(["GET"])
 def get_realtime_prices(request):
-    """Get real-time prices from DaisySMS API"""
+    """Get real-time prices from MTelSMS API"""
     try:
-        client = get_daisysms_client()
+        client = get_mtelsms_client()
         
-        # Get real-time prices from DaisySMS
-        prices_data = client.get_prices_verification(user=request.user)
+        # Get real-time prices from MTelSMS
+        prices_data = client.get_prices_verification()
         
         realtime_prices = {}
         for service_code, countries in prices_data.items():
@@ -637,7 +696,7 @@ def get_realtime_prices(request):
             'timestamp': timezone.now().isoformat()
         })
         
-    except DaisySMSException as e:
+    except MTelSMSException as e:
         return error_response(str(e))
     except Exception as e:
         logger.error(f"Error getting realtime prices: {str(e)}")
@@ -646,61 +705,6 @@ def get_realtime_prices(request):
 @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
-def create_service_not_listed(request):
-    """Create the Service Not Listed service"""
-    try:
-        # Check if user is admin
-        if not request.user.is_staff:
-            return error_response("Admin access required", 403)
-        
-        from decimal import Decimal
-        
-        # Check if service already exists
-        try:
-            service = Service.objects.get(code='service_not_listed')
-            return json_response({
-                'success': True,
-                'message': 'Service Not Listed already exists',
-                'service': {
-                    'id': service.id,
-                    'name': service.name,
-                    'code': service.code,
-                    'price': str(service.price),
-                    'price_naira': f"{service.get_naira_price():,.2f}",
-                    'is_active': service.is_active
-                }
-            })
-        except Service.DoesNotExist:
-            pass
-        
-        # Create the service
-        service = Service.objects.create(
-            name='Service Not Listed',
-            code='service_not_listed',
-            price=Decimal('2.50'),
-            profit_margin=Decimal('30.00'),
-            available_numbers=999,
-            supports_multiple_sms=True,
-            is_active=True,
-        )
-        
-        return json_response({
-            'success': True,
-            'message': 'Service Not Listed created successfully',
-            'service': {
-                'id': service.id,
-                'name': service.name,
-                'code': service.code,
-                'price': str(service.price),
-                'price_naira': f"{service.get_naira_price():,.2f}",
-                'is_active': service.is_active
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Error creating service not listed: {str(e)}")
-        return error_response("Failed to create service", 500)
-
 @login_required
 @login_required
 @csrf_exempt

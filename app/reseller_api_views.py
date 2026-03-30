@@ -1,7 +1,7 @@
 """
 Reseller API Views
 Public API endpoints for external developers to integrate SMS verification
-Uses DaisySMS as backend provider
+Uses MTelSMS as backend provider
 """
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -16,7 +16,7 @@ import logging
 from .api_keys import require_api_key, check_api_permission
 from .api_models import APIRequest, APIOrderMapping
 from .models import UserProfile, Rental, SMSMessage, Service, Transaction
-from .daisysms import get_daisysms_client, DaisySMSException
+from .mtelsms import get_mtelsms_client, MTelSMSException
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -77,11 +77,11 @@ def api_get_balance(request):
 
 @require_http_methods(["GET"])
 @require_api_key
-@check_api_permission('prices')
+@check_api_permission('services')
 def api_get_countries(request):
     """
     GET /api/v1/countries
-    Get list of available countries (DaisySMS only supports USA)
+    Get list of available countries (MTelSMS supports USA)
     """
     start_time = time.time()
     
@@ -110,11 +110,11 @@ def api_get_countries(request):
 
 @require_http_methods(["GET"])
 @require_api_key
-@check_api_permission('prices')
+@check_api_permission('services')
 def api_get_services(request):
     """
     GET /api/v1/services
-    Get list of available services from DaisySMS
+    Get list of available services from MTelSMS
     """
     start_time = time.time()
     
@@ -231,7 +231,7 @@ def api_get_service_price(request):
 def api_purchase_number(request):
     """
     POST /api/v1/purchase
-    Purchase a phone number via DaisySMS
+    Purchase a phone number via MTelSMS
     
     Body: {
         "service": "wa",
@@ -329,15 +329,14 @@ def api_purchase_number(request):
                         'error': 'Insufficient balance'
                     }, status=402)
                 
-                # Call DaisySMS API
-                client = get_daisysms_client()
-                rental_id, phone_number, actual_price_usd = client.get_number(
-                    service_code=service_code,
-                    user=user,
+                # Call MTelSMS API
+                client = get_mtelsms_client()
+                service_id = service.mtelsms_service_id if service.mtelsms_service_id else service.code
+                
+                rental_id, phone_number, actual_price_usd, time_remaining = client.get_number(
+                    service_id=service_id,
                     max_price=max_price_usd,
-                    area_codes=area_codes if area_codes else None,
-                    carriers=carriers if carriers else None,
-                    specific_number=specific_number
+                    wholesale=False
                 )
                 
                 # Create rental record
@@ -384,7 +383,7 @@ def api_purchase_number(request):
                 request.api_key_obj.total_revenue += markup_amount
                 request.api_key_obj.save(update_fields=['total_purchases', 'total_revenue'])
         
-        except DaisySMSException as e:
+        except MTelSMSException as e:
             response_time_ms = int((time.time() - start_time) * 1000)
             log_api_request(request.api_key_obj, '/api/v1/purchase', 'POST', 400, response_time_ms, request=request)
             return JsonResponse({
@@ -449,32 +448,58 @@ def api_check_order(request, order_id):
         
         rental = api_order.rental
         
-        # Check with DaisySMS for updates
+        # Check with MTelSMS for updates
         try:
-            client = get_daisysms_client()
-            status, code, full_text = client.get_status(
-                rental_id=rental.rental_id,
-                user=request.api_user,
-                get_full_text=True
+            client = get_mtelsms_client()
+            status, code, phone_number, time_remaining = client.get_code(
+                rental_id=rental.rental_id
             )
             
-            # Update rental status
-            rental.status = status
-            rental.save()
-            
-            # Update API order status
-            api_order.status = status
-            api_order.save()
+            # Check if rental has expired (time_remaining = 0)
+            if time_remaining <= 0 and status == 'WAITING':
+                with transaction.atomic():
+                    # Mark as expired
+                    rental.status = 'EXPIRED'
+                    api_order.status = 'EXPIRED'
+                    rental.save()
+                    api_order.save()
+                    
+                    # Issue refund if not already refunded
+                    if not rental.refunded:
+                        profile = rental.user.profile
+                        profile.balance += rental.price
+                        profile.save()
+                        
+                        # Log refund transaction
+                        Transaction.objects.create(
+                            user=rental.user,
+                            amount=rental.price,
+                            transaction_type='REFUND',
+                            description=f'Automatic refund for expired rental {rental.phone_number}'
+                        )
+                        
+                        rental.refunded = True
+                        rental.save()
+                        
+                        logger.info(f"Automatic refund issued for expired rental {rental.rental_id}")
+            else:
+                # Update rental status normally
+                rental.status = status
+                rental.save()
+                
+                # Update API order status
+                api_order.status = status
+                api_order.save()
             
             # Save message if received
             if status == 'RECEIVED' and code:
                 SMSMessage.objects.get_or_create(
                     rental=rental,
                     code=code,
-                    defaults={'full_text': full_text}
+                    defaults={'full_text': code}
                 )
-        except DaisySMSException as e:
-            logger.error(f"DaisySMS status check error: {str(e)}")
+        except MTelSMSException as e:
+            logger.error(f"MTelSMS status check error: {str(e)}")
         
         # Get SMS messages
         sms_messages = []
@@ -547,17 +572,17 @@ def api_cancel_order(request, order_id):
                 'error': f'Cannot cancel order with status: {rental.status}'
             }, status=400)
         
-        # Cancel with DaisySMS
+        # Cancel with MTelSMS
         try:
-            client = get_daisysms_client()
-            success = client.cancel_rental(rental_id=rental.rental_id, user=request.api_user)
+            client = get_mtelsms_client()
+            success = client.cancel_rental(rental_id=rental.rental_id)
             
             if not success:
                 return JsonResponse({
                     'success': False,
                     'error': 'Failed to cancel with provider'
                 }, status=400)
-        except DaisySMSException as e:
+        except MTelSMSException as e:
             return JsonResponse({
                 'success': False,
                 'error': str(e)

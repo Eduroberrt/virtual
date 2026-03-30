@@ -1,7 +1,7 @@
 {% extends 'main.html' %}
 {% load currency_filters %}
 
-{% block title %}Dashboard 2 - DaisySMS Service - Young PG Virtual{% endblock %}
+{% block title %}Dashboard 2 - Young PG Virtual{% endblock %}
 
 {% block content %}
 <div class="dashboard-content">
@@ -24,56 +24,6 @@
                     <button class="btn btn-primary btn-sm" type="button">
                         <i class="fas fa-search"></i>
                     </button>
-                </div>
-                <button class="btn btn-primary btn-sm" type="button" id="settingsToggle">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
-
-            <!-- Settings Panel -->
-            <div class="settings-panel" id="settingsPanel" style="display: none;">
-                <div class="card border-0 bg-light mb-3">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted fw-medium" style="font-size: 0.75rem;">Number Preferences (Optional)</small>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                                <i class="fas fa-times me-1"></i>Clear All
-                            </button>
-                        </div>
-                        <div class="mb-2">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Area codes</span>
-                                <input type="text" class="form-control" id="areaCodes" placeholder="503, 202, 404 (optional)" style="font-size: 0.8rem;" title="Enter 3-digit US area codes separated by commas">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Popular area codes: 503 (OR), 202 (DC), 404 (GA), 213 (CA). Increases price by 20%.
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearAreaCodes()">Clear</button>
-                            </small>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Carriers</span>
-                                <input type="text" class="form-control" id="carriers" placeholder="tmo, vz, att (optional)" style="font-size: 0.8rem;" title="Enter carrier codes separated by commas">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Use: tmo (T-Mobile), vz (Verizon), att (AT&T). Increases price by 20%. 
-                                <a href="#carrierInfoModal" data-bs-toggle="modal" class="text-decoration-none">More info</a>
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearCarriers()">Clear</button>
-                            </small>
-                        </div>
-
-                        <div class="mb-0">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text" style="min-width: 100px; font-size: 0.8rem;">Phone</span>
-                                <input type="text" class="form-control" id="phone" placeholder="1112223333 (optional)" style="font-size: 0.8rem;" title="Enter specific 10-digit phone number">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.75rem;">
-                                Specific 10-digit phone number. Increases price by 20%.
-                                <button type="button" class="btn btn-link p-0 ms-1" style="font-size: 0.7rem; vertical-align: baseline;" onclick="clearPhone()">Clear</button>
-                            </small>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -175,25 +125,6 @@
 </div>
 </div>
 
-<!-- Carrier Info Modal -->
-<div class="modal fade" id="carrierInfoModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Why choose carrier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>There are 3 carriers in the USA: T-Mobile (tmo), Verizon (vz), and AT&T (att).</p>
-                <p>If you're experiencing issues on services like Tinder, where it says an account already exists, we recommend you try Verizon, or AT&T.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Full Message Modal -->
 <div class="modal fade" id="fullMessageModal" tabindex="-1">
     <div class="modal-dialog">
@@ -214,18 +145,6 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Settings panel toggle
-    const settingsToggle = document.getElementById('settingsToggle');
-    const settingsPanel = document.getElementById('settingsPanel');
-    
-    settingsToggle.addEventListener('click', function() {
-        if (settingsPanel.style.display === 'none') {
-            settingsPanel.style.display = 'block';
-        } else {
-            settingsPanel.style.display = 'none';
-        }
-    });
-
     // Service search functionality
     const serviceFilter = document.getElementById('serviceFilter');
     const serviceRows = document.querySelectorAll('.service-row');
@@ -245,12 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Show/hide "service not listed" option based on search results
-        handleServiceNotListed(searchTerm, hasVisibleServices);
-        
-        // Re-sort visible services by favorites
-        if (searchTerm === '') {
-            sortServicesByFavorites();
-        }
+        // REMOVED - Service Not Listed feature disabled
     });
 
     // Favorite toggle functionality
@@ -290,12 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Service row click functionality
     serviceRows.forEach(row => {
         row.addEventListener('click', function(e) {
-            console.log('Service row clicked:', this); // Debug log
-            console.log('Click event target:', e.target); // Debug log
-            
             // Don't trigger if clicking on favorite button
             if (e.target.closest('.favorite-btn')) {
-                console.log('Clicked on favorite button, ignoring'); // Debug log
                 return;
             }
             
@@ -304,29 +214,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const priceElement = this.querySelector('.price .fw-medium');
             const price = priceElement ? priceElement.textContent : 'Unknown';
             
-            console.log('Service details:', { serviceName, serviceCode, price }); // Debug log
-            
             if (!serviceName || !serviceCode) {
                 console.error('Missing service data:', { serviceName, serviceCode });
                 showNotification('Service information is incomplete. Please refresh the page.', 'error');
                 return;
             }
             
-            // Get settings values
-            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
-            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
-            const phoneRaw = document.getElementById('phone').value.trim();
-            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null; // Remove any non-digit characters
-            
-            console.log('Settings values:', { areaCodes, carriers, phone }); // Debug log
-            
             // Disable the row temporarily to prevent double-clicks
             this.style.pointerEvents = 'none';
             this.style.opacity = '0.7';
             
             // Rent the service immediately without confirmation
-            console.log('Renting service immediately'); // Debug log
-            rentNumber(serviceCode, areaCodes, carriers, phone).finally(() => {
+            rentNumber(serviceCode).finally(() => {
                 // Re-enable the row after the request completes
                 this.style.pointerEvents = '';
                 this.style.opacity = '';
@@ -334,79 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add real-time validation for input fields
-    const areaCodes = document.getElementById('areaCodes');
-    const carriers = document.getElementById('carriers');
-    const phone = document.getElementById('phone');
-    
-    // Area codes validation
-    areaCodes.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value && !/^[\d,\s]+$/.test(value)) {
-            this.classList.add('is-invalid');
-            showValidationTooltip(this, 'Only numbers and commas allowed (e.g., 503, 202, 404)');
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when area codes change
-        updateServicePrices();
-    });
-    
-    // Carriers validation
-    carriers.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value) {
-            const validCarriers = ['tmo', 'vz', 'att'];
-            const enteredCarriers = value.toLowerCase().split(',').map(c => c.trim());
-            const invalidCarriers = enteredCarriers.filter(c => c && !validCarriers.includes(c));
-            
-            if (invalidCarriers.length > 0) {
-                this.classList.add('is-invalid');
-                showValidationTooltip(this, `Invalid carriers: ${invalidCarriers.join(', ')}. Use: tmo, vz, att`);
-            } else {
-                this.classList.remove('is-invalid');
-                hideValidationTooltip(this);
-            }
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when carriers change
-        updateServicePrices();
-    });
-    
-    // Phone validation
-    phone.addEventListener('input', function() {
-        const value = this.value.trim();
-        if (value) {
-            // Remove any non-digit characters for validation
-            const digitsOnly = value.replace(/\D/g, '');
-            if (digitsOnly.length !== 10) {
-                this.classList.add('is-invalid');
-                showValidationTooltip(this, 'Enter 10-digit US phone number (e.g., 5551234567)');
-            } else {
-                // Use our validation function instead of inline regex
-                if (!validatePhoneNumber(digitsOnly)) {
-                    this.classList.add('is-invalid');
-                    showValidationTooltip(this, 'Invalid US phone number format');
-                } else {
-                    this.classList.remove('is-invalid');
-                    hideValidationTooltip(this);
-                    // Auto-format the phone number
-                    this.value = digitsOnly;
-                }
-            }
-        } else {
-            this.classList.remove('is-invalid');
-            hideValidationTooltip(this);
-        }
-        // Update prices when phone number changes
-        updateServicePrices();
-    });
-
     // Load active rentals on page load
-    console.log('Loading active rentals on page load...'); // Debug log
     loadActiveRentals();
     
     // Set up polling for SMS updates - check every 3 seconds for better responsiveness
@@ -418,42 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up auto-refresh for rentals list to show API purchases without manual refresh
     setInterval(loadActiveRentals, 5000); // Refresh rentals list every 5 seconds
-
-    // Add real-time validation for settings inputs
-    const areaCodesInput = document.getElementById('areaCodes');
-    const carriersInput = document.getElementById('carriers');
-    const phoneInput = document.getElementById('phone');
-    
-    areaCodesInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        if (value && !validateAreaCodes(value)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-    
-    carriersInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        if (value && !validateCarriers(value)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid carriers. Use: tmo, vz, or att', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-    
-    phoneInput.addEventListener('blur', function() {
-        const value = this.value.trim();
-        const digitsOnly = value.replace(/\D/g, '');
-        if (value && !validatePhoneNumber(digitsOnly)) {
-            this.classList.add('is-invalid');
-            showNotification('Invalid phone number. Use 10 digits (e.g., 1112223333)', 'warning');
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
 
     // Countdown timer simulation
     const countdownTimers = document.querySelectorAll('.countdown-timer');
@@ -475,81 +266,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTimer, 1000);
     });
 });
-
-// Service pricing functions
-function updateServicePrices() {
-    const areaCodes = document.getElementById('areaCodes').value.trim();
-    const carriers = document.getElementById('carriers').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    
-    // Calculate price multiplier based on active filters
-    let priceMultiplier = 1.0;
-    
-    // Check if any premium filters are applied
-    if (areaCodes || carriers || phone) {
-        priceMultiplier = 1.2; // 20% increase
-    }
-    
-    // Update all service prices
-    document.querySelectorAll('.service-row').forEach(row => {
-        const originalPrice = parseFloat(row.dataset.originalPrice || 0);
-        const priceDisplay = row.querySelector('.price-display');
-        
-        if (originalPrice && priceDisplay) {
-            const newPrice = originalPrice * priceMultiplier;
-            priceDisplay.textContent = formatNairaPrice(newPrice);
-        }
-    });
-}
-
-function formatNairaPrice(price) {
-    // Format price as Naira currency
-    const formatted = new Intl.NumberFormat('en-NG', {
-        style: 'currency',
-        currency: 'NGN',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price);
-    
-    // Replace NGN with ₦ symbol for consistency
-    return formatted.replace('NGN', '₦');
-}
-
-// Clear filter functions with price update
-function clearAreaCodes() {
-    document.getElementById('areaCodes').value = '';
-    document.getElementById('areaCodes').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Area codes cleared', 'success');
-}
-
-function clearCarriers() {
-    document.getElementById('carriers').value = '';
-    document.getElementById('carriers').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Carriers cleared', 'success');
-}
-
-function clearPhone() {
-    document.getElementById('phone').value = '';
-    document.getElementById('phone').classList.remove('is-invalid');
-    updateServicePrices();
-    showNotification('Phone number cleared', 'success');
-}
-
-function clearAllFilters() {
-    document.getElementById('areaCodes').value = '';
-    document.getElementById('carriers').value = '';
-    document.getElementById('phone').value = '';
-    
-    // Remove any validation classes
-    document.getElementById('areaCodes').classList.remove('is-invalid');
-    document.getElementById('carriers').classList.remove('is-invalid');
-    document.getElementById('phone').classList.remove('is-invalid');
-    
-    updateServicePrices();
-    showNotification('All filters cleared', 'success');
-}
 
 // Copy to clipboard function
 function copyToClipboard(text, element = null) {
@@ -658,9 +374,7 @@ function copyToClipboard(text, element = null) {
 }
 
 // Rental management functions
-async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = null) {
-    console.log('Renting number with params:', { serviceCode, areaCodes, carriers, phone }); // Debug log
-    
+async function rentNumber(serviceCode) {
     // Check if service is out of stock
     const serviceRow = document.querySelector(`tr.service-row[data-code="${serviceCode}"]`);
     if (serviceRow) {
@@ -669,35 +383,6 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
             showNotification('This service is currently out of stock. Please try a different service or check back later.', 'error');
             return;
         }
-    }
-    
-    // Validate inputs before making the request
-    let hasValidationErrors = false;
-    
-    if (areaCodes.length > 0) {
-        const areaCodesStr = areaCodes.join(',');
-        if (!validateAreaCodes(areaCodesStr)) {
-            showNotification('Invalid area codes. Use 3-digit codes separated by commas (e.g., 503, 202, 404)', 'error');
-            hasValidationErrors = true;
-        }
-    }
-    
-    if (carriers.length > 0) {
-        const carriersStr = carriers.join(',');
-        if (!validateCarriers(carriersStr)) {
-            showNotification('Invalid carriers. Use: tmo (T-Mobile), vz (Verizon), or att (AT&T)', 'error');
-            hasValidationErrors = true;
-        }
-    }
-    
-    if (phone && phone.length > 0 && !validatePhoneNumber(phone)) {
-        console.log('Phone validation failed for:', phone, 'Type:', typeof phone, 'Length:', phone.length);
-        showNotification('Invalid phone number format. Use a valid 10-digit US number (e.g., 5551234567)', 'error');
-        hasValidationErrors = true;
-    }
-    
-    if (hasValidationErrors) {
-        return;
     }
     
     // Check CSRF token availability
@@ -712,10 +397,7 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
     
     try {
         const requestBody = {
-            service_code: serviceCode,
-            area_codes: areaCodes,
-            carriers: carriers,
-            number: phone
+            service_code: serviceCode
         };
         
         console.log('Request body:', requestBody);
@@ -776,18 +458,31 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
         }
 
         const data = await response.json();
-        console.log('Rent API response:', data); // Debug log
         
         if (data.success) {
             showNotification('Number rented successfully!', 'success');
-            loadActiveRentals(); // Refresh rentals table
+            
+            // Immediately add the new rental to the table if rental data is included
+            if (data.rental) {
+                // Get current rentals from the table
+                const tbody = document.querySelector('.rentals-table tbody');
+                const currentRentals = Array.from(tbody.querySelectorAll('tr')).map(() => null);
+                
+                // Add the new rental at the top and refresh the entire table
+                const existingRentals = window.currentRentals || [];
+                window.currentRentals = [data.rental, ...existingRentals];
+                updateRentalsTable(window.currentRentals);
+            }
+            
+            // Still refresh to get any updates
+            loadActiveRentals();
             updateUserBalance(); // Update balance display
         } else {
             // Provide better error messages with helpful suggestions
             let errorMessage = data.error || 'Failed to rent number';
             let errorType = 'error';
             
-            console.log('API Error:', errorMessage); // Debug log
+
             
             // Check for specific error patterns and provide helpful suggestions
             if (errorMessage.toLowerCase().includes('insufficient') || 
@@ -840,10 +535,10 @@ async function rentNumber(serviceCode, areaCodes = [], carriers = [], phone = nu
 }
 
 async function loadActiveRentals() {
-    console.log('Loading active rentals...'); // Debug log
+
     try {
         const response = await fetch('/api/rentals/');
-        console.log('Rentals API response status:', response.status); // Debug log
+
         
         if (!response.ok) {
             console.error('Failed to fetch rentals:', response.status, response.statusText);
@@ -854,14 +549,16 @@ async function loadActiveRentals() {
         }
         
         const data = await response.json();
-        console.log('Rentals API response:', data); // Debug log
+
         
         if (data.success && data.rentals) {
             console.log(`Received ${data.rentals.length} rentals from API`);
+            window.currentRentals = data.rentals; // Store for immediate updates
             updateRentalsTable(data.rentals);
         } else if (data.rentals) {
             // Handle case where success field might not be present
             console.log(`Received ${data.rentals.length} rentals from API (no success field)`);
+            window.currentRentals = data.rentals; // Store for immediate updates
             updateRentalsTable(data.rentals);
         } else {
             console.error('No rentals data in response:', data);
@@ -879,7 +576,7 @@ function updateRentalsTable(rentals) {
     const tbody = document.querySelector('.rentals-table-container tbody');
     const rentalCounter = document.getElementById('rentalCounter');
     
-    console.log('Updating rentals table with:', rentals); // Debug log
+
     
     // Filter rentals to show in the table:
     // 1. Active waiting rentals (not cancelled/expired by Daisy SMS)
@@ -1100,7 +797,7 @@ function handleRentalStatusChange(rentalId, status) {
         
         // Show notification about expiration
         if (status === 'EXPIRED') {
-            showNotification('Rental expired by service provider', 'info');
+            showNotification('Service Expired', 'info');
         }
     }
 }
@@ -1447,159 +1144,6 @@ function testPhoneValidation(phoneNumber) {
     const result = validatePhoneNumber(phoneNumber);
     console.log('Validation result:', result);
     return result;
-}
-
-// Handle "service not listed" option
-function handleServiceNotListed(searchTerm, hasVisibleServices) {
-    const tbody = document.querySelector('.table.mb-0.table-sm tbody');
-    let serviceNotListedRow = document.getElementById('service-not-listed-row');
-    
-    // Remove existing "service not listed" row if it exists
-    if (serviceNotListedRow) {
-        serviceNotListedRow.remove();
-    }
-    
-    // Only show "service not listed" if there's a search term and no visible services
-    if (searchTerm.trim() && !hasVisibleServices) {
-        // Create "service not listed" row
-        serviceNotListedRow = document.createElement('tr');
-        serviceNotListedRow.id = 'service-not-listed-row';
-        serviceNotListedRow.className = 'service-row';
-        serviceNotListedRow.setAttribute('data-service', 'Service Not Listed');
-        serviceNotListedRow.setAttribute('data-code', 'service_not_listed');
-        
-        serviceNotListedRow.innerHTML = `
-            <td class="service-name">
-                <div class="fw-medium" style="font-size: 0.85rem;">
-                    <i class="fas fa-plus-circle me-2 text-primary"></i>Service Not Listed
-                </div>
-            </td>
-            <td class="price">
-                <div class="fw-medium" style="font-size: 0.85rem;" id="service-not-listed-price">Loading...</div>
-            </td>
-            <td class="text-center">
-                <button class="btn btn-link p-0 favorite-btn" data-favorite="false">
-                    <span class="text-muted">♡</span>
-                </button>
-            </td>
-        `;
-        
-        // Add click handler for service not listed
-        serviceNotListedRow.addEventListener('click', function(e) {
-            if (e.target.closest('.favorite-btn')) {
-                return;
-            }
-            
-            const serviceName = 'Service Not Listed';
-            const serviceCode = 'service_not_listed';
-            
-            // Get settings values
-            const areaCodes = document.getElementById('areaCodes').value.split(',').map(code => code.trim()).filter(code => code);
-            const carriers = document.getElementById('carriers').value.split(',').map(carrier => carrier.trim()).filter(carrier => carrier);
-            const phoneRaw = document.getElementById('phone').value.trim();
-            const phone = phoneRaw ? phoneRaw.replace(/\D/g, '') : null;
-            
-            console.log('Renting service not listed:', { serviceCode, areaCodes, carriers, phone });
-            rentNumber(serviceCode, areaCodes, carriers, phone);
-        });
-        
-        // Insert at the beginning of tbody
-        tbody.insertBefore(serviceNotListedRow, tbody.firstChild);
-        
-        // Fetch and display the price for "service not listed"
-        fetchServiceNotListedPrice();
-    }
-}
-
-// Fetch price for "Service Not Listed" from backend
-async function fetchServiceNotListedPrice() {
-    try {
-        const response = await fetch('/api/services/');
-        const data = await response.json();
-        
-        console.log('Services API response:', data); // Debug log
-        
-        if (data.services) {
-            const serviceNotListed = data.services.find(service => 
-                service.name === 'Service Not Listed' || service.code === 'service_not_listed'
-            );
-            
-            console.log('Found Service Not Listed:', serviceNotListed); // Debug log
-            
-            if (serviceNotListed) {
-                const priceElement = document.getElementById('service-not-listed-price');
-                if (priceElement) {
-                    // The price_naira is already formatted, so use it directly
-                    priceElement.textContent = `₦${serviceNotListed.price_naira}`;
-                }
-            } else {
-                console.warn('Service Not Listed not found in services list');
-                // Fallback: try to create the service
-                await createServiceNotListed();
-            }
-        } else {
-            console.error('No services data in API response');
-        }
-    } catch (error) {
-        console.error('Error fetching service not listed price:', error);
-        const priceElement = document.getElementById('service-not-listed-price');
-        if (priceElement) {
-            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
-            priceElement.style.color = '#dc3545'; // Error color
-        }
-    }
-}
-
-// Create Service Not Listed if it doesn't exist
-async function createServiceNotListed() {
-    try {
-        console.log('Attempting to create Service Not Listed...');
-        
-        const response = await fetch('/api/create-service-not-listed/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            console.log('Service Not Listed created/exists:', data.service);
-            
-            // Update the price element
-            const priceElement = document.getElementById('service-not-listed-price');
-            if (priceElement && data.service) {
-                // The price_naira is already formatted, so use it directly
-                priceElement.textContent = `₦${data.service.price_naira}`;
-                priceElement.style.color = ''; // Remove warning color
-                priceElement.title = '';
-            }
-            
-            if (data.message.includes('created')) {
-                showNotification('Service Not Listed has been set up successfully!', 'success');
-            }
-        } else {
-            console.error('Failed to create Service Not Listed:', data);
-            const priceElement = document.getElementById('service-not-listed-price');
-            if (priceElement) {
-                priceElement.textContent = 'Admin setup required'; // Show setup message instead of fallback
-                priceElement.style.color = '#ffc107'; // Warning color
-                priceElement.title = 'Service needs admin setup';
-            }
-            
-            showNotification('Please contact administrator to set up "Service Not Listed" in Django Admin.', 'warning');
-        }
-    } catch (error) {
-        console.error('Error creating service not listed:', error);
-        const priceElement = document.getElementById('service-not-listed-price');
-        if (priceElement) {
-            priceElement.textContent = 'Error loading price'; // Show error instead of fallback
-            priceElement.style.color = '#dc3545'; // Error color
-            priceElement.title = 'Service needs admin setup';
-        }
-    }
 }
 
 // Fetch real-time prices from DaisySMS API (optional feature)

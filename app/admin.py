@@ -54,11 +54,11 @@ class ServiceAdmin(admin.ModelAdmin):
     list_editable = ['is_active', 'profit_margin']
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'code', 'icon_url', 'is_active', 'supports_multiple_sms')
+            'fields': ('name', 'code', 'icon_url', 'is_active', 'supports_multiple_sms', 'mtelsms_service_id')
         }),
         ('Pricing', {
             'fields': ('price', 'profit_margin'),
-            'description': 'Base price in USD (from DaisySMS API) and profit margin in Naira. Example: price = 0.50 (USD), profit_margin = 100.00 (NGN) = Final price ₦925.00'
+            'description': 'Base price in USD (from provider API) and fixed profit margin. Price = (USD × 1500) + ₦800 fixed margin. Example: $0.50 = (₦0.50 × 1500) + ₦800 = ₦1550.00'
         }),
         ('Pricing (Calculated)', {
             'fields': ('display_naira_price', 'display_profit_margin_naira'),
@@ -78,17 +78,17 @@ class ServiceAdmin(admin.ModelAdmin):
     display_naira_price.short_description = 'Price (NGN)'
     
     def display_usd_price(self, obj):
-        """Display real-time USD price from DaisySMS API"""
+        """Display real-time USD price from provider API"""
         try:
-            from .daisysms import get_daisysms_client
+            from .mtelsms import get_mtelsms_client
             
             # Use cached prices to avoid too many API calls (cache for 5 minutes)
-            cache_key = 'daisysms_realtime_prices'
+            cache_key = 'mtelsms_realtime_prices'
             prices_data = cache.get(cache_key)
             
             if prices_data is None:
-                # Get real-time price from DaisySMS
-                client = get_daisysms_client()
+                # Get real-time price from MTelSMS
+                client = get_mtelsms_client()
                 prices_data = client.get_prices_verification()
                 cache.set(cache_key, prices_data, 300)  # Cache for 5 minutes
             
@@ -111,14 +111,14 @@ class ServiceAdmin(admin.ModelAdmin):
         return f"₦{obj.profit_margin:,.2f}"
     display_profit_margin_naira.short_description = 'Profit Margin (NGN)'
     
-    def update_prices_from_daisysms(self, request, queryset):
-        """Update selected services' prices from DaisySMS real-time prices"""
+    def update_prices_from_api(self, request, queryset):
+        """Update selected services' prices from provider real-time prices"""
         try:
-            from .daisysms import get_daisysms_client
+            from .mtelsms import get_mtelsms_client
             from django.contrib import messages
             from decimal import Decimal
             
-            client = get_daisysms_client()
+            client = get_mtelsms_client()
             prices_data = client.get_prices_verification()
             
             updated_count = 0
@@ -135,16 +135,16 @@ class ServiceAdmin(admin.ModelAdmin):
                             updated_count += 1
             
             if updated_count > 0:
-                messages.success(request, f"Updated {updated_count} service(s) with real-time prices from DaisySMS.")
+                messages.success(request, f"Updated {updated_count} service(s) with real-time prices.")
             else:
                 messages.info(request, "No price updates needed - all prices are current.")
                 
         except Exception as e:
             messages.error(request, f"Error updating prices: {str(e)}")
     
-    update_prices_from_daisysms.short_description = "Update prices from DaisySMS real-time data"
+    update_prices_from_api.short_description = "Update prices from provider API"
     
-    actions = ['update_prices_from_daisysms']
+    actions = ['update_prices_from_api']
     
     def is_special_service(self, obj):
         return obj.code == 'service_not_listed'

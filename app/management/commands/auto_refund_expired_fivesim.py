@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from datetime import timedelta
 from django.db import transaction
 from app.models import FiveSimOrder, UserProfile, Transaction
 import logging
@@ -7,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'Automatically refund expired 5sim orders that have not received SMS codes'
+    help = 'Automatically refund expired 5sim orders that never received SMS'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -15,80 +16,93 @@ class Command(BaseCommand):
             action='store_true',
             help='Show what would be refunded without actually doing it',
         )
+        parser.add_argument(
+            '--max-age-hours',
+            type=int,
+            default=24,
+            help='Maximum age of orders to check (default: 24 hours)',
+        )
 
     def handle(self, *args, **options):
         dry_run = options['dry_run']
-        
-        # Find orders that have expired and are still pending (no SMS received)
-        current_time = timezone.now()
-        
-        expired_orders = FiveSimOrder.objects.filter(
-            status__in=['PENDING', 'RECEIVED', 'TIMEOUT'],  # Orders waiting for SMS or timed out
-            expires_at__lte=current_time,  # Already expired
-        ).exclude(
-            # Don't refund if SMS messages already received
-            sms_messages__text__isnull=False
-        ).exclude(
-            # Don't refund if already cancelled/finished
-            status__in=['CANCELED', 'FINISHED']
-        )
+        max_age_hours = options['max_age_hours']
         
         if dry_run:
-            self.stdout.write(
-                self.style.WARNING(f'DRY RUN: Would refund {expired_orders.count()} expired orders')
-            )
-            for order in expired_orders[:10]:  # Show first 10
-                self.stdout.write(
-                    f'  - {order.user.username}: {order.product} ({order.phone_number}) - ₦{order.price_naira:.2f}'
-                )
+            self.stdout.write(self.style.WARNING('DRY RUN MODE - No changes will be made'))
+        
+        # Get expired orders that haven't been refunded
+        cutoff_time = timezone.now() - timedelta(hours=max_age_hours)
+        
+        expired_orders = FiveSimOrder.objects.filter(
+            status='PENDING',  # Still waiting for SMS
+            refunded=False,
+            created_at__gte=cutoff_time
+        ).select_related('user')
+        
+        total_expired = expired_orders.count()
+        
+        if total_expired == 0:
+            self.stdout.write(self.style.SUCCESS('No expired orders to refund'))
             return
+        
+        self.stdout.write(f'Found {total_expired} expired orders to process')
         
         refunded_count = 0
         error_count = 0
-        total_refunded = 0
         
         for order in expired_orders:
+            # Check if order is truly expired (> 20 minutes old)
+            age = timezone.now() - order.created_at
+            if age < timedelta(minutes=20):
+                continue
+            
             try:
-                with transaction.atomic():
-                    # Get user profile
-                    user_profile = UserProfile.objects.get(user=order.user)
-                    
-                    # Credit the refund amount
-                    refund_amount = order.price_naira
-                    user_profile.balance += refund_amount
-                    user_profile.save()
-                    
-                    # Create refund transaction
-                    Transaction.objects.create(
-                        user=order.user,
-                        amount=refund_amount,
-                        transaction_type='REFUND',
-                        description=f'Auto-refund for expired Dashboard 1 order: {order.product} ({order.phone_number})',
-                        rental=None,
-                    )
-                    
-                    # Update order status to indicate it was auto-cancelled due to expiry
-                    order.status = 'EXPIRED'
-                    order.save()
-                    
-                    refunded_count += 1
-                    total_refunded += refund_amount
-                    
+                if dry_run:
                     self.stdout.write(
-                        f'Refunded ₦{refund_amount:.2f} to {order.user.username} for expired order {order.order_id}'
+                        f'[DRY RUN] Would refund Order #{order.id}: '
+                        f'{order.service} - ₦{order.price} to {order.user.username}'
                     )
-                    
+                else:
+                    with transaction.atomic():
+                        # Update order status
+                        order.status = 'EXPIRED'
+                        order.refunded = True
+                        order.save()
+                        
+                        # Refund user
+                        profile, _ = UserProfile.objects.get_or_create(user=order.user)
+                        profile.balance += order.price
+                        profile.save()
+                        
+                        # Log transaction
+                        Transaction.objects.create(
+                            user=order.user,
+                            amount=order.price,
+                            transaction_type='REFUND',
+                            description=f'Auto-refund: Expired 5sim order #{order.id} - {order.service}'
+                        )
+                        
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f'✓ Refunded Order #{order.id}: ₦{order.price} to {order.user.username}'
+                            )
+                        )
+                
+                refunded_count += 1
+                
             except Exception as e:
                 error_count += 1
-                logger.error(f'Failed to refund expired order {order.order_id}: {str(e)}')
                 self.stdout.write(
-                    self.style.ERROR(f'ERROR refunding order {order.order_id}: {str(e)}')
+                    self.style.ERROR(f'✗ Error refunding Order #{order.id}: {str(e)}')
                 )
+                logger.error(f'Auto-refund error for order {order.id}: {str(e)}')
         
         # Summary
-        self.stdout.write(
-            self.style.SUCCESS(
-                f'Auto-refund completed: {refunded_count} orders refunded, '
-                f'₦{total_refunded:.2f} total refunded, {error_count} errors'
-            )
-        )
+        self.stdout.write('\n' + '='*50)
+        if dry_run:
+            self.stdout.write(self.style.WARNING(f'[DRY RUN] Would have refunded {refunded_count} orders'))
+        else:
+            self.stdout.write(self.style.SUCCESS(f'Successfully refunded {refunded_count} orders'))
+        
+        if error_count > 0:
+            self.stdout.write(self.style.ERROR(f'Failed to refund {error_count} orders'))

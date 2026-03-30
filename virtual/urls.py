@@ -71,7 +71,6 @@ urlpatterns = [
     # API Endpoints
     path('api/balance/', get_user_balance, name='api_balance'),
     path('api/services/', get_services, name='api_services'),
-    path('api/create-service-not-listed/', create_service_not_listed, name='api_create_service_not_listed'),
     path('api/realtime-prices/', get_realtime_prices, name='api_realtime_prices'),
     path('api/rent/', rent_number, name='api_rent'),
     path('api/cancel/', cancel_rental, name='api_cancel'),

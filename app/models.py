@@ -12,7 +12,7 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    USD_TO_NGN_RATE = Decimal('1650.00')  # Used for DaisySMS API conversions only
+    USD_TO_NGN_RATE = Decimal('1500.00')  # Used for MTelSMS API conversions
 
     def __str__(self):
         return f"{self.user.username} - ₦{self.balance}"
@@ -23,7 +23,7 @@ class UserProfile(models.Model):
         return Decimal(str(self.balance))
     
     def get_usd_balance(self):
-        """Convert NGN balance to USD for DaisySMS API calls"""
+        """Convert NGN balance to USD for MTelSMS API calls"""
         from decimal import Decimal
         return Decimal(str(self.balance)) / self.USD_TO_NGN_RATE
 
@@ -31,15 +31,16 @@ class Service(models.Model):
     code = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
     icon_url = models.URLField(blank=True, null=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Stores USD price from DaisySMS API
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Stores USD price from MTelSMS API
     profit_margin = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Profit margin in Naira (e.g., 100.00 for ₦100)")
     available_numbers = models.IntegerField(default=0)
     supports_multiple_sms = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    mtelsms_service_id = models.CharField(max_length=50, blank=True, null=True, help_text="MTelSMS service ID (numeric) for API calls")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USD_TO_NGN_RATE = Decimal('1650.00')  # Used for DaisySMS API conversions only
+    USD_TO_NGN_RATE = Decimal('1500.00')  # Used for MTelSMS API conversions
 
     class Meta:
         ordering = ['name']
@@ -48,19 +49,20 @@ class Service(models.Model):
         return f"{self.name} ({self.code})"
     
     def get_naira_price(self):
-        """Get price in Naira: USD base price converted to NGN + profit margin"""
+        """Get price in Naira: USD base price converted to NGN + fixed ₦800 profit margin"""
         from decimal import Decimal
+        from django.conf import settings
         
         # Convert USD base price to NGN
         base_price_usd = Decimal(str(self.price))
         base_price_naira = base_price_usd * self.USD_TO_NGN_RATE
         
-        # Apply absolute profit margin in Naira
-        absolute_margin = Decimal(str(self.profit_margin))
-        return base_price_naira + absolute_margin
+        # Apply fixed profit margin in Naira (₦800)
+        fixed_margin = Decimal(str(getattr(settings, 'FIXED_PROFIT_MARGIN_NGN', 800)))
+        return base_price_naira + fixed_margin
     
     def get_usd_price(self):
-        """Get USD base price (for DaisySMS API calls)"""
+        """Get USD base price (for MTelSMS API calls)"""
         from decimal import Decimal
         return Decimal(str(self.price))
 
@@ -74,7 +76,7 @@ class Rental(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rental_id = models.CharField(max_length=100, unique=True)  # DaisySMS ID
+    rental_id = models.CharField(max_length=100, unique=True)  # MTelSMS activation ID
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=20)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
@@ -94,8 +96,8 @@ class Rental(models.Model):
 
     @property
     def is_expired(self):
-        """Check if rental has expired (handled by DaisySMS sync daemon)"""
-        # Expiration is now handled by DaisySMS API through sync_daisy_status
+        """Check if rental has expired (handled by MTelSMS sync)"""
+        # Expiration is now handled by MTelSMS API
         # This property returns True only if status is already EXPIRED
         return self.status == 'EXPIRED'
     
@@ -105,7 +107,7 @@ class Rental(models.Model):
         return Decimal(str(self.price))
     
     def get_usd_price(self):
-        """Convert NGN price to USD for DaisySMS API calls"""
+        """Convert NGN price to USD for MTelSMS API calls"""
         from decimal import Decimal
         return Decimal(str(self.price)) / UserProfile.USD_TO_NGN_RATE
 
