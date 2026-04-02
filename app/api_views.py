@@ -88,14 +88,12 @@ def rent_number(request):
         service_price_usd = service.get_usd_price()
         
         try:
-            # CRITICAL: Lock user profile BEFORE calling MTelSMS API to prevent race conditions
+            # Get user profile (SQLite doesn't support row-level locking well)
             with transaction.atomic():
-                # Get user profile with row-level lock to prevent concurrent access
+                # Get or create user profile
                 profile, created = UserProfile.objects.get_or_create(user=request.user)
-                if not created:
-                    profile = UserProfile.objects.select_for_update().get(user=request.user)
                 
-                # Check balance while holding the lock
+                # Check balance
                 user_balance_naira = profile.get_naira_balance()
                 if user_balance_naira < service_price_naira:
                     return error_response("Insufficient balance")
@@ -389,15 +387,12 @@ def cancel_rental(request):
                     # Get proper refund amounts for both display and balance update
                     refund_amount_naira = rental.get_naira_price()
                     
-                    # Check if this rental had premium filters applied
-                    had_premium = bool(rental.area_codes or rental.carriers)
-                    
                     # Create refund transaction in NGN
                     Transaction.objects.create(
                         user=request.user,
                         amount=refund_amount_naira,
                         transaction_type='REFUND',
-                        description=f"Refund for cancelled rental {rental.phone_number}{' (incl. premium)' if had_premium else ''}",
+                        description=f"Refund for cancelled rental {rental.phone_number}",
                         rental=rental
                     )
                     
@@ -455,9 +450,6 @@ def get_rentals(request):
         for rental in page_obj:
             latest_message = rental.messages.first()
             
-            # Check if premium filters were applied to this rental
-            has_premium_applied = bool(rental.area_codes or rental.carriers)
-            
             rentals_data.append({
                 'rental_id': rental.rental_id,
                 'service_name': rental.service.name,
@@ -466,9 +458,6 @@ def get_rentals(request):
                 'status': rental.status,
                 'price': str(rental.price),
                 'price_naira': f"{float(rental.get_naira_price()):,.2f}",
-                'has_premium_applied': has_premium_applied,  # Indicate if premium was applied
-                'area_codes': rental.area_codes,
-                'carriers': rental.carriers,
                 'supports_multiple': rental.service.supports_multiple_sms,
                 'code': latest_message.code if latest_message else None,
                 'full_text': latest_message.full_text if latest_message else None,

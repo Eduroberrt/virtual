@@ -79,6 +79,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,  # Increase timeout to 20 seconds to handle locks
+        }
     }
 }
 
@@ -138,6 +141,7 @@ EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+
 # Authentication Configuration
 AUTHENTICATION_BACKENDS = [
     'app.auth_backends.EmailOrUsernameModelBackend',
@@ -163,7 +167,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'daisysms.log',
+            'filename': BASE_DIR / 'logs' / 'mtelsms.log',
         },
         'console': {
             'level': 'INFO',
@@ -171,7 +175,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'app.daisysms': {
+        'app.mtelsms': {
             'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': True,

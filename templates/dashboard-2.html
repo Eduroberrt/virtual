@@ -236,15 +236,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load active rentals on page load
     loadActiveRentals();
     
-    // Set up polling for SMS updates - check every 3 seconds for better responsiveness
-    setInterval(checkAllSMS, 3000); // Check every 3 seconds
-    
+    // Set up polling for SMS updates - adaptive: only polls when rentals are actively awaiting SMS
+    function adaptiveSMSPoll() {
+        const hasSpinners = document.querySelectorAll('tr[data-rental-id] .sms-code .spinner-border').length > 0;
+        if (hasSpinners) {
+            checkAllSMS();
+        }
+    }
+    setInterval(adaptiveSMSPoll, 20000); // Check every 20 seconds to avoid MTelSMS rate limits
+
     // Set up real-time wallet balance updates
     updateUserBalance(); // Initial balance load
-    setInterval(updateUserBalance, 10000); // Update balance every 10 seconds
+    setInterval(updateUserBalance, 30000); // Update balance every 30 seconds
     
     // Set up auto-refresh for rentals list to show API purchases without manual refresh
-    setInterval(loadActiveRentals, 5000); // Refresh rentals list every 5 seconds
+    setInterval(loadActiveRentals, 15000); // Refresh rentals list every 15 seconds
 
     // Countdown timer simulation
     const countdownTimers = document.querySelectorAll('.countdown-timer');
@@ -491,10 +497,10 @@ async function rentNumber(serviceCode) {
                 errorMessage = 'Insufficient balance';
                 errorType = 'error';
             } else if (errorMessage.includes('service') && errorMessage.includes('not') && errorMessage.includes('support')) {
-                errorMessage = 'The "other" service code is not supported by DaisySMS. Contact DaisySMS support to add your requested service, or try a different service.';
+                errorMessage = 'The "other" service code is not supported. Please try a different service.';
                 errorType = 'warning';
             } else if (errorMessage.includes('service') && (errorMessage.includes('invalid') || errorMessage.includes('unknown'))) {
-                errorMessage = 'Service code not recognized by DaisySMS. This may mean "other" is not available. Try contacting DaisySMS support.';
+                errorMessage = 'Service code not recognized. Please try a different service.';
                 errorType = 'warning';
             } else if (errorMessage.includes('area codes') && errorMessage.includes('not available')) {
                 errorMessage += ' Try removing area code filters or using common codes like 503, 202, or 404.';
@@ -579,7 +585,7 @@ function updateRentalsTable(rentals) {
 
     
     // Filter rentals to show in the table:
-    // 1. Active waiting rentals (not cancelled/expired by Daisy SMS)
+    // 1. Active waiting rentals (not cancelled/expired by MTelSMS)
     // 2. Rentals that have received codes (show regardless of age - these are successful)
     const activeRentals = rentals.filter(rental => {
         const isCancelled = rental.status === 'CANCELLED' || rental.status === 'EXPIRED';
@@ -590,7 +596,7 @@ function updateRentalsTable(rentals) {
             return true;
         }
         
-        // For rentals without codes, only show if still active (not cancelled/expired by Daisy SMS)
+        // For rentals without codes, only show if still active (not cancelled/expired by MTelSMS)
         return !isCancelled;
     });
     
@@ -753,7 +759,7 @@ async function checkSMS(rentalId) {
             console.log(`Found code for rental ${rentalId}: ${latestMessage.code}`);
             updateSMSCode(rentalId, latestMessage.code);
         } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
-            // Handle rental expiration/cancellation from Daisy SMS
+            // Handle rental expiration/cancellation from MTelSMS
             console.log(`Rental ${rentalId} status changed to: ${data.status}`);
             handleRentalStatusChange(rentalId, data.status);
         } else {
@@ -817,6 +823,8 @@ async function checkAllSMS() {
         if (codeCell && codeCell.querySelector('.spinner-border')) {
             console.log(`Polling: Checking SMS for rental ${rentalId} because it has a spinner.`);
             await checkSMS(rentalId);
+            // Add 5-second delay between checks to avoid MTelSMS rate limiting
+            await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }
 }
@@ -1146,14 +1154,14 @@ function testPhoneValidation(phoneNumber) {
     return result;
 }
 
-// Fetch real-time prices from DaisySMS API (optional feature)
+// Fetch real-time prices from MTelSMS API (optional feature)
 async function fetchRealtimePrices() {
     try {
         const response = await fetch('/api/realtime-prices/');
         const data = await response.json();
         
         if (data.success && data.realtime_prices) {
-            console.log('Real-time prices from DaisySMS:', data.realtime_prices);
+            console.log('Real-time prices from MTelSMS:', data.realtime_prices);
             
             // Update service availability based on real-time data
             const serviceRows = document.querySelectorAll('.service-row');
@@ -1173,15 +1181,15 @@ async function fetchRealtimePrices() {
     }
 }
 
-// Auto-sync prices every 30 seconds (optional)
+// Auto-sync prices every 5 minutes - prices don't change frequently
 function enableAutoSync() {
     // Fetch real-time data on page load
     fetchRealtimePrices();
     
-    // Set up periodic sync every 30 seconds
+    // Set up periodic sync every 5 minutes
     setInterval(() => {
         fetchRealtimePrices();
-    }, 30000);
+    }, 300000);
 }
 
 enableAutoSync();

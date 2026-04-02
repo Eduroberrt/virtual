@@ -337,7 +337,7 @@ def change_password(request):
 @login_required
 def dashboard_selector(request):
     """
-    Dashboard selector page - shows options to choose between Dashboard 1 (5sim) and Dashboard 2 (DaisySMS)
+    Dashboard selector page - shows options to choose between Dashboard 1 (5sim) and Dashboard 2 (MTelSMS)
     """
     # Get user profile for balance display
     profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -365,19 +365,19 @@ def dashboard_1(request):
 @login_required
 def dashboard_2(request):
     """
-    Dashboard 2 - DaisySMS verification service
+    Dashboard 2 - MTelSMS verification service
     """
     # Get user profile for balance display
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
-    # Get all services for DaisySMS (including out of stock)
+    # Get all services for MTelSMS (including out of stock)
     services = Service.objects.all().order_by('name')
     
     context = {
         'user_profile': profile,
         'services': services,
-        'dashboard_type': 'daisysms',
-        'dashboard_name': 'Dashboard 2 - DaisySMS',
+        'dashboard_type': 'mtelsms',
+        'dashboard_name': 'Dashboard 2 - MTelSMS',
     }
     return render(request, 'dashboard-2.html', context)
 

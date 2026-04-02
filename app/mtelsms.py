@@ -74,16 +74,16 @@ class MTelSMSClient:
                 # Log the raw error for debugging
                 logger.error(f"MTelSMS API Error - Action: {action}, Raw Response: {data}")
                 
-                # Translate common errors to user-friendly messages
+                # Translate only specific known errors, pass through everything else
                 if 'Authorization failed' in error_message or 'API key' in error_message:
                     raise MTelSMSException("Service authentication failed. Please contact support.")
-                elif 'balance' in error_message.lower() or 'insufficient' in error_message.lower():
-                    raise MTelSMSException("Insufficient service provider balance. Please contact support.")
                 elif 'maximum request' in error_message.lower() or 'rate limit' in error_message.lower():
                     raise MTelSMSException("Too many requests. Please wait a moment and try again.")
+                elif 'insufficient' in error_message.lower():
+                    raise MTelSMSException("No number right now")
                 else:
-                    # Pass through the actual error message from MTelSMS
-                    raise MTelSMSException(f"Service Error: {error_message}")
+                    # Pass through the actual error message from MTelSMS without translation
+                    raise MTelSMSException(error_message)
             
             logger.info(f"MTelSMS API call successful: {action}")
             return data
@@ -244,7 +244,7 @@ class MTelSMSClient:
     
     def get_prices_verification(self) -> Dict:
         """
-        Get all services in a format compatible with DaisySMS sync
+        Get all services from MTelSMS API
         Returns services organized by service code for easy lookup
         """
         services = self.get_all_services()

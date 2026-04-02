@@ -269,44 +269,16 @@
                                 <td>No</td>
                                 <td>Maximum price in NGN you're willing to pay</td>
                             </tr>
-                            <tr>
-                                <td><code>area_codes</code></td>
-                                <td>array</td>
-                                <td>No</td>
-                                <td>Specific area codes (e.g., ["503", "202"]) - adds 20% premium</td>
-                            </tr>
-                            <tr>
-                                <td><code>carriers</code></td>
-                                <td>array</td>
-                                <td>No</td>
-                                <td>Carriers: "tmo", "vz", "att" - adds 20% premium</td>
-                            </tr>
-                            <tr>
-                                <td><code>number</code></td>
-                                <td>string</td>
-                                <td>No</td>
-                                <td>Specific 10-digit number - adds 20% premium</td>
-                            </tr>
                         </tbody>
                     </table>
                     
-                    <h6 class="mt-2">Example Request (Basic):</h6>
+                    <h6 class="mt-2">Example Request:</h6>
                     <pre class="bg-dark text-light p-2 rounded"><code>POST /api/v1/purchase/
 Content-Type: application/json
 
 {
   "service": "wa",
   "max_price": 2000.00
-}</code></pre>
-                    
-                    <h6 class="mt-2">Example Request (With Premium Filters):</h6>
-                    <pre class="bg-dark text-light p-2 rounded"><code>POST /api/v1/purchase/
-Content-Type: application/json
-
-{
-  "service": "wa",
-  "area_codes": ["503", "202"],
-  "carriers": ["tmo"]
 }</code></pre>
                     
                     <h6 class="mt-2">Response Example (Success):</h6>
@@ -317,15 +289,13 @@ Content-Type: application/json
   "phone_number": "15034567890",
   "service": "wa",
   "service_name": "WhatsApp",
-  "price": 1980.00,
+  "price": 1650.00,
   "currency": "NGN",
-  "status": "WAITING",
-  "has_premium": true,
-  "message": "Number rented successfully"
+  "status": "WAITING"
 }</code></pre>
                     
-                    <div class="alert alert-warning mt-2 mb-0">
-                        <strong><i class="fas fa-star"></i> Premium Filters:</strong> Using area_codes, carriers, or specific number adds a 20% premium to the base price.
+                    <div class="alert alert-info mt-2 mb-0">
+                        <strong><i class="fas fa-info-circle"></i> Pricing:</strong> You are charged exactly the price shown in the /services endpoint. No hidden fees or additional charges.
                     </div>
                 </div>
             </div>

@@ -235,11 +235,11 @@ def api_purchase_number(request):
     
     Body: {
         "service": "wa",
-        "max_price": 10.50,
-        "area_codes": ["503", "202"],  // optional, adds 20% premium
-        "carriers": ["tmo", "vz"],     // optional, adds 20% premium
-        "number": "5551234567"         // optional, specific number, adds 20% premium
+        "max_price": 10.50
     }
+    
+    Note: MTelSMS doesn't support area_codes, carriers, or specific number selection.
+    These parameters are accepted for backward compatibility but ignored.
     """
     start_time = time.time()
     
@@ -255,9 +255,8 @@ def api_purchase_number(request):
         
         service_code = data.get('service')
         max_price_ngn = data.get('max_price')
-        area_codes = data.get('area_codes', [])
-        carriers = data.get('carriers', [])
-        specific_number = data.get('number')
+        # MTelSMS doesn't support area_codes, carriers, or specific numbers
+        # These parameters are ignored if provided
         
         if not service_code:
             response_time_ms = int((time.time() - start_time) * 1000)
@@ -284,12 +283,8 @@ def api_purchase_number(request):
         # Calculate base price (service price + our profit margin)
         base_service_price_ngn = service.get_naira_price()
         
-        # Apply premium filters (20% increase like DaisySMS)
-        has_premium_filters = bool(area_codes or carriers or specific_number)
-        if has_premium_filters:
-            service_price_ngn = base_service_price_ngn * Decimal('1.2')
-        else:
-            service_price_ngn = base_service_price_ngn
+        # Use base service price directly (no premium filters for MTelSMS)
+        service_price_ngn = base_service_price_ngn
         
         # Apply user's API markup
         markup_percentage = request.api_key_obj.markup_percentage
@@ -308,7 +303,7 @@ def api_purchase_number(request):
                 'available': float(profile.balance)
             }, status=402)
         
-        # Calculate max_price for DaisySMS (in USD)
+        # Calculate max_price for MTelSMS (in USD)
         max_price_usd = None
         if max_price_ngn:
             max_price_usd = Decimal(str(max_price_ngn)) / UserProfile.USD_TO_NGN_RATE
@@ -316,7 +311,7 @@ def api_purchase_number(request):
             # Use calculated price as max
             max_price_usd = final_price / UserProfile.USD_TO_NGN_RATE
         
-        # Make the purchase via DaisySMS
+        # Make the purchase via MTelSMS
         try:
             with transaction.atomic():
                 # Lock user profile to prevent race conditions
@@ -331,7 +326,14 @@ def api_purchase_number(request):
                 
                 # Call MTelSMS API
                 client = get_mtelsms_client()
-                service_id = service.mtelsms_service_id if service.mtelsms_service_id else service.code
+                
+                # Validate service has MTelSMS ID
+                service_id = service.mtelsms_service_id
+                if not service_id or service_id.strip() == '':
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Service "{service.name}" is not available. Please contact support.'
+                    }, status=400)
                 
                 rental_id, phone_number, actual_price_usd, time_remaining = client.get_number(
                     service_id=service_id,
@@ -346,8 +348,6 @@ def api_purchase_number(request):
                     service=service,
                     phone_number=phone_number,
                     price=final_price,  # Store final price in NGN
-                    area_codes=','.join(area_codes) if area_codes else None,
-                    carriers=','.join(carriers) if carriers else None,
                     max_price=Decimal(str(max_price_ngn)) if max_price_ngn else None
                 )
                 
@@ -374,7 +374,7 @@ def api_purchase_number(request):
                     user=user,
                     amount=-final_price,
                     transaction_type='RENTAL',
-                    description=f"API rental: {service.name} - {phone_number}{' (Premium)' if has_premium_filters else ''}",
+                    description=f"API rental: {service.name} - {phone_number}",
                     rental=rental
                 )
                 
@@ -406,8 +406,7 @@ def api_purchase_number(request):
             'service_name': service.name,
             'price': float(final_price),
             'currency': 'NGN',
-            'status': 'WAITING',
-            'has_premium': has_premium_filters
+            'status': 'WAITING'
         })
         
     except Exception as e:

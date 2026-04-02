@@ -163,7 +163,7 @@ class APIOrderMapping(models.Model):
     """
     api_key = models.ForeignKey(APIKey, on_delete=models.CASCADE, related_name='orders')
     
-    # Link to internal rental (DaisySMS)
+    # Link to internal rental (MTelSMS)
     rental = models.ForeignKey('Rental', on_delete=models.CASCADE, null=True, blank=True)
     
     # API response data
