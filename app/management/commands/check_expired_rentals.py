@@ -49,40 +49,44 @@ class Command(BaseCommand):
                 # Check if expired
                 if time_remaining <= 0 and status == 'WAITING':
                     with transaction.atomic():
-                        # Mark as expired
-                        rental.status = 'EXPIRED'
-                        rental.save()
-                        expired_count += 1
+                        # Reload rental with lock to prevent race conditions
+                        rental = Rental.objects.select_for_update().get(rental_id=rental.rental_id)
                         
-                        # Issue refund if not already refunded
-                        if not rental.refund_issued:
-                            profile = rental.user.profile
-                            profile.balance += rental.price_paid
-                            profile.save()
-                            
-                            # Log refund transaction
-                            Transaction.objects.create(
-                                user=rental.user,
-                                amount=rental.price_paid,
-                                transaction_type='REFUND',
-                                description=f'Automatic refund for expired rental {rental.phone_number}'
-                            )
-                            
-                            rental.refund_issued = True
-                            rental.save()
-                            refunded_count += 1
-                            
-                            self.stdout.write(
-                                self.style.SUCCESS(
-                                    f"✓ Expired and refunded: {rental.rental_id} - {rental.phone_number}"
-                                )
-                            )
-                        else:
+                        # Check if already refunded (double-refund protection)
+                        if rental.refunded:
                             self.stdout.write(
                                 self.style.WARNING(
                                     f"⚠ Already refunded: {rental.rental_id}"
                                 )
                             )
+                            continue
+                        
+                        # Mark as expired
+                        rental.status = 'EXPIRED'
+                        rental.refunded = True
+                        rental.save()
+                        expired_count += 1
+                        
+                        # Issue refund
+                        profile = rental.user.profile
+                        profile.balance += rental.price
+                        profile.save()
+                        
+                        # Log refund transaction
+                        Transaction.objects.create(
+                            user=rental.user,
+                            amount=rental.price,
+                            transaction_type='REFUND',
+                            description=f'Automatic refund for expired rental {rental.phone_number}'
+                        )
+                        
+                        refunded_count += 1
+                            
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"✓ Expired and refunded: {rental.rental_id} - {rental.phone_number}"
+                            )
+                        )
                 
                 elif status == 'RECEIVED' and code:
                     # Update status if SMS was received

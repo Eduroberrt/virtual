@@ -224,6 +224,98 @@ def check_sms(request, rental_id):
                 'refunded': rental.refunded
             })
         
+        # AUTO-CANCEL AFTER 5 MINUTES IF NO SMS RECEIVED
+        # Check if rental has been waiting for 5+ minutes
+        from datetime import timedelta
+        if rental.status == 'WAITING':
+            time_since_creation = timezone.now() - rental.created_at
+            if time_since_creation >= timedelta(minutes=5):
+                logger.info(f"Rental {rental_id} has been waiting for {time_since_creation.total_seconds()/60:.1f} minutes - attempting auto-cancel")
+                
+                # Before auto-cancelling, check MTelSMS one more time to ensure SMS wasn't just received
+                try:
+                    client = get_mtelsms_client()
+                    status, code, phone_number, time_remaining = client.get_code(rental_id=rental_id)
+                    
+                    # If SMS was received, save it and return success (no cancel)
+                    if status == 'RECEIVED' and code:
+                        rental.status = 'RECEIVED'
+                        rental.save()
+                        
+                        message, created = SMSMessage.objects.get_or_create(
+                            rental=rental,
+                            code=code,
+                            defaults={'full_text': code}
+                        )
+                        
+                        logger.info(f"SMS received for rental {rental_id} just before auto-cancel - saved code")
+                        
+                        return json_response({
+                            'status': 'RECEIVED',
+                            'messages': [{
+                                'code': code,
+                                'full_text': code,
+                                'received_at': message.created_at.isoformat()
+                            }],
+                            'time_remaining': time_remaining
+                        })
+                    
+                    # SMS still not received after 5 minutes - proceed with auto-cancel
+                    elif status == 'WAITING':
+                        logger.info(f"Auto-cancelling rental {rental_id} after 5 minutes with no SMS")
+                        
+                        # Attempt to cancel with MTelSMS
+                        cancel_success = client.cancel_rental(rental_id=rental_id)
+                        
+                        if cancel_success:
+                            with transaction.atomic():
+                                # Reload rental with lock
+                                rental = Rental.objects.select_for_update().get(rental_id=rental_id, user=request.user)
+                                
+                                # Check if already refunded (race condition protection)
+                                if rental.refunded:
+                                    return json_response({
+                                        'status': 'CANCELLED',
+                                        'messages': [],
+                                        'refunded': True
+                                    })
+                                
+                                # Update rental status
+                                rental.status = 'CANCELLED'
+                                rental.refunded = True
+                                rental.save()
+                                
+                                # Issue refund
+                                refund_amount_naira = rental.get_naira_price()
+                                
+                                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                                profile.balance += refund_amount_naira
+                                profile.save()
+                                
+                                # Create refund transaction
+                                Transaction.objects.create(
+                                    user=request.user,
+                                    amount=refund_amount_naira,
+                                    transaction_type='REFUND',
+                                    description=f'Auto-refund: No SMS after 5 minutes - {rental.phone_number}',
+                                    rental=rental
+                                )
+                                
+                                logger.info(f"Auto-cancelled rental {rental_id} and refunded ₦{refund_amount_naira}")
+                            
+                            return json_response({
+                                'status': 'CANCELLED',
+                                'messages': [],
+                                'refunded': True
+                            })
+                        else:
+                            logger.warning(f"Failed to cancel rental {rental_id} with MTelSMS after 5 minutes")
+                            # Continue with normal flow if cancel failed
+                    
+                except MTelSMSException as e:
+                    logger.error(f"MTelSMS error during auto-cancel check for {rental_id}: {str(e)}")
+                    # Continue with normal flow if API call failed
+        
         try:
             client = get_mtelsms_client()
             # MTelSMS uses get_code() instead of get_status() for retrieving SMS
@@ -236,28 +328,37 @@ def check_sms(request, rental_id):
                 logger.info(f"Rental {rental_id} has expired (time_remaining={time_remaining})")
                 
                 with transaction.atomic():
+                    # Reload rental with lock to prevent race conditions
+                    rental = Rental.objects.select_for_update().get(rental_id=rental_id, user=request.user)
+                    
+                    # Check if already refunded (double-refund protection)
+                    if rental.refunded:
+                        logger.info(f"Rental {rental_id} already refunded, skipping")
+                        return json_response({
+                            'status': 'EXPIRED',
+                            'messages': [],
+                            'refunded': True
+                        })
+                    
                     # Mark as expired
                     rental.status = 'EXPIRED'
+                    rental.refunded = True
                     rental.save()
                     
-                    # Issue refund if not already refunded
-                    if not rental.refunded:
-                        profile, _ = UserProfile.objects.get_or_create(user=rental.user)
-                        profile.balance += rental.price
-                        profile.save()
-                        
-                        # Log refund transaction
-                        Transaction.objects.create(
-                            user=rental.user,
-                            amount=rental.price,
-                            transaction_type='REFUND',
-                            description=f'Automatic refund for expired rental {rental.phone_number}'
-                        )
-                        
-                        rental.refunded = True
-                        rental.save()
-                        
-                        logger.info(f"Automatic refund issued for expired rental {rental_id}, user received ₦{rental.price}")
+                    # Issue refund
+                    profile = UserProfile.objects.select_for_update().get(user=rental.user)
+                    profile.balance += rental.price
+                    profile.save()
+                    
+                    # Log refund transaction
+                    Transaction.objects.create(
+                        user=rental.user,
+                        amount=rental.price,
+                        transaction_type='REFUND',
+                        description=f'Automatic refund for expired rental {rental.phone_number}'
+                    )
+                    
+                    logger.info(f"Automatic refund issued for expired rental {rental_id}, user received ₦{rental.price}")
                 
                 return json_response({
                     'status': 'EXPIRED',
@@ -317,26 +418,36 @@ def check_sms(request, rental_id):
                 logger.info(f"Detected expired rental {rental_id} from error: {error_msg}")
                 
                 with transaction.atomic():
+                    # Reload rental with lock to prevent race conditions
+                    rental = Rental.objects.select_for_update().get(rental_id=rental_id, user=request.user)
+                    
+                    # Check if already refunded (double-refund protection)
+                    if rental.refunded:
+                        logger.info(f"Rental {rental_id} already refunded, skipping")
+                        return json_response({
+                            'status': 'EXPIRED',
+                            'messages': [],
+                            'refunded': True
+                        })
+                    
+                    # Mark as expired
                     rental.status = 'EXPIRED'
+                    rental.refunded = True
                     rental.save()
                     
-                    # Issue refund if not already refunded
-                    if not rental.refunded:
-                        profile, _ = UserProfile.objects.get_or_create(user=rental.user)
-                        profile.balance += rental.price
-                        profile.save()
-                        
-                        Transaction.objects.create(
-                            user=rental.user,
-                            amount=rental.price,
-                            transaction_type='REFUND',
-                            description=f'Automatic refund: Rental expired on provider - {rental.phone_number}'
-                        )
-                        
-                        rental.refunded = True
-                        rental.save()
-                        
-                        logger.info(f"Rental {rental_id} expired on MTelSMS, user refunded ₦{rental.price}")
+                    # Issue refund
+                    profile = UserProfile.objects.select_for_update().get(user=rental.user)
+                    profile.balance += rental.price
+                    profile.save()
+                    
+                    Transaction.objects.create(
+                        user=rental.user,
+                        amount=rental.price,
+                        transaction_type='REFUND',
+                        description=f'Automatic refund: Rental expired on provider - {rental.phone_number}'
+                    )
+                    
+                    logger.info(f"Rental {rental_id} expired on MTelSMS, user refunded ₦{rental.price}")
                 
                 return json_response({
                     'status': 'EXPIRED',

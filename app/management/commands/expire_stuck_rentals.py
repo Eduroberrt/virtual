@@ -62,24 +62,31 @@ class Command(BaseCommand):
     
     def _expire_rental(self, rental):
         """Expire a rental and issue refund"""
+        from app.models import UserProfile
+        
         with transaction.atomic():
+            # Reload rental with lock to prevent race conditions
+            rental = Rental.objects.select_for_update().get(rental_id=rental.rental_id)
+            
+            # Check if already refunded (double-refund protection)
+            if rental.refunded:
+                return
+            
+            # Mark as expired and refunded
             rental.status = 'EXPIRED'
+            rental.refunded = True
             rental.save()
             
-            # Issue refund if not already refunded
-            if not rental.refunded:
-                profile = rental.user.profile
-                profile.balance += rental.price
-                profile.save()
-                
-                Transaction.objects.create(
-                    user=rental.user,
-                    amount=rental.price,
-                    transaction_type='REFUND',
-                    description=f'Auto-refund: Expired rental - {rental.phone_number}'
-                )
-                
-                rental.refunded = True
-                rental.save()
-                
-                self.stdout.write(f'  Refunded ₦{rental.price} to {rental.user.username}')
+            # Issue refund with locked profile
+            profile = UserProfile.objects.select_for_update().get(user=rental.user)
+            profile.balance += rental.price
+            profile.save()
+            
+            Transaction.objects.create(
+                user=rental.user,
+                amount=rental.price,
+                transaction_type='REFUND',
+                description=f'Auto-refund: Expired rental - {rental.phone_number}'
+            )
+            
+            self.stdout.write(f'  Refunded ₦{rental.price} to {rental.user.username}')

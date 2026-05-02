@@ -32,8 +32,22 @@ class Command(BaseCommand):
         
         try:
             while True:
-                self.stdout.write(f'[{datetime.now()}] Checking for expired orders...')
+                self.stdout.write(f'[{datetime.now()}] Starting refund cycle...')
                 
+                # STEP 1: Sync order statuses from 5sim first
+                self.stdout.write('   → Syncing order statuses from 5sim...')
+                try:
+                    if dry_run_only:
+                        call_command('sync_fivesim_order_statuses', '--dry-run')
+                    else:
+                        call_command('sync_fivesim_order_statuses')
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.ERROR(f'   ✗ Status sync failed: {str(e)}')
+                    )
+                
+                # STEP 2: Process refunds for expired orders
+                self.stdout.write('   → Checking for expired orders to refund...')
                 if dry_run_only:
                     # Always dry-run
                     call_command('auto_refund_expired_fivesim', '--dry-run')
@@ -41,7 +55,7 @@ class Command(BaseCommand):
                     # Run actual refunds
                     call_command('auto_refund_expired_fivesim')
                 
-                self.stdout.write(f'Sleeping for {interval} seconds...\n')
+                self.stdout.write(f'✓ Cycle complete. Sleeping for {interval} seconds...\n')
                 time.sleep(interval)
                 
         except KeyboardInterrupt:

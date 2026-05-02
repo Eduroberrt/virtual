@@ -324,12 +324,23 @@ def cancel_order(request, order_id):
         
         # Process refund and update order status
         with atomic():
-            # Update order status
+            # Reload order with lock to prevent race conditions
+            order = FiveSimOrder.objects.select_for_update().get(order_id=order_id, user=request.user)
+            
+            # Check if already refunded (double-refund protection)
+            if order.refunded:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Order has already been refunded'
+                })
+            
+            # Update order status and mark as refunded
             order.status = result['status']
+            order.refunded = True
             order.save()
             
-            # Process refund
-            user_profile = UserProfile.objects.get(user=request.user)
+            # Process refund with locked profile
+            user_profile = UserProfile.objects.select_for_update().get(user=request.user)
             refund_amount = order.price_naira
             
             # Credit user balance

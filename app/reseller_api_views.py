@@ -447,6 +447,122 @@ def api_check_order(request, order_id):
         
         rental = api_order.rental
         
+        # AUTO-CANCEL AFTER 5 MINUTES IF NO SMS RECEIVED
+        # Check if rental has been waiting for 5+ minutes
+        from datetime import timedelta
+        if rental.status == 'WAITING':
+            time_since_creation = timezone.now() - rental.created_at
+            if time_since_creation >= timedelta(minutes=5):
+                logger.info(f"API Order {order_id}: Rental {rental.rental_id} has been waiting for {time_since_creation.total_seconds()/60:.1f} minutes - attempting auto-cancel")
+                
+                # Before auto-cancelling, check MTelSMS one more time to ensure SMS wasn't just received
+                try:
+                    client = get_mtelsms_client()
+                    status, code, phone_number, time_remaining = client.get_code(rental_id=rental.rental_id)
+                    
+                    # If SMS was received, save it and return success (no cancel)
+                    if status == 'RECEIVED' and code:
+                        rental.status = 'RECEIVED'
+                        api_order.status = 'RECEIVED'
+                        rental.save()
+                        api_order.save()
+                        
+                        SMSMessage.objects.get_or_create(
+                            rental=rental,
+                            code=code,
+                            defaults={'full_text': code}
+                        )
+                        
+                        logger.info(f"API Order {order_id}: SMS received just before auto-cancel - saved code")
+                        
+                        messages = [{
+                            'code': msg.code,
+                            'text': msg.full_text,
+                            'received_at': msg.received_at.isoformat()
+                        } for msg in rental.messages.all()]
+                        
+                        response_time_ms = int((time.time() - start_time) * 1000)
+                        log_api_request(request.api_key_obj, f'/api/v1/order/{order_id}', 'GET', 200, response_time_ms, request=request)
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'order_id': order_id,
+                            'rental_id': rental.rental_id,
+                            'phone_number': rental.phone_number,
+                            'status': 'RECEIVED',
+                            'messages': messages
+                        })
+                    
+                    # SMS still not received after 5 minutes - proceed with auto-cancel
+                    elif status == 'WAITING':
+                        logger.info(f"API Order {order_id}: Auto-cancelling after 5 minutes with no SMS")
+                        
+                        # Attempt to cancel with MTelSMS
+                        cancel_success = client.cancel_rental(rental_id=rental.rental_id)
+                        
+                        if cancel_success:
+                            with transaction.atomic():
+                                # Reload rental with lock
+                                rental = Rental.objects.select_for_update().get(rental_id=rental.rental_id)
+                                api_order = APIOrderMapping.objects.select_for_update().get(api_order_id=order_id)
+                                
+                                # Check if already refunded (race condition protection)
+                                if rental.refunded:
+                                    response_time_ms = int((time.time() - start_time) * 1000)
+                                    log_api_request(request.api_key_obj, f'/api/v1/order/{order_id}', 'GET', 200, response_time_ms, request=request)
+                                    
+                                    return JsonResponse({
+                                        'success': True,
+                                        'order_id': order_id,
+                                        'status': 'CANCELLED',
+                                        'refunded': True,
+                                        'messages': []
+                                    })
+                                
+                                # Update rental and API order status
+                                rental.status = 'CANCELLED'
+                                rental.refunded = True
+                                rental.save()
+                                
+                                api_order.status = 'CANCELLED'
+                                api_order.save()
+                                
+                                # Issue refund
+                                user = request.api_user
+                                profile = UserProfile.objects.select_for_update().get(user=user)
+                                profile.balance += api_order.api_price
+                                profile.save()
+                                
+                                # Create refund transaction
+                                Transaction.objects.create(
+                                    user=user,
+                                    amount=api_order.api_price,
+                                    transaction_type='REFUND',
+                                    description=f'Auto-refund: API order {order_id} - No SMS after 5 minutes',
+                                    rental=rental
+                                )
+                                
+                                logger.info(f"API Order {order_id}: Auto-cancelled and refunded ₦{api_order.api_price}")
+                            
+                            response_time_ms = int((time.time() - start_time) * 1000)
+                            log_api_request(request.api_key_obj, f'/api/v1/order/{order_id}', 'GET', 200, response_time_ms, request=request)
+                            
+                            return JsonResponse({
+                                'success': True,
+                                'order_id': order_id,
+                                'rental_id': rental.rental_id,
+                                'status': 'CANCELLED',
+                                'refunded': True,
+                                'messages': []
+                            })
+                        else:
+                            logger.warning(f"API Order {order_id}: Failed to cancel with MTelSMS after 5 minutes")
+                            # Continue with normal flow if cancel failed
+                    
+                except MTelSMSException as e:
+                    logger.error(f"API Order {order_id}: MTelSMS error during auto-cancel check: {str(e)}")
+                    # Continue with normal flow if API call failed
+        
         # Check with MTelSMS for updates
         try:
             client = get_mtelsms_client()
@@ -457,30 +573,50 @@ def api_check_order(request, order_id):
             # Check if rental has expired (time_remaining = 0)
             if time_remaining <= 0 and status == 'WAITING':
                 with transaction.atomic():
+                    # Reload rental and API order with locks to prevent race conditions
+                    rental = Rental.objects.select_for_update().get(rental_id=rental.rental_id)
+                    api_order = APIOrderMapping.objects.select_for_update().get(api_order_id=order_id)
+                    
+                    # Check if already refunded (double-refund protection)
+                    if rental.refunded:
+                        logger.info(f"API Order {order_id}: Rental already refunded, skipping")
+                        response_time_ms = int((time.time() - start_time) * 1000)
+                        log_api_request(request.api_key_obj, f'/api/v1/order/{order_id}', 'GET', 200, response_time_ms, request=request)
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'order_id': order_id,
+                            'rental_id': rental.rental_id,
+                            'phone_number': rental.phone_number,
+                            'status': 'EXPIRED',
+                            'service': rental.service.code,
+                            'service_name': rental.service.name,
+                            'sms': [],
+                            'created_at': rental.created_at.isoformat()
+                        })
+                    
                     # Mark as expired
                     rental.status = 'EXPIRED'
+                    rental.refunded = True
                     api_order.status = 'EXPIRED'
                     rental.save()
                     api_order.save()
                     
-                    # Issue refund if not already refunded
-                    if not rental.refunded:
-                        profile = rental.user.profile
-                        profile.balance += rental.price
-                        profile.save()
-                        
-                        # Log refund transaction
-                        Transaction.objects.create(
-                            user=rental.user,
-                            amount=rental.price,
-                            transaction_type='REFUND',
-                            description=f'Automatic refund for expired rental {rental.phone_number}'
-                        )
-                        
-                        rental.refunded = True
-                        rental.save()
-                        
-                        logger.info(f"Automatic refund issued for expired rental {rental.rental_id}")
+                    # Issue refund
+                    user = request.api_user
+                    profile = UserProfile.objects.select_for_update().get(user=user)
+                    profile.balance += rental.price
+                    profile.save()
+                    
+                    # Log refund transaction
+                    Transaction.objects.create(
+                        user=user,
+                        amount=rental.price,
+                        transaction_type='REFUND',
+                        description=f'Automatic refund for expired rental {rental.phone_number}'
+                    )
+                    
+                    logger.info(f"Automatic refund issued for expired rental {rental.rental_id}")
             else:
                 # Update rental status normally
                 rental.status = status
@@ -589,6 +725,25 @@ def api_cancel_order(request, order_id):
         
         # Process refund
         with transaction.atomic():
+            # Reload rental and API order with locks to prevent race conditions
+            rental = Rental.objects.select_for_update().get(rental_id=rental.rental_id)
+            api_order = APIOrderMapping.objects.select_for_update().get(api_order_id=order_id)
+            
+            # Check if already refunded (double-refund protection)
+            if rental.refunded:
+                response_time_ms = int((time.time() - start_time) * 1000)
+                log_api_request(request.api_key_obj, f'/api/v1/order/{order_id}/cancel', 'POST', 200, response_time_ms, request=request)
+                
+                return JsonResponse({
+                    'success': True,
+                    'order_id': order_id,
+                    'status': 'CANCELLED',
+                    'refund_amount': float(api_order.api_price),
+                    'currency': 'NGN',
+                    'message': 'Already refunded'
+                })
+            
+            # Mark as cancelled
             rental.status = 'CANCELLED'
             rental.refunded = True
             rental.save()
@@ -598,7 +753,7 @@ def api_cancel_order(request, order_id):
             
             # Refund to user
             user = request.api_user
-            profile = UserProfile.objects.get(user=user)
+            profile = UserProfile.objects.select_for_update().get(user=user)
             profile.balance += api_order.api_price
             profile.save()
             

@@ -358,6 +358,7 @@ class FiveSimOrder(models.Model):
     price_naira = models.DecimalField(max_digits=12, decimal_places=2)  # Price charged to user in NGN
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     expires_at = models.DateTimeField()
+    refunded = models.BooleanField(default=False)  # Prevent double refunds
     forwarding = models.BooleanField(default=False)
     forwarding_number = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
