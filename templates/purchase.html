@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Purchase SMS Numbers - 5sim.net{% endblock %}
+{% block title %}Purchase SMS Numbers - Dashboard 1{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -17,7 +17,7 @@
                     {% if not api_key_configured %}
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle"></i>
-                            Please <a href="{% url 'api_key_settings' %}">configure your 5sim API key</a> to start purchasing numbers.
+                            Please <a href="{% url 'api_key_settings' %}">configure your Dashboard 1 API key</a> to start purchasing numbers.
                         </div>
                     {% else %}
                         <!-- Purchase Form -->

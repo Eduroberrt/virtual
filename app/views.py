@@ -358,7 +358,7 @@ def dashboard_1(request):
     context = {
         'user_profile': profile,
         'dashboard_type': '5sim',
-        'dashboard_name': 'Dashboard 1 - 5sim',
+        'dashboard_name': 'Dashboard 1',
     }
     return render(request, 'dashboard-1.html', context)
 
@@ -377,7 +377,7 @@ def dashboard_2(request):
         'user_profile': profile,
         'services': services,
         'dashboard_type': 'mtelsms',
-        'dashboard_name': 'Dashboard 2 - MTelSMS',
+        'dashboard_name': 'Dashboard 2',
     }
     return render(request, 'dashboard-2.html', context)
 

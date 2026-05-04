@@ -56,14 +56,14 @@ def recover_purchase(request):
             logger.error(f"Failed to get order data from 5sim: {api_error}")
             return JsonResponse({
                 'success': False,
-                'error': f'Could not retrieve order from 5sim: {str(api_error)}'
+                'error': f'Could not retrieve order from Dashboard 1: {str(api_error)}'
             })
         
         # Validate order data
         if not isinstance(order_data, dict) or 'id' not in order_data:
             return JsonResponse({
                 'success': False,
-                'error': 'Invalid order data received from 5sim'
+                'error': 'Invalid order data received from Dashboard 1'
             })
         
         # Calculate price in Naira (use a reasonable conversion rate)

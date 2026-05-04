@@ -3,9 +3,6 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db import transaction
 from app.models import FiveSimOrder, UserProfile, Transaction
-import logging
-
-logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Automatically refund expired 5sim orders that never received SMS'
@@ -37,7 +34,8 @@ class Command(BaseCommand):
         # EXPIRED status means we already processed the refund
         expired_orders = FiveSimOrder.objects.filter(
             status__in=['PENDING', 'TIMEOUT', 'CANCELED'],
-            created_at__gte=cutoff_time
+            created_at__gte=cutoff_time,
+            refunded=False  # Only non-refunded orders
         ).select_related('user').prefetch_related('sms_messages')
         
         total_expired = expired_orders.count()
@@ -108,7 +106,7 @@ class Command(BaseCommand):
                             user=order.user,
                             amount=order.price_naira,
                             transaction_type='REFUND',
-                            description=f'Auto-refund: Expired 5sim order #{order.id} - {order.product} ({order.phone_number})'
+                            description=f'Auto-refund: Expired Dashboard 1 order #{order.id} - {order.product} ({order.phone_number})'
                         )
                         
                         self.stdout.write(
@@ -126,7 +124,6 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.ERROR(f'✗ Error refunding Order #{order.id}: {str(e)}')
                 )
-                logger.error(f'Auto-refund error for order {order.id}: {str(e)}')
         
         # Summary
         self.stdout.write('\n' + '='*50)

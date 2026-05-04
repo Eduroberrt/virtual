@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
             checkAllSMS();
         }
     }
-    setInterval(adaptiveSMSPoll, 20000); // Check every 20 seconds to avoid MTelSMS rate limits
+    setInterval(adaptiveSMSPoll, 20000); // Check every 20 seconds to avoid Dashboard 2 rate limits
 
     // Set up real-time wallet balance updates
     updateUserBalance(); // Initial balance load
@@ -585,7 +585,7 @@ function updateRentalsTable(rentals) {
 
     
     // Filter rentals to show in the table:
-    // 1. Active waiting rentals (not cancelled/expired by MTelSMS)
+    // 1. Active waiting rentals (not cancelled/expired by Dashboard 2)
     // 2. Rentals that have received codes (show regardless of age - these are successful)
     const activeRentals = rentals.filter(rental => {
         const isCancelled = rental.status === 'CANCELLED' || rental.status === 'EXPIRED';
@@ -596,7 +596,7 @@ function updateRentalsTable(rentals) {
             return true;
         }
         
-        // For rentals without codes, only show if still active (not cancelled/expired by MTelSMS)
+        // For rentals without codes, only show if still active (not cancelled/expired by Dashboard 2)
         return !isCancelled;
     });
     
@@ -759,7 +759,7 @@ async function checkSMS(rentalId) {
             console.log(`Found code for rental ${rentalId}: ${latestMessage.code}`);
             updateSMSCode(rentalId, latestMessage.code);
         } else if (data.status === 'CANCELLED' || data.status === 'EXPIRED') {
-            // Handle rental expiration/cancellation from MTelSMS
+            // Handle rental expiration/cancellation from Dashboard 2
             console.log(`Rental ${rentalId} status changed to: ${data.status}`);
             handleRentalStatusChange(rentalId, data.status);
         } else {
@@ -823,7 +823,7 @@ async function checkAllSMS() {
         if (codeCell && codeCell.querySelector('.spinner-border')) {
             console.log(`Polling: Checking SMS for rental ${rentalId} because it has a spinner.`);
             await checkSMS(rentalId);
-            // Add 5-second delay between checks to avoid MTelSMS rate limiting
+            // Add 5-second delay between checks to avoid Dashboard 2 rate limiting
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }
@@ -1154,14 +1154,14 @@ function testPhoneValidation(phoneNumber) {
     return result;
 }
 
-// Fetch real-time prices from MTelSMS API (optional feature)
+// Fetch real-time prices from Dashboard 2 API (optional feature)
 async function fetchRealtimePrices() {
     try {
         const response = await fetch('/api/realtime-prices/');
         const data = await response.json();
         
         if (data.success && data.realtime_prices) {
-            console.log('Real-time prices from MTelSMS:', data.realtime_prices);
+            console.log('Real-time prices from Dashboard 2:', data.realtime_prices);
             
             // Update service availability based on real-time data
             const serviceRows = document.querySelectorAll('.service-row');

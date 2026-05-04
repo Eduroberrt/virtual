@@ -80,17 +80,17 @@
                             <form method="post">
                                 {% csrf_token %}
                                 <div class="mb-3">
-                                    <label for="api_key" class="form-label">5sim API Key (Dashboard 1)</label>
+                                    <label for="api_key" class="form-label">Dashboard 1 API Key (Dashboard 1)</label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="api_key" name="api_key" 
                                                value="{{ profile.api_key|default:'' }}" 
-                                               placeholder="Enter your 5sim API key">
+                                               placeholder="Enter your Dashboard 1 API key">
                                         <button type="button" class="btn btn-outline-secondary" onclick="toggleApiKey()">
                                             <i class="fas fa-eye" id="apiKeyIcon"></i>
                                         </button>
                                     </div>
                                     <div class="form-text">
-                                        Get your API key from <a href="https://5sim.net/settings/security" target="_blank">5sim</a>
+                                        Get your API key from <a href="https://5sim.net/settings/security" target="_blank">Dashboard 1</a>
                                     </div>
                                 </div>
                                 

@@ -10,8 +10,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--interval',
             type=int,
-            default=300,  # 5 minutes
-            help='Interval between refund checks in seconds (default: 300)',
+            default=120,  # 2 minutes (same as Dashboard-2)
+            help='Interval between refund checks in seconds (default: 120)',
         )
         parser.add_argument(
             '--dry-run-only',
@@ -44,6 +44,18 @@ class Command(BaseCommand):
                 except Exception as e:
                     self.stdout.write(
                         self.style.ERROR(f'   ✗ Status sync failed: {str(e)}')
+                    )
+                
+                # STEP 1.5: Auto-cancel orders waiting > 5 minutes without SMS
+                self.stdout.write('   → Auto-cancelling orders waiting > 5 minutes...')
+                try:
+                    if dry_run_only:
+                        call_command('auto_cancel_5min_fivesim', '--dry-run')
+                    else:
+                        call_command('auto_cancel_5min_fivesim')
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.ERROR(f'   ✗ 5-minute auto-cancel failed: {str(e)}')
                     )
                 
                 # STEP 2: Process refunds for expired orders
