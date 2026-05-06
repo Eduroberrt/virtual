@@ -253,7 +253,6 @@ function displayRecentOrders(orders) {
             <td>${services[order.product] || order.product}</td>
             <td>${getCountryFlag(order.country)}</td>
             <td class="copyable-phone" data-copy="${order.phone_number || ''}">${order.phone_number || 'N/A'}</td>
-            <td class="countdown-timer ${order.sms_code ? 'completed' : ''}" data-expires="${order.expires_at}" data-has-code="${!!order.sms_code}">${getTTLDisplay(order)}</td>
             <td class="code-column copyable-code" data-copy="${order.sms_code || ''}">${getCodeDisplay(order)}</td>
             <td class="status-column">${getStatusButton(order)}</td>
         </tr>
